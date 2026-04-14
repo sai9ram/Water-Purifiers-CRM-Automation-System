@@ -1,0 +1,301 @@
+/* Stats Bar */
+.reminder-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+
+    @media (max-width: 700px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.rstat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-sm);
+
+    mat-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+    }
+
+    strong {
+        display: block;
+        font-size: 1.5rem;
+        font-family: 'Sora', sans-serif;
+        font-weight: 700;
+    }
+
+    span {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+}
+
+/* Filters */
+.reminder-filters {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background: var(--bg-card);
+        cursor: pointer;
+        font-size: 0.83rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        transition: all 0.15s;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+        }
+
+        &:hover {
+            border-color: var(--brand-primary);
+            color: var(--brand-primary);
+        }
+
+        &.active {
+            background: var(--brand-primary);
+            color: white;
+            border-color: var(--brand-primary);
+        }
+    }
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Message Preview */
+.message-preview {
+    background: #e5ddd5;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+}
+
+.preview-header {
+    background: #075e54;
+    color: white;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    span {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.88rem;
+        font-weight: 600;
+    }
+
+    mat-icon {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    button {
+        color: rgba(255, 255, 255, 0.7);
+    }
+}
+
+.whatsapp-bubble {
+    padding: 16px;
+
+    pre {
+        background: white;
+        border-radius: 8px;
+        border-top-left-radius: 0;
+        padding: 12px 16px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.85rem;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-width: 420px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.13);
+        margin: 0;
+    }
+}
+
+/* Reminder List */
+.reminder-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.reminder-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: var(--bg-base);
+    }
+
+    &.selected {
+        background: var(--brand-light);
+    }
+}
+
+.customer-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--brand-light);
+    color: var(--brand-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.customer-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    strong {
+        font-size: 0.9rem;
+    }
+
+    span {
+        font-size: 0.77rem;
+        color: var(--text-secondary);
+    }
+
+    .model-tag {
+        display: inline-block;
+        background: var(--brand-light);
+        color: var(--brand-dark);
+        border-radius: 10px;
+        padding: 1px 8px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        width: fit-content;
+    }
+}
+
+.due-info {
+    text-align: right;
+    min-width: 100px;
+
+    .rent-amount {
+        font-weight: 700;
+        font-size: 0.92rem;
+        color: var(--brand-dark);
+    }
+}
+
+.due-overdue {
+    color: var(--danger);
+    font-size: 0.77rem;
+    font-weight: 600;
+}
+
+.due-soon {
+    color: var(--warning);
+    font-size: 0.77rem;
+    font-weight: 600;
+}
+
+.due-ok {
+    color: var(--text-muted);
+    font-size: 0.77rem;
+}
+
+.reminder-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.wa-send-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 1px solid #25d366;
+    border-radius: 20px;
+    background: white;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #128c7e;
+    transition: all 0.15s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+
+    &:hover {
+        background: #e8f5e9;
+    }
+
+    &.sent {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border-color: #a5d6a7;
+    }
+}
+
+.info-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--brand-light);
+    border: 1px solid var(--brand-accent);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-top: 16px;
+    color: var(--brand-dark);
+
+    mat-icon {
+        flex-shrink: 0;
+        color: var(--brand-primary);
+        margin-top: 2px;
+    }
+
+    p {
+        margin: 0;
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+}

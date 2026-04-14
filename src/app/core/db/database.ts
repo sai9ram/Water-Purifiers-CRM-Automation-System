@@ -9,10 +9,10 @@ export class AppDatabase extends Dexie {
 
   constructor() {
     super('PureHomeWatersDB');
-    this.version(1).stores({
+    this.version(2).stores({
       customers:      '++id, name, phone, planId, status, nextDueDate, area',
       rentalPlans:    '++id, name, monthlyRent',
-      serviceRecords: '++id, customerId, serviceDate, serviceType',
+      serviceRecords: '++id, customerId, serviceDate, serviceType, nextServiceDate',
       payments:       '++id, customerId, paidDate'
     });
   }

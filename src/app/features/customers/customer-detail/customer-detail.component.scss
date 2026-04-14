@@ -1,0 +1,255 @@
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    box-shadow: var(--shadow-sm);
+}
+
+.info-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.info-label {
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.info-value {
+    font-weight: 600;
+    font-size: 0.92rem;
+    margin-top: 3px;
+}
+
+.info-value.small {
+    font-size: 0.82rem;
+    font-weight: 400;
+}
+
+.overdue-text {
+    color: var(--danger);
+}
+
+.detail-tabs {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.tab-content {
+    padding: 20px;
+}
+
+.tab-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    h4 {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+}
+
+.inline-form {
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+/* Timeline */
+.service-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.timeline-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: white;
+    }
+}
+
+.timeline-body {
+    flex: 1;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+
+    strong {
+        font-size: 0.9rem;
+    }
+}
+
+.timeline-date {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.timeline-meta {
+    display: flex;
+    gap: 14px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+
+    span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+
+        mat-icon {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+        }
+    }
+}
+
+.timeline-notes {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin: 6px 0 0;
+}
+
+/* Payments */
+.payment-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.payment-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.payment-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e8f5e9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+        color: #2e7d32;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.payment-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    strong {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #2e7d32;
+    }
+
+    span {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+    }
+
+    .payment-note {
+        font-style: italic;
+    }
+}

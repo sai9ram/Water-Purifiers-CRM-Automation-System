@@ -16,7 +16,7 @@ interface NavItem {
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, MatIconModule, MatRippleModule, CommonModule],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrl: './app.component.scss'
 })
 export class AppComponent {
   sidebarCollapsed = signal(false);

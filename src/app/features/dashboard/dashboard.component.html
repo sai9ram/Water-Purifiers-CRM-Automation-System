@@ -1,0 +1,127 @@
+<div class="page-container fade-in">
+    <div class="page-header">
+        <div>
+            <h2>Dashboard</h2>
+            <p class="subtitle">Welcome back! Here's what's happening today.</p>
+        </div>
+        <a routerLink="/customers" mat-raised-button color="primary">
+            <mat-icon>person_add</mat-icon> Add Customer
+        </a>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#e0f7fa">
+                <mat-icon style="color:#0097a7">people</mat-icon>
+            </div>
+            <div class="stat-label">Total Customers</div>
+            <div class="stat-value">{{ stats.total }}</div>
+            <div class="stat-sub">{{ stats.active }} active</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#e8f5e9">
+                <mat-icon style="color:#2e7d32">currency_rupee</mat-icon>
+            </div>
+            <div class="stat-label">Monthly Revenue</div>
+            <div class="stat-value">₹{{ stats.monthlyRevenue | number }}</div>
+            <div class="stat-sub">from active rentals</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#fff8e1">
+                <mat-icon style="color:#f57f17">notification_important</mat-icon>
+            </div>
+            <div class="stat-label">Due This Month</div>
+            <div class="stat-value">{{ dueCustomers.length }}</div>
+            <div class="stat-sub">
+                <a routerLink="/reminders" style="color:var(--brand-primary)">Send reminders →</a>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#ffebee">
+                <mat-icon style="color:#c62828">warning</mat-icon>
+            </div>
+            <div class="stat-label">Overdue</div>
+            <div class="stat-value">{{ stats.overdue }}</div>
+            <div class="stat-sub">need follow-up</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#f3e5f5">
+                <mat-icon style="color:#6a1b9a">build</mat-icon>
+            </div>
+            <div class="stat-label">Services This Month</div>
+            <div class="stat-value">{{ serviceStats.thisMonth }}</div>
+            <div class="stat-sub">{{ serviceStats.upcoming }} upcoming</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#e8eaf6">
+                <mat-icon style="color:#283593">savings</mat-icon>
+            </div>
+            <div class="stat-label">Total Collected</div>
+            <div class="stat-value">₹{{ stats.totalRevenue | number }}</div>
+            <div class="stat-sub">all time</div>
+        </div>
+    </div>
+
+    <div class="two-col">
+        <!-- Due This Month -->
+        <div class="table-card">
+            <div class="card-header">
+                <h3><mat-icon>notifications_active</mat-icon> Due This Month</h3>
+                <a routerLink="/reminders" class="see-all">See all →</a>
+            </div>
+
+            <div *ngIf="dueCustomers.length === 0" class="empty-state" style="padding:30px">
+                <mat-icon>check_circle</mat-icon>
+                <h4>All clear!</h4>
+                <p>No pending dues this month.</p>
+            </div>
+
+            <div class="due-list" *ngIf="dueCustomers.length > 0">
+                <div class="due-item" *ngFor="let c of dueCustomers.slice(0, 6)">
+                    <div class="due-avatar">{{ c.name[0] }}</div>
+                    <div class="due-info">
+                        <strong>{{ c.name }}</strong>
+                        <span>{{ c.area }} · ₹{{ c.monthlyRent }}</span>
+                    </div>
+                    <button class="wa-btn" (click)="sendReminder(c)" title="Send WhatsApp Reminder">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="18"
+                            alt="WhatsApp" />
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Services -->
+        <div class="table-card">
+            <div class="card-header">
+                <h3><mat-icon>build</mat-icon> Recent Services</h3>
+                <a routerLink="/services" class="see-all">See all →</a>
+            </div>
+
+            <div *ngIf="recentServices.length === 0" class="empty-state" style="padding:30px">
+                <mat-icon>build_circle</mat-icon>
+                <h4>No services yet</h4>
+                <p>Service records will appear here.</p>
+            </div>
+
+            <div class="service-list" *ngIf="recentServices.length > 0">
+                <div class="service-item" *ngFor="let s of recentServices">
+                    <div class="service-icon">
+                        <mat-icon>{{ getServiceIcon(s.serviceType) }}</mat-icon>
+                    </div>
+                    <div class="service-info">
+                        <strong>{{ s.customerName || 'Customer' }}</strong>
+                        <span>{{ s.serviceType | titlecase }} · {{ s.serviceDate | date:'dd MMM' }}</span>
+                    </div>
+                    <span class="chip chip-info">{{ s.technicianName }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

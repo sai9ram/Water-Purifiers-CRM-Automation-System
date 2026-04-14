@@ -8,14 +8,13 @@
                 <span class="brand-name">Pure Home</span>
                 <span class="brand-sub">Waters CRM</span>
             </div>
-            <button class="collapse-btn" (click)="toggleSidebar()" matRipple>
+            <button class="collapse-btn" (click)="toggleSidebar()" *ngIf="!sidebarCollapsed()">
                 <mat-icon>{{ sidebarCollapsed() ? 'menu' : 'menu_open' }}</mat-icon>
             </button>
         </div>
 
         <nav class="sidebar-nav">
-            <a *ngFor="let item of navItems" [routerLink]="item.path" routerLinkActive="active" class="nav-item"
-                matRipple [matRippleColor]="'rgba(255,255,255,0.1)'">
+            <a *ngFor="let item of navItems" [routerLink]="item.path" routerLinkActive="active" class="nav-item">
                 <mat-icon>{{ item.icon }}</mat-icon>
                 <span class="nav-label" *ngIf="!sidebarCollapsed()">{{ item.label }}</span>
                 <span class="nav-badge" *ngIf="item.badge && !sidebarCollapsed()">{{ item.badge }}</span>
@@ -31,8 +30,8 @@
     <!-- Main Content -->
     <div class="main-area">
         <header class="topbar">
-            <div class="topbar-left">
-                <button class="mobile-menu-btn" (click)="toggleSidebar()" matRipple>
+            <div class="topbar-left" *ngIf="sidebarCollapsed()">
+                <button class="mobile-menu-btn" (click)="toggleSidebar()">
                     <mat-icon>menu</mat-icon>
                 </button>
             </div>
