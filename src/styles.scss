@@ -1,4 +1,5 @@
 @use '@angular/material' as mat;
+@include mat.core();
 
 // ── Custom Theme ────────────────────────────────────────────────────────────
 $primary-palette: mat.define-palette(mat.$cyan-palette, 700, 400, 900);
@@ -278,3 +279,4 @@ a { color: var(--brand-primary); text-decoration: none; }
 }
 
 .fade-in { animation: fadeInUp 0.35s ease both; }
+

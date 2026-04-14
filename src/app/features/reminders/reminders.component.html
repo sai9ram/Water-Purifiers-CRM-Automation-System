@@ -64,11 +64,13 @@
     </div>
 
     <!-- Progress bar during bulk send -->
-    <mat-progress-bar *ngIf="bulkSending" mode="determinate" [value]="bulkProgress"
-        style="margin-bottom:16px"></mat-progress-bar>
+    @if (bulkSending) {
+    <mat-progress-bar mode="determinate" [value]="bulkProgress" style="margin-bottom:16px"></mat-progress-bar>
+    }
 
     <!-- Message Preview -->
-    <div class="message-preview" *ngIf="previewCustomer">
+    @if (previewCustomer) {
+    <div class="message-preview">
         <div class="preview-header">
             <span><mat-icon>preview</mat-icon> Message Preview</span>
             <button mat-icon-button (click)="previewCustomer = null"><mat-icon>close</mat-icon></button>
@@ -77,18 +79,22 @@
             <pre>{{ previewMessage }}</pre>
         </div>
     </div>
+    }
 
     <!-- Customer List -->
     <div class="table-card">
-
-        <div *ngIf="displayedCustomers.length === 0" class="empty-state">
+        @if (displayedCustomers.length === 0) {
+        <div class="empty-state">
             <mat-icon>notifications_off</mat-icon>
             <h4>No customers in this category</h4>
             <p>Switch tabs to view other customers.</p>
         </div>
+        }
 
-        <div class="reminder-list" *ngIf="displayedCustomers.length > 0">
-            <div class="reminder-item" *ngFor="let c of displayedCustomers" [class.selected]="selectedIds.has(c.id!)">
+        @if (displayedCustomers.length > 0) {
+        <div class="reminder-list">
+            @for (c of displayedCustomers; track $index) {
+            <div class="reminder-item" [class.selected]="selectedIds.has(c.id!)">
                 <mat-checkbox [checked]="selectedIds.has(c.id!)" (change)="toggleSelect(c.id!, $event.checked)"
                     color="primary">
                 </mat-checkbox>
@@ -121,11 +127,14 @@
                     </button>
                 </div>
             </div>
+            }
         </div>
+        }
     </div>
 
     <!-- Bulk Send Instructions -->
-    <div class="info-banner" *ngIf="selectedIds.size > 0">
+    @if (selectedIds.size > 0) {
+    <div class="info-banner">
         <mat-icon>info</mat-icon>
         <p>
             <strong>Bulk Send:</strong> Each customer's WhatsApp will open one at a time with a pre-filled message.
@@ -133,4 +142,5 @@
             Allow pop-ups in your browser if needed.
         </p>
     </div>
+    }
 </div>

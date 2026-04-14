@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
@@ -19,7 +19,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { CustomerService } from '../../../core/services/customer.service';
 import { PlanService } from '../../../core/services/plan.service';
 import { WhatsappService } from '../../../core/services/whatsapp.service';
-import { Customer, RentalPlan, PURIFIER_MODELS, CustomerStatus } from '../../../core/models/models';
+import { Customer, RentalPlan, CustomerStatus } from '../../../core/models/models';
 import { CustomerFormDialogComponent } from '../customer-form-dialog/customer-form-dialog.component';
 
 @Component({
@@ -36,7 +36,7 @@ import { CustomerFormDialogComponent } from '../customer-form-dialog/customer-fo
   templateUrl: './customer-list.component.html',
   styleUrl: './customer-list.component.scss'
 })
-export class CustomerListComponent implements OnInit {
+export class CustomerListComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -48,13 +48,11 @@ export class CustomerListComponent implements OnInit {
   statusFilter = '';
   planFilter: number | '' = '';
 
-  constructor(
-    private customerSvc: CustomerService,
-    private planSvc: PlanService,
-    private waSvc: WhatsappService,
-    private dialog: MatDialog,
-    private snack: MatSnackBar
-  ) {}
+  private customerSvc = inject(CustomerService);
+  private planSvc = inject(PlanService);
+  private waSvc = inject(WhatsappService);
+  private dialog = inject(MatDialog);
+  private snack = inject(MatSnackBar);
 
   ngOnInit(): void {
     this.loadPlans();

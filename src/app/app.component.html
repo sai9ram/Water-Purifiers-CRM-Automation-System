@@ -4,37 +4,51 @@
     <aside class="sidebar">
         <div class="sidebar-brand">
             <div class="brand-icon">💧</div>
-            <div class="brand-text" *ngIf="!sidebarCollapsed()">
+            @if (!sidebarCollapsed()) {
+            <div class="brand-text">
                 <span class="brand-name">Pure Home</span>
                 <span class="brand-sub">Waters CRM</span>
             </div>
-            <button class="collapse-btn" (click)="toggleSidebar()" *ngIf="!sidebarCollapsed()">
+            }
+            @if (!sidebarCollapsed()) {
+            <button class="collapse-btn" (click)="toggleSidebar()">
                 <mat-icon>{{ sidebarCollapsed() ? 'menu' : 'menu_open' }}</mat-icon>
             </button>
+            }
         </div>
 
         <nav class="sidebar-nav">
-            <a *ngFor="let item of navItems" [routerLink]="item.path" routerLinkActive="active" class="nav-item">
+            @for (item of navItems; track item) {
+            <a [routerLink]="item.path" routerLinkActive="active" class="nav-item">
                 <mat-icon>{{ item.icon }}</mat-icon>
-                <span class="nav-label" *ngIf="!sidebarCollapsed()">{{ item.label }}</span>
-                <span class="nav-badge" *ngIf="item.badge && !sidebarCollapsed()">{{ item.badge }}</span>
+                @if (!sidebarCollapsed()) {
+                <span class="nav-label">{{ item.label }}</span>
+                }
+                @if (item.badge && !sidebarCollapsed()) {
+                <span class="nav-badge">{{ item.badge }}</span>
+                }
             </a>
+            }
         </nav>
 
-        <div class="sidebar-footer" *ngIf="!sidebarCollapsed()">
+        @if (!sidebarCollapsed()) {
+        <div class="sidebar-footer">
             <p class="version">v1.0.0 · Local</p>
             <p class="tagline">Pure Home Waters, Tirupati</p>
         </div>
+        }
     </aside>
 
     <!-- Main Content -->
     <div class="main-area">
         <header class="topbar">
-            <div class="topbar-left" *ngIf="sidebarCollapsed()">
+            @if (sidebarCollapsed()) {
+            <div class="topbar-left">
                 <button class="mobile-menu-btn" (click)="toggleSidebar()">
                     <mat-icon>menu</mat-icon>
                 </button>
             </div>
+            }
             <div class="topbar-right">
                 <div class="topbar-date">
                     <mat-icon>calendar_today</mat-icon>
@@ -53,5 +67,7 @@
 </div>
 
 <!-- Mobile overlay -->
-<div class="sidebar-overlay" *ngIf="mobileOpen()" (click)="mobileOpen.set(false)">
-</div>
+@if (mobileOpen()) {
+<button class="sidebar-overlay" (click)="mobileOpen.set(false)" aria-label="Close sidebar" type="button">
+</button>
+}

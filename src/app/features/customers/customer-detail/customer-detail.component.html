@@ -1,4 +1,5 @@
-<div class="page-container fade-in" *ngIf="customer">
+@if (customer) {
+<div class="page-container fade-in">
     <!-- Back + Actions -->
     <div class="page-header">
         <div class="header-left">
@@ -50,7 +51,9 @@
                 <div class="info-label">Next Due Date</div>
                 <div class="info-value" [class.overdue-text]="isOverdue()">
                     {{ customer.nextDueDate | date:'dd MMM yyyy' }}
-                    <span *ngIf="isOverdue()" class="chip chip-danger" style="margin-left:8px">Overdue</span>
+                    @if (isOverdue()) {
+                    <span class="chip chip-danger" style="margin-left:8px">Overdue</span>
+                    }
                 </div>
             </div>
         </div>
@@ -91,13 +94,16 @@
             <div class="tab-content">
                 <div class="tab-toolbar">
                     <h4>{{ serviceRecords.length }} Service Records</h4>
-                    <button mat-raised-button color="primary" (click)="showAddService=true" *ngIf="!showAddService">
+                    @if (!showAddService) {
+                    <button mat-raised-button color="primary" (click)="showAddService=true">
                         <mat-icon>add</mat-icon> Log Service
                     </button>
+                    }
                 </div>
 
                 <!-- Add Service Form -->
-                <div class="inline-form" *ngIf="showAddService">
+                @if (showAddService) {
+                <div class="inline-form">
                     <h4 style="margin-bottom:16px">Log New Service</h4>
                     <form [formGroup]="serviceForm">
                         <div class="form-row-2">
@@ -146,10 +152,13 @@
                         </div>
                     </form>
                 </div>
+                }
 
                 <!-- Service List -->
-                <div class="service-timeline" *ngIf="serviceRecords.length > 0">
-                    <div class="timeline-item" *ngFor="let s of serviceRecords">
+                @if (serviceRecords.length > 0) {
+                <div class="service-timeline">
+                    @for (s of serviceRecords; track s) {
+                    <div class="timeline-item">
                         <div class="timeline-dot" [style.background]="getServiceColor(s.serviceType)">
                             <mat-icon>{{ getServiceIcon(s.serviceType) }}</mat-icon>
                         </div>
@@ -160,22 +169,32 @@
                             </div>
                             <div class="timeline-meta">
                                 <span><mat-icon>person</mat-icon>{{ s.technicianName }}</span>
-                                <span *ngIf="s.cost"><mat-icon>currency_rupee</mat-icon>{{ s.cost }}</span>
-                                <span *ngIf="s.partsReplaced"><mat-icon>settings</mat-icon>{{ s.partsReplaced }}</span>
+                                @if (s.cost) {
+                                <span><mat-icon>currency_rupee</mat-icon>{{ s.cost }}</span>
+                                }
+                                @if (s.partsReplaced) {
+                                <span><mat-icon>settings</mat-icon>{{ s.partsReplaced }}</span>
+                                }
                             </div>
-                            <p *ngIf="s.notes" class="timeline-notes">{{ s.notes }}</p>
+                            @if (s.notes) {
+                            <p class="timeline-notes">{{ s.notes }}</p>
+                            }
                         </div>
                         <button mat-icon-button color="warn" (click)="deleteService(s)" style="flex-shrink:0">
                             <mat-icon style="font-size:16px">delete</mat-icon>
                         </button>
                     </div>
+                    }
                 </div>
+                }
 
-                <div class="empty-state" *ngIf="serviceRecords.length === 0 && !showAddService">
+                @if (serviceRecords.length === 0 && !showAddService) {
+                <div class="empty-state">
                     <mat-icon>build_circle</mat-icon>
                     <h4>No service records yet</h4>
                     <p>Log the first service for this customer.</p>
                 </div>
+                }
             </div>
         </mat-tab>
 
@@ -184,13 +203,16 @@
             <div class="tab-content">
                 <div class="tab-toolbar">
                     <h4>{{ payments.length }} Payments · Total ₹{{ totalPaid }}</h4>
-                    <button mat-raised-button color="primary" (click)="showAddPayment=true" *ngIf="!showAddPayment">
+                    @if (!showAddPayment) {
+                    <button mat-raised-button color="primary" (click)="showAddPayment=true">
                         <mat-icon>add</mat-icon> Record Payment
                     </button>
+                    }
                 </div>
 
                 <!-- Add Payment Form -->
-                <div class="inline-form" *ngIf="showAddPayment">
+                @if (showAddPayment) {
+                <div class="inline-form">
                     <h4 style="margin-bottom:16px">Record Payment</h4>
                     <form [formGroup]="paymentForm">
                         <div class="form-row-2">
@@ -223,39 +245,50 @@
                         </div>
                     </form>
                 </div>
+                }
 
                 <!-- Payment List -->
-                <div class="payment-list" *ngIf="payments.length > 0">
-                    <div class="payment-item" *ngFor="let p of payments">
+                @if (payments.length > 0) {
+                <div class="payment-list">
+                    @for (p of payments; track p) {
+                    <div class="payment-item">
                         <div class="payment-icon">
                             <mat-icon>payments</mat-icon>
                         </div>
                         <div class="payment-info">
                             <strong>₹{{ p.amount }}</strong>
                             <span>{{ p.forMonth }} · {{ p.paidDate | date:'dd MMM yyyy' }}</span>
-                            <span *ngIf="p.notes" class="payment-note">{{ p.notes }}</span>
+                            @if (p.notes) {
+                            <span class="payment-note">{{ p.notes }}</span>
+                            }
                         </div>
                         <button mat-icon-button color="warn" (click)="deletePayment(p)">
                             <mat-icon style="font-size:16px">delete</mat-icon>
                         </button>
                     </div>
+                    }
                 </div>
+                }
 
-                <div class="empty-state" *ngIf="payments.length === 0 && !showAddPayment">
+                @if (payments.length === 0 && !showAddPayment) {
+                <div class="empty-state">
                     <mat-icon>payments</mat-icon>
                     <h4>No payments recorded</h4>
                     <p>Record the first payment for this customer.</p>
                 </div>
+                }
             </div>
         </mat-tab>
 
     </mat-tab-group>
 </div>
-
-<div class="page-container" *ngIf="!customer && !loading">
+}
+@if (!customer && !loading) {
+<div class="page-container">
     <div class="empty-state">
         <mat-icon>person_off</mat-icon>
         <h4>Customer not found</h4>
         <a routerLink="/customers" mat-raised-button color="primary" style="margin-top:16px">Back to Customers</a>
     </div>
 </div>
+}

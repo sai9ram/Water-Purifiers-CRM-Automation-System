@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -46,28 +46,26 @@ export class CustomerDetailComponent implements OnInit {
   serviceForm!: FormGroup;
   paymentForm!: FormGroup;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private customerSvc: CustomerService,
-    private serviceSvc: ServiceRecordService,
-    private paymentSvc: PaymentService,
-    private planSvc: PlanService,
-    private waSvc: WhatsappService,
-    private dialog: MatDialog,
-    private fb: FormBuilder,
-    private snack: MatSnackBar
-  ) {}
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private customerSvc = inject(CustomerService);
+  private serviceSvc = inject(ServiceRecordService);
+  private paymentSvc = inject(PaymentService);
+  private planSvc = inject(PlanService);
+  private waSvc = inject(WhatsappService);
+  private dialog = inject(MatDialog);
+  private fb = inject(FormBuilder);
+  private snack = inject(MatSnackBar);
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.planSvc.getAll().subscribe(p => this.plans = p);
     this.customerSvc.getById(id).subscribe(c => {
       this.customer = c;
-      this.loading  = false;
+      this.loading = false;
       if (c) {
         this.loadServiceRecords(id);
-        this.loadPayments(id);
+        this.loadPayments();
       }
     });
     this.initForms();
@@ -76,18 +74,18 @@ export class CustomerDetailComponent implements OnInit {
   initForms(): void {
     const curMonth = new Date().toLocaleString('en-IN', { month: 'long', year: 'numeric' });
     this.serviceForm = this.fb.group({
-      serviceType:     ['filter-change', Validators.required],
-      serviceDate:     [new Date(), Validators.required],
-      technicianName:  ['', Validators.required],
-      partsReplaced:   [''],
-      notes:           [''],
-      cost:            [0]
+      serviceType: ['filter-change', Validators.required],
+      serviceDate: [new Date(), Validators.required],
+      technicianName: ['', Validators.required],
+      partsReplaced: [''],
+      notes: [''],
+      cost: [0]
     });
     this.paymentForm = this.fb.group({
-      amount:   [this.customer?.monthlyRent ?? 0, Validators.required],
+      amount: [this.customer?.monthlyRent ?? 0, Validators.required],
       paidDate: [new Date(), Validators.required],
       forMonth: [curMonth, Validators.required],
-      notes:    ['']
+      notes: ['']
     });
   }
 
@@ -95,9 +93,9 @@ export class CustomerDetailComponent implements OnInit {
     this.serviceSvc.getByCustomer(id).subscribe(s => this.serviceRecords = s);
   }
 
-  loadPayments(id: number): void {
+  loadPayments(): void {
     this.paymentSvc.getByCustomer(this.customer!.id!).subscribe(p => {
-      this.payments  = p;
+      this.payments = p;
       this.totalPaid = p.reduce((s, x) => s + x.amount, 0);
     });
   }
@@ -107,7 +105,7 @@ export class CustomerDetailComponent implements OnInit {
     const val = this.serviceForm.value;
     this.serviceSvc.add({
       ...val,
-      customerId:   this.customer!.id!,
+      customerId: this.customer!.id!,
       customerName: this.customer!.name
     }).subscribe(() => {
       this.snack.open('Service logged!', 'OK', { duration: 3000 });
@@ -128,7 +126,7 @@ export class CustomerDetailComponent implements OnInit {
 
       this.snack.open('Payment recorded!', 'OK', { duration: 3000 });
       this.showAddPayment = false;
-      this.loadPayments(this.customer!.id!);
+      this.loadPayments();
     });
   }
 
@@ -144,7 +142,7 @@ export class CustomerDetailComponent implements OnInit {
     if (!confirm('Delete this payment record?')) return;
     this.paymentSvc.delete(p.id!).subscribe(() => {
       this.snack.open('Deleted', 'OK', { duration: 2000 });
-      this.loadPayments(this.customer!.id!);
+      this.loadPayments();
     });
   }
 

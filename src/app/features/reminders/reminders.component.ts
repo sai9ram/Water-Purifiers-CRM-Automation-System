@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -27,28 +27,26 @@ import { Customer } from '../../core/models/models';
   styleUrl: './reminders.component.scss'
 })
 export class RemindersComponent implements OnInit {
-  dueThisMonth: Customer[]    = [];
+  dueThisMonth: Customer[] = [];
   overdueCustomers: Customer[] = [];
-  allActive: Customer[]        = [];
+  allActive: Customer[] = [];
   displayedCustomers: Customer[] = [];
 
   activeTab = 'month';
   selectedIds = new Set<number>();
-  sentIds     = new Set<number>();
-  sentCount   = 0;
-  totalDue    = 0;
+  sentIds = new Set<number>();
+  sentCount = 0;
+  totalDue = 0;
 
   previewCustomer: Customer | null = null;
-  previewMessage  = '';
+  previewMessage = '';
 
-  bulkSending  = false;
+  bulkSending = false;
   bulkProgress = 0;
 
-  constructor(
-    private customerSvc: CustomerService,
-    private waSvc: WhatsappService,
-    private snack: MatSnackBar
-  ) {}
+  private customerSvc = inject(CustomerService);
+  private waSvc = inject(WhatsappService);
+  private snack = inject(MatSnackBar);
 
   ngOnInit(): void {
     this.loadData();
@@ -69,13 +67,17 @@ export class RemindersComponent implements OnInit {
   setTab(tab: string): void {
     this.activeTab = tab;
     this.selectedIds.clear();
-    if (tab === 'month')   this.displayedCustomers = this.dueThisMonth;
+    if (tab === 'month') this.displayedCustomers = this.dueThisMonth;
     else if (tab === 'overdue') this.displayedCustomers = this.overdueCustomers;
-    else                   this.displayedCustomers = this.allActive;
+    else this.displayedCustomers = this.allActive;
   }
 
   toggleSelect(id: number, checked: boolean): void {
-    checked ? this.selectedIds.add(id) : this.selectedIds.delete(id);
+    if (checked) {
+      this.selectedIds.add(id)
+    } else {
+      this.selectedIds.delete(id);
+    }
   }
 
   selectAll(): void {
@@ -96,7 +98,7 @@ export class RemindersComponent implements OnInit {
     const selected = this.displayedCustomers.filter(c => this.selectedIds.has(c.id!));
     if (selected.length === 0) return;
 
-    this.bulkSending  = true;
+    this.bulkSending = true;
     this.bulkProgress = 0;
 
     for (let i = 0; i < selected.length; i++) {
@@ -117,13 +119,13 @@ export class RemindersComponent implements OnInit {
 
   showPreview(c: Customer): void {
     this.previewCustomer = c;
-    this.previewMessage  = this.waSvc.generateRentReminderMessage(c);
+    this.previewMessage = this.waSvc.generateRentReminderMessage(c);
   }
 
   getDueDateClass(date: Date): string {
-    const d    = new Date(date);
+    const d = new Date(date);
     const diff = Math.ceil((d.getTime() - new Date().getTime()) / 86400000);
-    if (diff < 0)  return 'due-overdue';
+    if (diff < 0) return 'due-overdue';
     if (diff <= 5) return 'due-soon';
     return 'due-ok';
   }

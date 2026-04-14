@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -32,35 +32,33 @@ export class CustomerFormDialogComponent implements OnInit {
   models = PURIFIER_MODELS;
   plans: RentalPlan[] = [];
 
-  constructor(
-    public dialogRef: MatDialogRef<CustomerFormDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { customer: Customer | null; plans: RentalPlan[] },
-    private fb: FormBuilder,
-    private customerSvc: CustomerService,
-    private snack: MatSnackBar
-  ) {}
+  public dialogRef = inject(MatDialogRef<CustomerFormDialogComponent>);
+  private data = inject(MAT_DIALOG_DATA) as { customer: Customer | null; plans: RentalPlan[] };
+  private fb = inject(FormBuilder);
+  private customerSvc = inject(CustomerService);
+  private snack = inject(MatSnackBar);
 
   ngOnInit(): void {
     this.isEdit = !!this.data.customer;
-    this.plans  = this.data.plans;
+    this.plans = this.data.plans;
 
     const c = this.data.customer;
     const nextMonth = new Date();
     nextMonth.setMonth(nextMonth.getMonth() + 1);
 
     this.form = this.fb.group({
-      name:           [c?.name ?? '', Validators.required],
-      phone:          [c?.phone ?? '', [Validators.required, Validators.pattern(/^\d{10}$/)]],
+      name: [c?.name ?? '', Validators.required],
+      phone: [c?.phone ?? '', [Validators.required, Validators.pattern(/^\d{10}$/)]],
       alternatePhone: [c?.alternatePhone ?? ''],
-      address:        [c?.address ?? '', Validators.required],
-      area:           [c?.area ?? '', Validators.required],
-      purifierModel:  [c?.purifierModel ?? '', Validators.required],
-      planId:         [c?.planId ?? null, Validators.required],
-      depositPaid:    [c?.depositPaid ?? 0, Validators.required],
-      status:         [c?.status ?? 'active', Validators.required],
-      joinDate:       [c?.joinDate ? new Date(c.joinDate) : new Date(), Validators.required],
-      nextDueDate:    [c?.nextDueDate ? new Date(c.nextDueDate) : nextMonth, Validators.required],
-      notes:          [c?.notes ?? '']
+      address: [c?.address ?? '', Validators.required],
+      area: [c?.area ?? '', Validators.required],
+      purifierModel: [c?.purifierModel ?? '', Validators.required],
+      planId: [c?.planId ?? null, Validators.required],
+      depositPaid: [c?.depositPaid ?? 0, Validators.required],
+      status: [c?.status ?? 'active', Validators.required],
+      joinDate: [c?.joinDate ? new Date(c.joinDate) : new Date(), Validators.required],
+      nextDueDate: [c?.nextDueDate ? new Date(c.nextDueDate) : nextMonth, Validators.required],
+      notes: [c?.notes ?? '']
     });
   }
 
@@ -75,11 +73,11 @@ export class CustomerFormDialogComponent implements OnInit {
     if (this.form.invalid) return;
     this.saving = true;
 
-    const val    = this.form.value;
-    const plan   = this.plans.find(p => p.id === val.planId);
+    const val = this.form.value;
+    const plan = this.plans.find(p => p.id === val.planId);
     const payload = {
       ...val,
-      planName:    plan?.name ?? '',
+      planName: plan?.name ?? '',
       monthlyRent: plan?.monthlyRent ?? 0
     };
 

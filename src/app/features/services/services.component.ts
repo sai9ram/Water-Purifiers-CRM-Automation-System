@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -30,7 +30,7 @@ import { ServiceRecord, Customer, SERVICE_TYPE_LABELS, ServiceType } from '../..
   templateUrl: './services.component.html',
   styleUrl: './services.component.scss'
 })
-export class ServicesComponent implements OnInit {
+export class ServicesComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -43,12 +43,11 @@ export class ServicesComponent implements OnInit {
   typeFilter = '';
   form!: FormGroup;
 
-  constructor(
-    private serviceSvc: ServiceRecordService,
-    private customerSvc: CustomerService,
-    private fb: FormBuilder,
-    private snack: MatSnackBar
-  ) { }
+  private serviceSvc = inject(ServiceRecordService);
+  private customerSvc = inject(CustomerService);
+  private fb = inject(FormBuilder);
+  private snack = inject(MatSnackBar);
+
 
   ngOnInit(): void {
     this.loadData();

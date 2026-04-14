@@ -76,14 +76,18 @@
                 <a routerLink="/reminders" class="see-all">See all →</a>
             </div>
 
-            <div *ngIf="dueCustomers.length === 0" class="empty-state" style="padding:30px">
+            @if (dueCustomers.length === 0) {
+            <div class="empty-state" style="padding:30px">
                 <mat-icon>check_circle</mat-icon>
                 <h4>All clear!</h4>
                 <p>No pending dues this month.</p>
             </div>
+            }
 
-            <div class="due-list" *ngIf="dueCustomers.length > 0">
-                <div class="due-item" *ngFor="let c of dueCustomers.slice(0, 6)">
+            @if (dueCustomers.length > 0) {
+            <div class="due-list">
+                @for (c of dueCustomers.slice(0, 6); track c.id) {
+                <div class="due-item">
                     <div class="due-avatar">{{ c.name[0] }}</div>
                     <div class="due-info">
                         <strong>{{ c.name }}</strong>
@@ -94,7 +98,9 @@
                             alt="WhatsApp" />
                     </button>
                 </div>
+                }
             </div>
+            }
         </div>
 
         <!-- Recent Services -->
@@ -104,14 +110,18 @@
                 <a routerLink="/services" class="see-all">See all →</a>
             </div>
 
-            <div *ngIf="recentServices.length === 0" class="empty-state" style="padding:30px">
+            @if (recentServices.length === 0) {
+            <div class="empty-state" style="padding:30px">
                 <mat-icon>build_circle</mat-icon>
                 <h4>No services yet</h4>
                 <p>Service records will appear here.</p>
             </div>
+            }
 
-            <div class="service-list" *ngIf="recentServices.length > 0">
-                <div class="service-item" *ngFor="let s of recentServices">
+            @if (recentServices.length > 0) {
+            <div class="service-list">
+                @for (s of recentServices; track s.id) {
+                <div class="service-item">
                     <div class="service-icon">
                         <mat-icon>{{ getServiceIcon(s.serviceType) }}</mat-icon>
                     </div>
@@ -121,7 +131,9 @@
                     </div>
                     <span class="chip chip-info">{{ s.technicianName }}</span>
                 </div>
+                }
             </div>
+            }
         </div>
     </div>
 </div>

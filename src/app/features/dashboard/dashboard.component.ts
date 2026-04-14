@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -22,11 +22,9 @@ export class DashboardComponent implements OnInit {
   dueCustomers: Customer[] = [];
   recentServices: ServiceRecord[] = [];
 
-  constructor(
-    private customerSvc: CustomerService,
-    private serviceSvc:  ServiceRecordService,
-    private waSvc:       WhatsappService
-  ) {}
+  private customerSvc = inject(CustomerService);
+  private serviceSvc = inject(ServiceRecordService);
+  private waSvc = inject(WhatsappService);
 
   ngOnInit(): void {
     this.customerSvc.getStats().subscribe(s => this.stats = s);

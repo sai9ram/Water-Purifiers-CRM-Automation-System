@@ -15,9 +15,11 @@
             <mat-label>Search by name, phone, area...</mat-label>
             <mat-icon matPrefix>search</mat-icon>
             <input matInput [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()" />
-            <button *ngIf="searchQuery" matSuffix mat-icon-button (click)="searchQuery=''; applyFilter()">
+            @if (searchQuery) {
+            <button matSuffix mat-icon-button (click)="searchQuery=''; applyFilter()">
                 <mat-icon>close</mat-icon>
             </button>
+            }
         </mat-form-field>
 
         <mat-form-field appearance="outline" style="max-width:160px">
@@ -34,7 +36,9 @@
             <mat-label>Plan</mat-label>
             <mat-select [(ngModel)]="planFilter" (ngModelChange)="applyFilter()">
                 <mat-option value="">All Plans</mat-option>
-                <mat-option *ngFor="let p of plans" [value]="p.id">{{ p.name }}</mat-option>
+                @for (p of plans; track p.id) {
+                <mat-option [value]="p.id">{{ p.name }}</mat-option>
+                }
             </mat-select>
         </mat-form-field>
     </div>
@@ -124,11 +128,13 @@
             <tr mat-row *matRowDef="let row; columns: displayedColumns;" [routerLink]="['/customers', row.id]"></tr>
         </table>
 
-        <div *ngIf="dataSource.filteredData.length === 0" class="empty-state">
+        @if (dataSource.filteredData.length === 0) {
+        <div class="empty-state">
             <mat-icon>person_off</mat-icon>
             <h4>No customers found</h4>
             <p>Try adjusting your filters or add a new customer.</p>
         </div>
+        }
 
         <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
     </div>

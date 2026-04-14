@@ -11,14 +11,17 @@
     </div>
 
     <!-- Add Service Form -->
-    <div class="form-panel" *ngIf="showForm">
+    @if (showForm) {
+    <div class="form-panel">
         <h3 style="margin-bottom:18px">Log New Service Visit</h3>
         <form [formGroup]="form">
             <div class="form-grid">
                 <mat-form-field appearance="outline">
                     <mat-label>Customer *</mat-label>
                     <mat-select formControlName="customerId" (selectionChange)="onCustomerSelect($event.value)">
-                        <mat-option *ngFor="let c of customers" [value]="c.id">{{ c.name }} — {{ c.area }}</mat-option>
+                        @for (c of customers; track $index) {
+                        <mat-option [value]="c.id">{{ c.name }} — {{ c.area }}</mat-option>
+                        }
                     </mat-select>
                 </mat-form-field>
 
@@ -68,6 +71,7 @@
             </div>
         </form>
     </div>
+    }
 
     <!-- Search -->
     <div class="search-bar">
@@ -129,17 +133,25 @@
             <ng-container matColumnDef="partsReplaced">
                 <th mat-header-cell *matHeaderCellDef>Parts</th>
                 <td mat-cell *matCellDef="let s">
-                    <span *ngIf="s.partsReplaced" class="chip chip-info" style="font-size:0.72rem">{{ s.partsReplaced
+                    @if (s.partsReplaced) {
+                    <span class="chip chip-info" style="font-size:0.72rem">{{ s.partsReplaced
                         }}</span>
-                    <span *ngIf="!s.partsReplaced" style="color:var(--text-muted)">—</span>
+                    }
+                    @if (!s.partsReplaced) {
+                    <span style="color:var(--text-muted)">—</span>
+                    }
                 </td>
             </ng-container>
 
             <ng-container matColumnDef="cost">
                 <th mat-header-cell *matHeaderCellDef>Cost</th>
                 <td mat-cell *matCellDef="let s">
-                    <span *ngIf="s.cost" style="font-weight:600; color:var(--brand-dark)">₹{{ s.cost }}</span>
-                    <span *ngIf="!s.cost" style="color:var(--text-muted)">—</span>
+                    @if (s.cost) {
+                    <span style="font-weight:600; color:var(--brand-dark)">₹{{ s.cost }}</span>
+                    }
+                    @if (!s.cost) {
+                    <span style="color:var(--text-muted)">—</span>
+                    }
                 </td>
             </ng-container>
 
@@ -156,11 +168,13 @@
             <tr mat-row *matRowDef="let row; columns: columns;"></tr>
         </table>
 
-        <div *ngIf="dataSource.filteredData.length === 0" class="empty-state">
+        @if (dataSource.filteredData.length === 0) {
+        <div class="empty-state">
             <mat-icon>build_circle</mat-icon>
             <h4>No service records found</h4>
             <p>Log a service visit to get started.</p>
         </div>
+        }
 
         <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
     </div>

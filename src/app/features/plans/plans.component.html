@@ -11,7 +11,8 @@
 
     <!-- Plan Cards -->
     <div class="plans-grid">
-        <div class="plan-card" *ngFor="let p of plans" [class.editing]="editingId === p.id">
+        @for (p of plans; track p.id) {
+        <div class="plan-card" [class.editing]="editingId === p.id">
             <div class="plan-header">
                 <div class="plan-badge">{{ p.name }}</div>
                 <div class="plan-price">
@@ -27,9 +28,11 @@
             <p class="plan-desc">{{ p.description }}</p>
 
             <ul class="plan-features">
-                <li *ngFor="let f of p.features">
+                @for (f of p.features; track $index) {
+                <li>
                     <mat-icon>check_circle</mat-icon> {{ f }}
                 </li>
+                }
             </ul>
 
             <div class="plan-footer">
@@ -41,16 +44,20 @@
                 </button>
             </div>
         </div>
+        }
 
         <!-- Add Plan Card -->
-        <div class="plan-card add-card" *ngIf="!showForm" (click)="openAddForm()">
+        @if (!showForm) {
+        <button type="button" class="plan-card add-card" (click)="openAddForm()">
             <mat-icon>add_circle</mat-icon>
             <p>Add New Plan</p>
-        </div>
+        </button>
+        }
     </div>
 
     <!-- Add / Edit Form -->
-    <div class="form-panel" *ngIf="showForm">
+    @if (showForm) {
+    <div class="form-panel">
         <div class="form-panel-header">
             <h3>{{ editingId ? 'Edit Plan' : 'New Plan' }}</h3>
             <button mat-icon-button (click)="cancelForm()"><mat-icon>close</mat-icon></button>
@@ -83,14 +90,15 @@
 
             <div class="features-section">
                 <div class="features-header">
-                    <label>Features</label>
+                    <span>Features</span>
                     <button type="button" mat-stroked-button (click)="addFeature()">
                         <mat-icon>add</mat-icon> Add Feature
                     </button>
                 </div>
 
                 <div formArrayName="features">
-                    <div *ngFor="let ctrl of featuresArray.controls; let i = index" class="feature-row">
+                    @for (ctrl of featuresArray.controls; let i = $index; track i) {
+                    <div class="feature-row">
                         <mat-form-field appearance="outline" style="flex:1">
                             <input matInput [formControlName]="i" placeholder="e.g. RO Purification" />
                         </mat-form-field>
@@ -98,6 +106,7 @@
                             <mat-icon>remove_circle</mat-icon>
                         </button>
                     </div>
+                    }
                 </div>
             </div>
 
@@ -109,4 +118,5 @@
             </div>
         </form>
     </div>
+    }
 </div>

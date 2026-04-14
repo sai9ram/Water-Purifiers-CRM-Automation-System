@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -26,11 +26,9 @@ export class PlansComponent implements OnInit {
   editingId: number | null = null;
   form!: FormGroup;
 
-  constructor(
-    private planSvc: PlanService,
-    private fb: FormBuilder,
-    private snack: MatSnackBar
-  ) {}
+  private planSvc = inject(PlanService);
+  private fb = inject(FormBuilder);
+  private snack = inject(MatSnackBar);
 
   ngOnInit(): void {
     this.loadPlans();
