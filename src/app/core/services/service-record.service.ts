@@ -1,0 +1,54 @@
+import { Injectable } from '@angular/core';
+import { from, Observable } from 'rxjs';
+import { db } from '../db/database';
+import { ServiceRecord } from '../models/models';
+
+@Injectable({ providedIn: 'root' })
+export class ServiceRecordService {
+
+  getAll(): Observable<ServiceRecord[]> {
+    return from(db.serviceRecords.orderBy('serviceDate').reverse().toArray());
+  }
+
+  getByCustomer(customerId: number): Observable<ServiceRecord[]> {
+    return from(
+      db.serviceRecords.where('customerId').equals(customerId)
+        .reverse().sortBy('serviceDate')
+    );
+  }
+
+  getRecent(limit = 10): Observable<ServiceRecord[]> {
+    return from(
+      db.serviceRecords.orderBy('serviceDate').reverse().limit(limit).toArray()
+    );
+  }
+
+  add(record: Omit<ServiceRecord, 'id' | 'createdAt'>): Observable<number> {
+    return from(db.serviceRecords.add({ ...record, createdAt: new Date() } as ServiceRecord));
+  }
+
+  update(id: number, changes: Partial<ServiceRecord>): Observable<number> {
+    return from(db.serviceRecords.update(id, changes));
+  }
+
+  delete(id: number): Observable<void> {
+    return from(db.serviceRecords.delete(id));
+  }
+
+  getStats(): Observable<{ total: number; thisMonth: number; upcoming: number }> {
+    return from((async () => {
+      const now   = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end   = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const all       = await db.serviceRecords.count();
+      const thisMonth = await db.serviceRecords
+        .where('serviceDate').between(start, end, true, true).count();
+
+      const upcoming  = await db.serviceRecords
+        .where('nextServiceDate').above(now).count();
+
+      return { total: all, thisMonth, upcoming };
+    })());
+  }
+}

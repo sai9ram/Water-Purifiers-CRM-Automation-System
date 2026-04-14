@@ -1,0 +1,58 @@
+<div class="app-shell" [class.sidebar-collapsed]="sidebarCollapsed()">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">💧</div>
+            <div class="brand-text" *ngIf="!sidebarCollapsed()">
+                <span class="brand-name">Pure Home</span>
+                <span class="brand-sub">Waters CRM</span>
+            </div>
+            <button class="collapse-btn" (click)="toggleSidebar()" matRipple>
+                <mat-icon>{{ sidebarCollapsed() ? 'menu' : 'menu_open' }}</mat-icon>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a *ngFor="let item of navItems" [routerLink]="item.path" routerLinkActive="active" class="nav-item"
+                matRipple [matRippleColor]="'rgba(255,255,255,0.1)'">
+                <mat-icon>{{ item.icon }}</mat-icon>
+                <span class="nav-label" *ngIf="!sidebarCollapsed()">{{ item.label }}</span>
+                <span class="nav-badge" *ngIf="item.badge && !sidebarCollapsed()">{{ item.badge }}</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer" *ngIf="!sidebarCollapsed()">
+            <p class="version">v1.0.0 · Local</p>
+            <p class="tagline">Pure Home Waters, Tirupati</p>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="mobile-menu-btn" (click)="toggleSidebar()" matRipple>
+                    <mat-icon>menu</mat-icon>
+                </button>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-date">
+                    <mat-icon>calendar_today</mat-icon>
+                    <span>{{ today }}</span>
+                </div>
+                <div class="topbar-brand">
+                    <span>💧 PHW</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="content-area">
+            <router-outlet />
+        </main>
+    </div>
+</div>
+
+<!-- Mobile overlay -->
+<div class="sidebar-overlay" *ngIf="mobileOpen()" (click)="mobileOpen.set(false)">
+</div>

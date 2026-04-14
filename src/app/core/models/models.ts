@@ -1,0 +1,83 @@
+export interface RentalPlan {
+  id?: number;
+  name: string;
+  monthlyRent: number;
+  depositAmount: number;
+  description: string;
+  features: string[];
+  createdAt: Date;
+}
+
+export type CustomerStatus = 'active' | 'inactive' | 'overdue';
+export type PaymentStatus = 'paid' | 'pending' | 'overdue';
+
+export interface Customer {
+  id?: number;
+  name: string;
+  phone: string;
+  alternatePhone?: string;
+  address: string;
+  area: string;
+  purifierModel: string;
+  planId: number;
+  planName?: string;          // denormalized for display
+  monthlyRent?: number;       // denormalized for display
+  depositPaid: number;
+  joinDate: Date;
+  nextDueDate: Date;
+  lastPaymentDate?: Date;
+  status: CustomerStatus;
+  notes?: string;
+  createdAt: Date;
+}
+
+export type ServiceType = 'filter-change' | 'repair' | 'installation' | 'general-service' | 'demo';
+
+export interface ServiceRecord {
+  id?: number;
+  customerId: number;
+  customerName?: string;      // denormalized
+  serviceType: ServiceType;
+  serviceDate: Date;
+  nextServiceDate?: Date;
+  technicianName: string;
+  partsReplaced?: string;
+  notes?: string;
+  cost?: number;
+  createdAt: Date;
+}
+
+export interface PaymentRecord {
+  id?: number;
+  customerId: number;
+  amount: number;
+  paidDate: Date;
+  forMonth: string;           // e.g. "April 2025"
+  notes?: string;
+  createdAt: Date;
+}
+
+export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
+  'filter-change':   'Filter Change',
+  'repair':          'Repair',
+  'installation':    'Installation',
+  'general-service': 'General Service',
+  'demo':            'Demo'
+};
+
+export const PURIFIER_MODELS = [
+  'Kent Grand Plus',
+  'Kent Supreme',
+  'Kent Ace',
+  'Aquaguard Marvel',
+  'Aquaguard Delight',
+  'Aquaguard Nxt',
+  'Livpure Glo',
+  'Livpure Smart',
+  'HUL Pureit Classic',
+  'HUL Pureit Copper',
+  'Blue Star Aristo',
+  'Blue Star Majesto',
+  'Eureka Forbes AquaSure',
+  'Other'
+];
