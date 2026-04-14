@@ -26,26 +26,26 @@ db.rentalPlans.count().then(count => {
     db.rentalPlans.bulkAdd([
       {
         name: 'Basic',
-        monthlyRent: 299,
-        depositAmount: 999,
+        monthlyRent: 399,
+        depositAmount: 2000,
         description: 'Essential water purification for small families',
-        features: ['RO Purification', 'Monthly Service', '24/7 Support'],
+        features: ['RO + UV + Alkaline + TDS Control', 'Base look', 'Quaterly Service', '24/7 Support'],
         createdAt: new Date()
       },
       {
         name: 'Standard',
-        monthlyRent: 449,
-        depositAmount: 1499,
+        monthlyRent: 499,
+        depositAmount: 3000,
         description: 'Advanced purification with UV protection',
-        features: ['RO + UV Purification', 'Monthly Service', 'Filter Changes', '24/7 Support'],
+        features: ['RO + UV + Alkaline + TDS Control', 'Rich look', 'Quaterly Service', '24/7 Support'],
         createdAt: new Date()
       },
       {
         name: 'Premium',
-        monthlyRent: 649,
-        depositAmount: 1999,
+        monthlyRent: 499,
+        depositAmount: 3500,
         description: 'Complete protection with mineral enhancement',
-        features: ['RO + UV + TDS Control', 'Bi-weekly Service', 'All Filter Changes', 'Priority Support', 'Free Repairs'],
+        features: ['Steel Tank', 'RO + UV + Alkaline + TDS Control', 'Quaterly Service', '24/7 Support'],
         createdAt: new Date()
       }
     ]);

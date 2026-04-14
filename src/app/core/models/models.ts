@@ -58,26 +58,18 @@ export interface PaymentRecord {
 }
 
 export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
-  'filter-change':   'Filter Change',
-  'repair':          'Repair',
-  'installation':    'Installation',
+  'filter-change': 'Filter Change',
+  'repair': 'Repair',
+  'installation': 'Installation',
   'general-service': 'General Service',
-  'demo':            'Demo'
+  'demo': 'Demo'
 };
 
 export const PURIFIER_MODELS = [
-  'Kent Grand Plus',
-  'Kent Supreme',
-  'Kent Ace',
-  'Aquaguard Marvel',
-  'Aquaguard Delight',
-  'Aquaguard Nxt',
-  'Livpure Glo',
-  'Livpure Smart',
-  'HUL Pureit Classic',
-  'HUL Pureit Copper',
-  'Blue Star Aristo',
-  'Blue Star Majesto',
-  'Eureka Forbes AquaSure',
+  'Dolphin',
+  'Purosis',
+  'Purosis Plus',
+  'Priya Aqua Steel Guard',
+  'Fonix',
   'Other'
 ];
