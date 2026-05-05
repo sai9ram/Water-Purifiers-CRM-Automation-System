@@ -17,6 +17,7 @@ import { CustomerService } from '../../../core/services/customer.service';
 import { ServiceRecordService } from '../../../core/services/service-record.service';
 import { PaymentService } from '../../../core/services/payment.service';
 import { PlanService } from '../../../core/services/plan.service';
+import { PaymentLinkService } from '../../../core/services/payment-link.service';
 import { WhatsappService } from '../../../core/services/whatsapp.service';
 import { Customer, ServiceRecord, PaymentRecord, RentalPlan, SERVICE_TYPE_LABELS, ServiceType } from '../../../core/models/models';
 import { CustomerFormDialogComponent } from '../customer-form-dialog/customer-form-dialog.component';
@@ -52,6 +53,7 @@ export class CustomerDetailComponent implements OnInit {
   private serviceSvc = inject(ServiceRecordService);
   private paymentSvc = inject(PaymentService);
   private planSvc = inject(PlanService);
+  private paymentLinkSvc = inject(PaymentLinkService);
   private waSvc = inject(WhatsappService);
   private dialog = inject(MatDialog);
   private fb = inject(FormBuilder);
@@ -64,6 +66,7 @@ export class CustomerDetailComponent implements OnInit {
       this.customer = c;
       this.loading = false;
       if (c) {
+        this.paymentForm?.patchValue({ amount: c.monthlyRent ?? 0 });
         this.loadServiceRecords(id);
         this.loadPayments();
       }
@@ -160,6 +163,28 @@ export class CustomerDetailComponent implements OnInit {
 
   sendReminder(): void {
     if (this.customer) this.waSvc.sendRentReminder(this.customer);
+  }
+
+  getPaymentLink(): string {
+    return this.customer ? this.paymentLinkSvc.getPaymentUrl(this.customer) : '';
+  }
+
+  openPaymentLink(): void {
+    const url = this.getPaymentLink();
+    if (!url) return;
+    window.open(url, '_blank');
+  }
+
+  async copyPaymentLink(): Promise<void> {
+    const url = this.getPaymentLink();
+    if (!url) return;
+
+    try {
+      await navigator.clipboard.writeText(url);
+      this.snack.open('Payment link copied', 'OK', { duration: 2500 });
+    } catch {
+      this.snack.open('Unable to copy payment link', 'OK', { duration: 2500 });
+    }
   }
 
   isOverdue(): boolean {

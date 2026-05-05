@@ -17,6 +17,12 @@
                     style="margin-right:6px" />
                 Send Reminder
             </button>
+            <button mat-stroked-button (click)="copyPaymentLink()">
+                <mat-icon>content_copy</mat-icon> Copy Payment Link
+            </button>
+            <button mat-stroked-button (click)="openPaymentLink()">
+                <mat-icon>payments</mat-icon> Open Payment Page
+            </button>
             <button mat-raised-button color="primary" (click)="editCustomer()">
                 <mat-icon>edit</mat-icon> Edit
             </button>
@@ -55,6 +61,15 @@
                     <span class="chip chip-danger" style="margin-left:8px">Overdue</span>
                     }
                 </div>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="info-icon" style="background:#e3f2fd">
+                <mat-icon style="color:#1565c0">link</mat-icon>
+            </div>
+            <div>
+                <div class="info-label">Payment Link</div>
+                <div class="info-value small">{{ getPaymentLink() }}</div>
             </div>
         </div>
         <div class="info-card">
