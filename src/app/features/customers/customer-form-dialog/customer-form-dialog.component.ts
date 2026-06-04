@@ -59,6 +59,7 @@ export class CustomerFormDialogComponent implements OnInit {
       purifierModel: [c?.purifierModel ?? '', Validators.required],
       planId: [c?.planId ?? null, Validators.required],
       depositPaid: [c?.depositPaid ?? 0, Validators.required],
+      initialInvestment: [c?.initialInvestment ?? 0, Validators.required],
       status: [c?.status ?? 'active', Validators.required],
       joinDate: [c?.joinDate ? new Date(c.joinDate) : new Date(), Validators.required],
       nextDueDate: [c?.nextDueDate ? new Date(c.nextDueDate) : nextMonth, Validators.required],

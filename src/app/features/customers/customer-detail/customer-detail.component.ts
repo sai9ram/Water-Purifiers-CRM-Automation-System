@@ -105,7 +105,9 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   loadServiceRecords(id: number): void {
-    this.serviceSvc.getByCustomer(id).subscribe(s => this.serviceRecords = s);
+    this.serviceSvc.getByCustomer(id).subscribe(s => {
+      this.serviceRecords = s;
+    });
   }
 
   loadPayments(): void {
@@ -262,6 +264,38 @@ export class CustomerDetailComponent implements OnInit {
 
   getServiceLabel(type: ServiceType): string {
     return SERVICE_TYPE_LABELS[type] ?? type;
+  }
+
+  get totalServiceCost(): number {
+    return this.serviceRecords.reduce((sum, r) => sum + (r.cost ?? 0), 0);
+  }
+
+  get initialInvestment(): number {
+    return this.customer?.initialInvestment ?? 0;
+  }
+
+  get grossProfit(): number {
+    return this.totalPaid - this.totalServiceCost;
+  }
+
+  get returnDelta(): number {
+    return this.grossProfit - this.initialInvestment;
+  }
+
+  get financeStatus(): string {
+    if (this.returnDelta > 0) {
+      return `Profit by ₹${this.returnDelta.toFixed(0)}`;
+    }
+    if (this.returnDelta < 0) {
+      return `Loss by ₹${Math.abs(this.returnDelta).toFixed(0)}`;
+    }
+    return 'Cost to cost';
+  }
+
+  get financeStatusClass(): string {
+    if (this.returnDelta > 0) return 'chip chip-success';
+    if (this.returnDelta < 0) return 'chip chip-danger';
+    return 'chip chip-warning';
   }
 
   onRecordPaymentClick(): void {

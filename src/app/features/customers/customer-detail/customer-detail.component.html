@@ -82,6 +82,42 @@
             </div>
         </div>
         <div class="info-card">
+            <div class="info-icon" style="background:#fff3e0">
+                <mat-icon style="color:#ef6c00">savings</mat-icon>
+            </div>
+            <div>
+                <div class="info-label">Initial Investment</div>
+                <div class="info-value">₹{{ initialInvestment }}</div>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="info-icon" style="background:#fce4ec">
+                <mat-icon style="color:#d32f2f">build</mat-icon>
+            </div>
+            <div>
+                <div class="info-label">Service Cost Spent</div>
+                <div class="info-value">₹{{ totalServiceCost }}</div>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="info-icon" style="background:#fff3e0">
+                <mat-icon style="color:#fb8c00">trending_flat</mat-icon>
+            </div>
+            <div>
+                <div class="info-label">Net Margin</div>
+                <div class="info-value">₹{{ grossProfit }}</div>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="info-icon" style="background:#e8f5e9">
+                <mat-icon style="color:#2e7d32">trending_up</mat-icon>
+            </div>
+            <div>
+                <div class="info-label">Return Status</div>
+                <div class="info-value"><span [class]="financeStatusClass">{{ financeStatus }}</span></div>
+            </div>
+        </div>
+        <div class="info-card">
             <div class="info-icon" style="background:#f3e5f5">
                 <mat-icon style="color:#6a1b9a">home</mat-icon>
             </div>

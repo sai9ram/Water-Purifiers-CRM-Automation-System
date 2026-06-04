@@ -23,6 +23,7 @@ export interface Customer {
   planName?: string;          // denormalized for display
   monthlyRent?: number;       // denormalized for display
   depositPaid: number;
+  initialInvestment?: number;
   joinDate: Date;
   nextDueDate: Date;
   lastPaymentDate?: Date;

@@ -141,6 +141,7 @@ export class BackupSyncService {
       '  last_service_date DATETIME NULL,',
       '  next_service_date DATETIME NULL,',
       '  status VARCHAR(32) NOT NULL,',
+      '  initial_investment DECIMAL(10,2) NULL,',
       '  notes TEXT NULL,',
       '  created_at DATETIME NOT NULL',
       ');',
@@ -206,6 +207,7 @@ export class BackupSyncService {
       this.sqlValue(customer.lastServiceDate),
       this.sqlValue(customer.nextServiceDate),
       this.sqlValue(customer.status),
+      this.sqlValue(customer.initialInvestment),
       this.sqlValue(customer.notes),
       this.sqlValue(customer.createdAt)
     ]));
