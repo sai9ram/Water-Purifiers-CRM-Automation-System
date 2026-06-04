@@ -3,6 +3,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
+import { BackupSyncService } from './core/services/backup-sync.service';
 
 interface NavItem {
   path: string;
@@ -21,6 +22,7 @@ interface NavItem {
 export class AppComponent {
   sidebarCollapsed = signal(false);
   mobileOpen       = signal(false);
+  backupStatus;
 
   today = new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -33,11 +35,29 @@ export class AppComponent {
     { path: '/plans',      icon: 'card_membership',  label: 'Plans'       },
   ];
 
+  constructor(private backupSyncSvc: BackupSyncService) {
+    this.backupStatus = this.backupSyncSvc.status;
+  }
+
   toggleSidebar(): void {
     if (window.innerWidth <= 768) {
       this.sidebarCollapsed.update(v => !v);
     } else {
       this.sidebarCollapsed.update(v => !v);
     }
+  }
+
+  getBackupIcon(): string {
+    return {
+      idle: 'cloud_queue',
+      running: 'sync',
+      synced: 'cloud_done',
+      queued: 'cloud_upload',
+      error: 'cloud_off'
+    }[this.backupStatus().state] ?? 'cloud_queue';
+  }
+
+  retryBackupSync(): void {
+    void this.backupSyncSvc.retrySync();
   }
 }

@@ -49,6 +49,24 @@
             </div>
             }
             <div class="topbar-right">
+                <button class="backup-status" type="button" (click)="retryBackupSync()"
+                    [class.state-running]="backupStatus().state === 'running'"
+                    [class.state-synced]="backupStatus().state === 'synced'"
+                    [class.state-queued]="backupStatus().state === 'queued'"
+                    [class.state-error]="backupStatus().state === 'error'"
+                    [title]="backupStatus().message">
+                    <mat-icon>{{ getBackupIcon() }}</mat-icon>
+                    <span class="backup-copy">
+                        <strong>Backup</strong>
+                        <small>
+                            @if (backupStatus().lastBackupAt) {
+                            {{ backupStatus().message }} · {{ backupStatus().lastBackupAt | date:'dd MMM, hh:mm a' }}
+                            } @else {
+                            {{ backupStatus().message }}
+                            }
+                        </small>
+                    </span>
+                </button>
                 <div class="topbar-date">
                     <mat-icon>calendar_today</mat-icon>
                     <span>{{ today }}</span>

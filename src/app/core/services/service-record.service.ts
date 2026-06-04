@@ -1,10 +1,13 @@
 import { Injectable } from '@angular/core';
 import { from, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { db } from '../db/database';
 import { ServiceRecord } from '../models/models';
+import { BackupSyncService } from './backup-sync.service';
 
 @Injectable({ providedIn: 'root' })
 export class ServiceRecordService {
+  constructor(private backupSyncSvc: BackupSyncService) {}
 
   getAll(): Observable<ServiceRecord[]> {
     return from(db.serviceRecords.orderBy('serviceDate').reverse().toArray());
@@ -36,11 +39,13 @@ export class ServiceRecordService {
   }
 
   add(record: Omit<ServiceRecord, 'id' | 'createdAt'>): Observable<number> {
-    return from(db.serviceRecords.add({ ...record, createdAt: new Date() } as ServiceRecord));
+    return from(db.serviceRecords.add({ ...record, createdAt: new Date() } as ServiceRecord))
+      .pipe(tap(() => void this.backupSyncSvc.triggerBackup('service create')));
   }
 
   update(id: number, changes: Partial<ServiceRecord>): Observable<number> {
-    return from(db.serviceRecords.update(id, changes));
+    return from(db.serviceRecords.update(id, changes))
+      .pipe(tap(() => void this.backupSyncSvc.triggerBackup('service update')));
   }
 
   delete(id: number): Observable<void> {
