@@ -45,7 +45,7 @@ export class CustomerListComponent implements OnInit, AfterViewInit {
   allCustomers: Customer[] = [];
   plans: RentalPlan[] = [];
   searchQuery = '';
-  statusFilter = '';
+  statusFilter = 'active';
   planFilter: number | '' = '';
 
   private customerSvc = inject(CustomerService);

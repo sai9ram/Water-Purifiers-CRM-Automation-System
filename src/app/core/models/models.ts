@@ -26,6 +26,8 @@ export interface Customer {
   joinDate: Date;
   nextDueDate: Date;
   lastPaymentDate?: Date;
+  lastServiceDate?: Date;
+  nextServiceDate?: Date;
   status: CustomerStatus;
   notes?: string;
   createdAt: Date;

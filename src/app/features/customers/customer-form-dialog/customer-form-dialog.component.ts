@@ -45,6 +45,10 @@ export class CustomerFormDialogComponent implements OnInit {
     const c = this.data.customer;
     const nextMonth = new Date();
     nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const lastServiceDate = c?.lastServiceDate ? new Date(c.lastServiceDate) : null;
+    const nextServiceDate = c?.nextServiceDate
+      ? new Date(c.nextServiceDate)
+      : this.addMonths(lastServiceDate ?? new Date(), 3);
 
     this.form = this.fb.group({
       name: [c?.name ?? '', Validators.required],
@@ -58,6 +62,8 @@ export class CustomerFormDialogComponent implements OnInit {
       status: [c?.status ?? 'active', Validators.required],
       joinDate: [c?.joinDate ? new Date(c.joinDate) : new Date(), Validators.required],
       nextDueDate: [c?.nextDueDate ? new Date(c.nextDueDate) : nextMonth, Validators.required],
+      lastServiceDate: [lastServiceDate],
+      nextServiceDate: [nextServiceDate],
       notes: [c?.notes ?? '']
     });
   }
@@ -74,9 +80,15 @@ export class CustomerFormDialogComponent implements OnInit {
     this.saving = true;
 
     const val = this.form.value;
+    const lastServiceDate = val.lastServiceDate ? new Date(val.lastServiceDate) : undefined;
+    const nextServiceDate = lastServiceDate
+      ? (val.nextServiceDate ? new Date(val.nextServiceDate) : this.addMonths(lastServiceDate, 3))
+      : (val.nextServiceDate ? new Date(val.nextServiceDate) : undefined);
     const plan = this.plans.find(p => p.id === val.planId);
     const payload = {
       ...val,
+      lastServiceDate,
+      nextServiceDate,
       planName: plan?.name ?? '',
       monthlyRent: plan?.monthlyRent ?? 0
     };
@@ -92,5 +104,16 @@ export class CustomerFormDialogComponent implements OnInit {
       },
       error: () => { this.saving = false; }
     });
+  }
+
+  onLastServiceDateChange(date: Date | null): void {
+    if (!date) return;
+    this.form.patchValue({ nextServiceDate: this.addMonths(date, 3) });
+  }
+
+  private addMonths(date: Date, months: number): Date {
+    const next = new Date(date);
+    next.setMonth(next.getMonth() + months);
+    return next;
   }
 }

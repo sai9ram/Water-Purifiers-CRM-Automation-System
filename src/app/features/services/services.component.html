@@ -2,12 +2,51 @@
     <div class="page-header">
         <div>
             <h2>Service Records</h2>
-            <p class="subtitle">Track all service visits and maintenance</p>
+            <p class="subtitle">Track all service visits, upcoming maintenance, and regular schedules</p>
         </div>
         <button mat-raised-button color="primary" (click)="showForm = !showForm">
             <mat-icon>{{ showForm ? 'close' : 'add' }}</mat-icon>
             {{ showForm ? 'Cancel' : 'Log Service' }}
         </button>
+    </div>
+
+    <div class="table-card upcoming-panel">
+        <div class="section-header">
+            <div>
+                <h3><mat-icon>event_repeat</mat-icon> Upcoming Maintenance</h3>
+                <p>Customers scheduled for 3-month maintenance based on their last service date</p>
+            </div>
+            <span class="chip chip-info">{{ upcomingCustomers.length }} scheduled</span>
+        </div>
+
+        @if (upcomingCustomers.length === 0) {
+        <div class="empty-state compact-empty">
+            <mat-icon>event_busy</mat-icon>
+            <h4>No upcoming services scheduled</h4>
+            <p>Set last and next service dates on the customer profile or while logging a service visit.</p>
+        </div>
+        }
+
+        @if (upcomingCustomers.length > 0) {
+        <div class="upcoming-grid">
+            @for (customer of upcomingCustomers.slice(0, 8); track customer.id) {
+            <div class="upcoming-item">
+                <div class="upcoming-icon" style="background:#0097a7">
+                    <mat-icon>event_repeat</mat-icon>
+                </div>
+                <div class="upcoming-copy">
+                    <strong>{{ customer.name }}</strong>
+                    <span>{{ customer.area }} · Last service {{ customer.lastServiceDate | date:'dd MMM yyyy' }}</span>
+                </div>
+                <div class="upcoming-date">
+                    <span [class]="getScheduleClass(customer.nextServiceDate)">
+                        {{ customer.nextServiceDate | date:'dd MMM yyyy' }}
+                    </span>
+                </div>
+            </div>
+            }
+        </div>
+        }
     </div>
 
     <!-- Add Service Form -->
@@ -38,7 +77,8 @@
 
                 <mat-form-field appearance="outline">
                     <mat-label>Service Date *</mat-label>
-                    <input matInput [matDatepicker]="sp" formControlName="serviceDate" />
+                    <input matInput [matDatepicker]="sp" formControlName="serviceDate"
+                        (dateChange)="onServiceDateChange($event.value)" />
                     <mat-datepicker-toggle matSuffix [for]="sp"></mat-datepicker-toggle>
                     <mat-datepicker #sp></mat-datepicker>
                 </mat-form-field>
@@ -46,6 +86,13 @@
                 <mat-form-field appearance="outline">
                     <mat-label>Technician Name *</mat-label>
                     <input matInput formControlName="technicianName" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Next Maintenance Date</mat-label>
+                    <input matInput [matDatepicker]="np" formControlName="nextServiceDate" />
+                    <mat-datepicker-toggle matSuffix [for]="np"></mat-datepicker-toggle>
+                    <mat-datepicker #np></mat-datepicker>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
@@ -123,6 +170,18 @@
             <ng-container matColumnDef="serviceDate">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
                 <td mat-cell *matCellDef="let s">{{ s.serviceDate | date:'dd MMM yyyy' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="nextServiceDate">
+                <th mat-header-cell *matHeaderCellDef>Next Maintenance</th>
+                <td mat-cell *matCellDef="let s">
+                    @if (s.nextServiceDate) {
+                    <span [class]="getScheduleClass(s.nextServiceDate)">{{ s.nextServiceDate | date:'dd MMM yyyy' }}</span>
+                    }
+                    @if (!s.nextServiceDate) {
+                    <span style="color:var(--text-muted)">—</span>
+                    }
+                </td>
             </ng-container>
 
             <ng-container matColumnDef="technicianName">

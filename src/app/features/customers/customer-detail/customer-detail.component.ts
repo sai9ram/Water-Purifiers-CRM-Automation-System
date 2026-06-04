@@ -76,9 +76,12 @@ export class CustomerDetailComponent implements OnInit {
 
   initForms(): void {
     const curMonth = new Date().toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+    const nextService = new Date();
+    nextService.setMonth(nextService.getMonth() + 3);
     this.serviceForm = this.fb.group({
       serviceType: ['filter-change', Validators.required],
       serviceDate: [new Date(), Validators.required],
+      nextServiceDate: [nextService],
       technicianName: ['', Validators.required],
       partsReplaced: [''],
       notes: [''],
@@ -111,10 +114,19 @@ export class CustomerDetailComponent implements OnInit {
       customerId: this.customer!.id!,
       customerName: this.customer!.name
     }).subscribe(() => {
+      this.customerSvc.update(this.customer!.id!, {
+        lastServiceDate: new Date(val.serviceDate),
+        nextServiceDate: val.nextServiceDate ? new Date(val.nextServiceDate) : undefined
+      }).subscribe(() => {
+        this.customerSvc.getById(this.customer!.id!).subscribe(c => this.customer = c);
+      });
+
       this.snack.open('Service logged!', 'OK', { duration: 3000 });
       this.showAddService = false;
       this.loadServiceRecords(this.customer!.id!);
-      this.serviceForm.reset({ serviceType: 'filter-change', serviceDate: new Date(), cost: 0 });
+      const nextService = new Date();
+      nextService.setMonth(nextService.getMonth() + 3);
+      this.serviceForm.reset({ serviceType: 'filter-change', serviceDate: new Date(), nextServiceDate: nextService, cost: 0 });
     });
   }
 
@@ -209,5 +221,33 @@ export class CustomerDetailComponent implements OnInit {
 
   getServiceLabel(type: ServiceType): string {
     return SERVICE_TYPE_LABELS[type] ?? type;
+  }
+
+  onRecordPaymentClick(): void {
+    if (this.customer?.monthlyRent) {
+      this.paymentForm.get('notes')?.setValue('');
+    }
+    this.showAddPayment = true;
+  }
+
+  onServiceDateChange(date: Date | null): void {
+    if (!date) return;
+    const next = new Date(date);
+    next.setMonth(next.getMonth() + 3);
+    this.serviceForm.patchValue({ nextServiceDate: next });
+  }
+
+  getServiceDueClass(date?: Date): string {
+    if (!date) return 'chip chip-muted';
+
+    const target = new Date(date);
+    target.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const diff = Math.round((target.getTime() - today.getTime()) / 86400000);
+    if (diff < 0) return 'chip chip-danger';
+    if (diff <= 7) return 'chip chip-warning';
+    return 'chip chip-success';
   }
 }

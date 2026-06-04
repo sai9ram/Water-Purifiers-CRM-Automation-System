@@ -34,9 +34,10 @@ export class ServicesComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  columns = ['customerName', 'serviceType', 'serviceDate', 'technicianName', 'partsReplaced', 'cost', 'actions'];
+  columns = ['customerName', 'serviceType', 'serviceDate', 'nextServiceDate', 'technicianName', 'partsReplaced', 'cost', 'actions'];
   dataSource = new MatTableDataSource<ServiceRecord>([]);
   allRecords: ServiceRecord[] = [];
+  upcomingCustomers: Customer[] = [];
   customers: Customer[] = [];
   showForm = false;
   searchQuery = '';
@@ -60,10 +61,15 @@ export class ServicesComponent implements OnInit, AfterViewInit {
   }
 
   initForm(): void {
+    const lastService = new Date();
+    const nextMaintenance = new Date(lastService);
+    nextMaintenance.setMonth(nextMaintenance.getMonth() + 3);
+
     this.form = this.fb.group({
       customerId: [null, Validators.required],
       serviceType: ['filter-change', Validators.required],
       serviceDate: [new Date(), Validators.required],
+      nextServiceDate: [nextMaintenance],
       technicianName: ['', Validators.required],
       partsReplaced: [''],
       notes: [''],
@@ -74,9 +80,14 @@ export class ServicesComponent implements OnInit, AfterViewInit {
   loadData(): void {
     this.serviceSvc.getAll().subscribe(r => {
       this.allRecords = r;
-      this.dataSource.data = r;
+      this.applyFilter();
     });
-    this.customerSvc.getAll().subscribe(c => this.customers = c);
+    this.customerSvc.getAll().subscribe(c => {
+      this.customers = c;
+      this.upcomingCustomers = [...c]
+        .filter(customer => !!customer.nextServiceDate)
+        .sort((a, b) => new Date(a.nextServiceDate!).getTime() - new Date(b.nextServiceDate!).getTime());
+    });
   }
 
   onCustomerSelect(id: number): void {
@@ -102,6 +113,12 @@ export class ServicesComponent implements OnInit, AfterViewInit {
     const val = this.form.value;
     const customer = this.customers.find(c => c.id === val.customerId);
     this.serviceSvc.add({ ...val, customerName: customer?.name ?? '' }).subscribe(() => {
+      if (customer?.id) {
+        this.customerSvc.update(customer.id, {
+          lastServiceDate: new Date(val.serviceDate),
+          nextServiceDate: val.nextServiceDate ? new Date(val.nextServiceDate) : undefined
+        }).subscribe(() => this.loadData());
+      }
       this.snack.open('Service logged!', 'OK', { duration: 3000 });
       this.showForm = false;
       this.loadData();
@@ -135,5 +152,35 @@ export class ServicesComponent implements OnInit, AfterViewInit {
 
   getServiceLabel(type: string): string {
     return SERVICE_TYPE_LABELS[type as ServiceType] ?? type;
+  }
+
+  onServiceDateChange(date: Date | null): void {
+    if (!date) return;
+    const next = new Date(date);
+    next.setMonth(next.getMonth() + 3);
+    this.form.patchValue({ nextServiceDate: next });
+  }
+
+  getCustomerName(customerId: number): string {
+    return this.customers.find(customer => customer.id === customerId)?.name ?? 'Customer';
+  }
+
+  getCustomerArea(customerId: number): string {
+    return this.customers.find(customer => customer.id === customerId)?.area ?? '';
+  }
+
+  getScheduleClass(date?: Date): string {
+    if (!date) return 'chip chip-muted';
+
+    const target = new Date(date);
+    target.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.round((target.getTime() - today.getTime()) / 86400000);
+    if (diffDays < 0) return 'chip chip-danger';
+    if (diffDays <= 7) return 'chip chip-warning';
+    return 'chip chip-success';
   }
 }

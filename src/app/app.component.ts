@@ -28,6 +28,7 @@ export class AppComponent {
     { path: '/dashboard',  icon: 'dashboard',       label: 'Dashboard'   },
     { path: '/customers',  icon: 'people',           label: 'Customers'   },
     { path: '/reminders',  icon: 'notifications',    label: 'Reminders'   },
+    { path: '/payments',   icon: 'payments',         label: 'Payments'    },
     { path: '/services',   icon: 'build',            label: 'Services'    },
     { path: '/plans',      icon: 'card_membership',  label: 'Plans'       },
   ];

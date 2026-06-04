@@ -1,0 +1,159 @@
+<div class="page-container fade-in">
+    <div class="page-header">
+        <div>
+            <h2>Payments</h2>
+            <p class="subtitle">Track rent collections with customer-wise history and calendar filters</p>
+        </div>
+        <a routerLink="/customers" mat-raised-button color="primary">
+            <mat-icon>person_search</mat-icon> View Customers
+        </a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#e8f5e9">
+                <mat-icon style="color:#2e7d32">currency_rupee</mat-icon>
+            </div>
+            <div class="stat-label">Collected</div>
+            <div class="stat-value">₹{{ filteredTotal | number }}</div>
+            <div class="stat-sub">within current filters</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#e0f7fa">
+                <mat-icon style="color:#0097a7">payments</mat-icon>
+            </div>
+            <div class="stat-label">Transactions</div>
+            <div class="stat-value">{{ filteredCount }}</div>
+            <div class="stat-sub">payment records found</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#fff8e1">
+                <mat-icon style="color:#f57f17">calendar_month</mat-icon>
+            </div>
+            <div class="stat-label">Date Filter</div>
+            <div class="stat-value">{{ startDate || endDate ? 'Active' : 'All' }}</div>
+            <div class="stat-sub">
+                @if (startDate || endDate) {
+                {{ startDate ? (startDate | date:'dd MMM') : 'Start' }} - {{ endDate ? (endDate | date:'dd MMM') : 'Today' }}
+                } @else {
+                no date restriction
+                }
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#e8eaf6">
+                <mat-icon style="color:#283593">groups</mat-icon>
+            </div>
+            <div class="stat-label">Customers</div>
+            <div class="stat-value">{{ filteredCustomers }}</div>
+            <div class="stat-sub">unique payers</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#f3e5f5">
+                <mat-icon style="color:#6a1b9a">monitoring</mat-icon>
+            </div>
+            <div class="stat-label">Average Payment</div>
+            <div class="stat-value">₹{{ averagePayment | number }}</div>
+            <div class="stat-sub">per transaction</div>
+        </div>
+    </div>
+
+    <div class="search-bar">
+        <mat-form-field appearance="outline">
+            <mat-label>Search by customer, phone, area, month...</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="date-field">
+            <mat-label>From Date</mat-label>
+            <input matInput [matDatepicker]="fromPicker" [(ngModel)]="startDate" (dateChange)="applyFilter()" />
+            <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+            <mat-datepicker #fromPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="date-field">
+            <mat-label>To Date</mat-label>
+            <input matInput [matDatepicker]="toPicker" [(ngModel)]="endDate" (dateChange)="applyFilter()" />
+            <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+            <mat-datepicker #toPicker></mat-datepicker>
+        </mat-form-field>
+
+        <button mat-stroked-button type="button" (click)="clearDateFilter()" [disabled]="!startDate && !endDate">
+            <mat-icon>filter_alt_off</mat-icon> Clear Dates
+        </button>
+    </div>
+
+    <div class="table-card">
+        <table mat-table [dataSource]="dataSource" matSort>
+            <ng-container matColumnDef="customer">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header="customerName">Customer</th>
+                <td mat-cell *matCellDef="let payment">
+                    <a class="customer-cell" [routerLink]="['/customers', payment.customerId]">
+                        <div class="customer-avatar">{{ payment.customerName[0] }}</div>
+                        <div class="customer-copy">
+                            <strong>{{ payment.customerName }}</strong>
+                            <span>{{ payment.customerArea }} · {{ payment.customerPhone }}</span>
+                        </div>
+                    </a>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="forMonth">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>For Month</th>
+                <td mat-cell *matCellDef="let payment">
+                    <span class="chip chip-info">{{ payment.forMonth }}</span>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="paidDate">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Paid On</th>
+                <td mat-cell *matCellDef="let payment">{{ payment.paidDate | date:'dd MMM yyyy' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Amount</th>
+                <td mat-cell *matCellDef="let payment">
+                    <span class="amount">₹{{ payment.amount | number }}</span>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="notes">
+                <th mat-header-cell *matHeaderCellDef>Notes</th>
+                <td mat-cell *matCellDef="let payment">
+                    @if (payment.notes) {
+                    <span class="notes">{{ payment.notes }}</span>
+                    } @else {
+                    <span class="muted">—</span>
+                    }
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let payment">
+                    <button mat-icon-button color="warn" (click)="deletePayment(payment)" aria-label="Delete payment">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columns"></tr>
+            <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+        </table>
+
+        @if (dataSource.data.length === 0) {
+        <div class="empty-state">
+            <mat-icon>payments</mat-icon>
+            <h4>No payments found</h4>
+            <p>Try changing the calendar filter or record payments from a customer profile.</p>
+        </div>
+        }
+
+        <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+    </div>
+</div>

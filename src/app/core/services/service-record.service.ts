@@ -23,6 +23,18 @@ export class ServiceRecordService {
     );
   }
 
+  getUpcoming(): Observable<ServiceRecord[]> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return from(
+      db.serviceRecords
+        .where('nextServiceDate')
+        .aboveOrEqual(today)
+        .sortBy('nextServiceDate')
+    );
+  }
+
   add(record: Omit<ServiceRecord, 'id' | 'createdAt'>): Observable<number> {
     return from(db.serviceRecords.add({ ...record, createdAt: new Date() } as ServiceRecord));
   }

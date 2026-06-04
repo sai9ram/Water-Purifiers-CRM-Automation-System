@@ -91,6 +91,23 @@
             </mat-form-field>
         </div>
 
+        <div class="form-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Last Service Date</mat-label>
+                <input matInput [matDatepicker]="lastServicePicker" formControlName="lastServiceDate"
+                    (dateChange)="onLastServiceDateChange($event.value)" />
+                <mat-datepicker-toggle matSuffix [for]="lastServicePicker"></mat-datepicker-toggle>
+                <mat-datepicker #lastServicePicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Next Service Date</mat-label>
+                <input matInput [matDatepicker]="nextServicePicker" formControlName="nextServiceDate" />
+                <mat-datepicker-toggle matSuffix [for]="nextServicePicker"></mat-datepicker-toggle>
+                <mat-datepicker #nextServicePicker></mat-datepicker>
+            </mat-form-field>
+        </div>
+
         <mat-form-field appearance="outline">
             <mat-label>Notes</mat-label>
             <textarea matInput formControlName="notes" rows="2" placeholder="Any additional notes..."></textarea>

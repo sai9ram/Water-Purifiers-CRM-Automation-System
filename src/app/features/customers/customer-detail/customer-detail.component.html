@@ -17,12 +17,12 @@
                     style="margin-right:6px" />
                 Send Reminder
             </button>
-            <button mat-stroked-button (click)="copyPaymentLink()">
+            <!-- <button mat-stroked-button (click)="copyPaymentLink()">
                 <mat-icon>content_copy</mat-icon> Copy Payment Link
             </button>
             <button mat-stroked-button (click)="openPaymentLink()">
                 <mat-icon>payments</mat-icon> Open Payment Page
-            </button>
+            </button> -->
             <button mat-raised-button color="primary" (click)="editCustomer()">
                 <mat-icon>edit</mat-icon> Edit
             </button>
@@ -67,9 +67,9 @@
             <div class="info-icon" style="background:#e3f2fd">
                 <mat-icon style="color:#1565c0">link</mat-icon>
             </div>
-            <div>
+            <div class="info-card-content-wrapper">
                 <div class="info-label">Payment Link</div>
-                <div class="info-value small">{{ getPaymentLink() }}</div>
+                <div class="info-value small"><a [href]="getPaymentLink()" target="_blank">{{ getPaymentLink() }}</a>  <mat-icon class="payment-link-copy-icon" (click)="copyPaymentLink()">content_copy</mat-icon></div>
             </div>
         </div>
         <div class="info-card">
@@ -97,6 +97,36 @@
             <div>
                 <div class="info-label">Member Since</div>
                 <div class="info-value">{{ customer.joinDate | date:'dd MMM yyyy' }}</div>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="info-icon" style="background:#ede7f6">
+                <mat-icon style="color:#5e35b1">history</mat-icon>
+            </div>
+            <div>
+                <div class="info-label">Last Service Date</div>
+                <div class="info-value">
+                    @if (customer.lastServiceDate) {
+                    {{ customer.lastServiceDate | date:'dd MMM yyyy' }}
+                    } @else {
+                    <span class="muted-text">Not set</span>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="info-icon" style="background:#e8f5e9">
+                <mat-icon style="color:#2e7d32">event_repeat</mat-icon>
+            </div>
+            <div>
+                <div class="info-label">Next Service Date</div>
+                <div class="info-value">
+                    @if (customer.nextServiceDate) {
+                    <span [class]="getServiceDueClass(customer.nextServiceDate)">{{ customer.nextServiceDate | date:'dd MMM yyyy' }}</span>
+                    } @else {
+                    <span class="muted-text">Not scheduled</span>
+                    }
+                </div>
             </div>
         </div>
     </div>
@@ -134,7 +164,8 @@
                             </mat-form-field>
                             <mat-form-field appearance="outline">
                                 <mat-label>Service Date</mat-label>
-                                <input matInput [matDatepicker]="sp" formControlName="serviceDate" />
+                                <input matInput [matDatepicker]="sp" formControlName="serviceDate"
+                                    (dateChange)="onServiceDateChange($event.value)" />
                                 <mat-datepicker-toggle matSuffix [for]="sp"></mat-datepicker-toggle>
                                 <mat-datepicker #sp></mat-datepicker>
                             </mat-form-field>
@@ -145,9 +176,18 @@
                                 <input matInput formControlName="technicianName" />
                             </mat-form-field>
                             <mat-form-field appearance="outline">
+                                <mat-label>Next Service Date</mat-label>
+                                <input matInput [matDatepicker]="ns" formControlName="nextServiceDate" />
+                                <mat-datepicker-toggle matSuffix [for]="ns"></mat-datepicker-toggle>
+                                <mat-datepicker #ns></mat-datepicker>
+                            </mat-form-field>
+                        </div>
+                        <div class="form-row-2">
+                            <mat-form-field appearance="outline">
                                 <mat-label>Cost (₹)</mat-label>
                                 <input matInput formControlName="cost" type="number" />
                             </mat-form-field>
+                            <div></div>
                         </div>
                         <mat-form-field appearance="outline">
                             <mat-label>Parts Replaced</mat-label>
@@ -219,7 +259,7 @@
                 <div class="tab-toolbar">
                     <h4>{{ payments.length }} Payments · Total ₹{{ totalPaid }}</h4>
                     @if (!showAddPayment) {
-                    <button mat-raised-button color="primary" (click)="showAddPayment=true">
+                    <button mat-raised-button color="primary" (click)="onRecordPaymentClick()">
                         <mat-icon>add</mat-icon> Record Payment
                     </button>
                     }

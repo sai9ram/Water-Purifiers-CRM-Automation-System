@@ -5,6 +5,9 @@ import { PaymentRecord } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class PaymentService {
+  getAll(): Observable<PaymentRecord[]> {
+    return from(db.payments.orderBy('paidDate').reverse().toArray());
+  }
 
   getByCustomer(customerId: number): Observable<PaymentRecord[]> {
     return from(
