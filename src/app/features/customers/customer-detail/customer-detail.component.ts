@@ -19,8 +19,9 @@ import { PaymentService } from '../../../core/services/payment.service';
 import { PlanService } from '../../../core/services/plan.service';
 import { PaymentLinkService } from '../../../core/services/payment-link.service';
 import { WhatsappService } from '../../../core/services/whatsapp.service';
-import { Customer, ServiceRecord, PaymentRecord, RentalPlan, SERVICE_TYPE_LABELS, ServiceType } from '../../../core/models/models';
+import { Customer, ServiceRecord, PaymentRecord, RentalPlan, SERVICE_TYPE_LABELS, ServiceType, CustomerComment } from '../../../core/models/models';
 import { CustomerFormDialogComponent } from '../customer-form-dialog/customer-form-dialog.component';
+import { CustomerCommentService } from '../../../core/services/customer-comment.service';
 
 @Component({
   selector: 'app-customer-detail',
@@ -38,14 +39,17 @@ export class CustomerDetailComponent implements OnInit {
   customer: Customer | undefined;
   serviceRecords: ServiceRecord[] = [];
   payments: PaymentRecord[] = [];
+  comments: CustomerComment[] = [];
   totalPaid = 0;
   loading = true;
   showAddService = false;
   showAddPayment = false;
+  showAddComment = false;
   plans: RentalPlan[] = [];
 
   serviceForm!: FormGroup;
   paymentForm!: FormGroup;
+  commentForm!: FormGroup;
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -55,6 +59,7 @@ export class CustomerDetailComponent implements OnInit {
   private planSvc = inject(PlanService);
   private paymentLinkSvc = inject(PaymentLinkService);
   private waSvc = inject(WhatsappService);
+  private commentSvc = inject(CustomerCommentService);
   private dialog = inject(MatDialog);
   private fb = inject(FormBuilder);
   private snack = inject(MatSnackBar);
@@ -69,6 +74,7 @@ export class CustomerDetailComponent implements OnInit {
         this.paymentForm?.patchValue({ amount: c.monthlyRent ?? 0 });
         this.loadServiceRecords(id);
         this.loadPayments();
+        this.loadComments();
       }
     });
     this.initForms();
@@ -93,6 +99,9 @@ export class CustomerDetailComponent implements OnInit {
       forMonth: [curMonth, Validators.required],
       notes: ['']
     });
+    this.commentForm = this.fb.group({
+      comment: ['', [Validators.required, Validators.maxLength(1000)]]
+    });
   }
 
   loadServiceRecords(id: number): void {
@@ -103,6 +112,12 @@ export class CustomerDetailComponent implements OnInit {
     this.paymentSvc.getByCustomer(this.customer!.id!).subscribe(p => {
       this.payments = p;
       this.totalPaid = p.reduce((s, x) => s + x.amount, 0);
+    });
+  }
+
+  loadComments(): void {
+    this.commentSvc.getByCustomer(this.customer!.id!).subscribe(comments => {
+      this.comments = comments.slice().reverse();
     });
   }
 
@@ -158,6 +173,32 @@ export class CustomerDetailComponent implements OnInit {
     this.paymentSvc.delete(p.id!).subscribe(() => {
       this.snack.open('Deleted', 'OK', { duration: 2000 });
       this.loadPayments();
+    });
+  }
+
+  addComment(): void {
+    if (this.commentForm.invalid || !this.customer?.id) return;
+
+    const comment = (this.commentForm.value.comment ?? '').trim();
+    if (!comment) return;
+
+    this.commentSvc.add({
+      customerId: this.customer.id,
+      comment
+    }).subscribe(() => {
+      this.snack.open('Comment added', 'OK', { duration: 2000 });
+      this.showAddComment = false;
+      this.commentForm.reset({ comment: '' });
+      this.loadComments();
+    });
+  }
+
+  deleteComment(comment: CustomerComment): void {
+    if (!comment.id || !confirm('Delete this comment?')) return;
+
+    this.commentSvc.delete(comment.id).subscribe(() => {
+      this.snack.open('Comment deleted', 'OK', { duration: 2000 });
+      this.loadComments();
     });
   }
 

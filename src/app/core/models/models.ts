@@ -59,6 +59,13 @@ export interface PaymentRecord {
   createdAt: Date;
 }
 
+export interface CustomerComment {
+  id?: number;
+  customerId: number;
+  comment: string;
+  createdAt: Date;
+}
+
 export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
   'filter-change': 'Filter Change',
   'repair': 'Repair',

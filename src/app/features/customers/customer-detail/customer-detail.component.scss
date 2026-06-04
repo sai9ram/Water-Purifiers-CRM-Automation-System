@@ -272,3 +272,67 @@
         font-style: italic;
     }
 }
+
+.comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.comment-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.comment-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e3f2fd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+        color: #1565c0;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.comment-body {
+    flex: 1;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+
+    strong {
+        font-size: 0.9rem;
+    }
+}
+
+.comment-date {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.comment-text {
+    margin: 8px 0 0;
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+    line-height: 1.5;
+}

@@ -1,11 +1,12 @@
 import Dexie, { Table } from 'dexie';
-import { Customer, RentalPlan, ServiceRecord, PaymentRecord } from '../models/models';
+import { Customer, RentalPlan, ServiceRecord, PaymentRecord, CustomerComment } from '../models/models';
 
 export class AppDatabase extends Dexie {
   customers!:      Table<Customer, number>;
   rentalPlans!:    Table<RentalPlan, number>;
   serviceRecords!: Table<ServiceRecord, number>;
   payments!:       Table<PaymentRecord, number>;
+  customerComments!: Table<CustomerComment, number>;
 
   constructor() {
     super('PureHomeWatersDB');
@@ -14,6 +15,13 @@ export class AppDatabase extends Dexie {
       rentalPlans:    '++id, name, monthlyRent',
       serviceRecords: '++id, customerId, serviceDate, serviceType, nextServiceDate',
       payments:       '++id, customerId, paidDate'
+    });
+    this.version(3).stores({
+      customers:        '++id, name, phone, planId, status, nextDueDate, area',
+      rentalPlans:      '++id, name, monthlyRent',
+      serviceRecords:   '++id, customerId, serviceDate, serviceType, nextServiceDate',
+      payments:         '++id, customerId, paidDate',
+      customerComments: '++id, customerId, createdAt'
     });
   }
 }

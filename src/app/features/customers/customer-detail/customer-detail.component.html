@@ -335,6 +335,69 @@
             </div>
         </mat-tab>
 
+        <mat-tab label="Comments">
+            <div class="tab-content">
+                <div class="tab-toolbar">
+                    <h4>{{ comments.length }} Comments</h4>
+                    @if (!showAddComment) {
+                    <button mat-raised-button color="primary" (click)="showAddComment=true">
+                        <mat-icon>add_comment</mat-icon> Add Comment
+                    </button>
+                    }
+                </div>
+
+                @if (showAddComment) {
+                <div class="inline-form">
+                    <h4 style="margin-bottom:16px">Add Customer Comment</h4>
+                    <form [formGroup]="commentForm">
+                        <mat-form-field appearance="outline" style="width:100%">
+                            <mat-label>Comment</mat-label>
+                            <textarea matInput formControlName="comment" rows="4"
+                                placeholder="Add visit notes, customer requests, follow-up details..."></textarea>
+                        </mat-form-field>
+                        <div class="form-actions">
+                            <button mat-stroked-button type="button" (click)="showAddComment=false">Cancel</button>
+                            <button mat-raised-button color="primary" (click)="addComment()"
+                                [disabled]="commentForm.invalid">
+                                <mat-icon>save</mat-icon> Save Comment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                }
+
+                @if (comments.length > 0) {
+                <div class="comment-list">
+                    @for (comment of comments; track comment.id) {
+                    <div class="comment-item">
+                        <div class="comment-icon">
+                            <mat-icon>comment</mat-icon>
+                        </div>
+                        <div class="comment-body">
+                            <div class="comment-header">
+                                <strong>Comment</strong>
+                                <span class="comment-date">{{ comment.createdAt | date:'dd MMM yyyy, hh:mm a' }}</span>
+                            </div>
+                            <p class="comment-text">{{ comment.comment }}</p>
+                        </div>
+                        <button mat-icon-button color="warn" (click)="deleteComment(comment)">
+                            <mat-icon style="font-size:16px">delete</mat-icon>
+                        </button>
+                    </div>
+                    }
+                </div>
+                }
+
+                @if (comments.length === 0 && !showAddComment) {
+                <div class="empty-state">
+                    <mat-icon>comment_bank</mat-icon>
+                    <h4>No comments yet</h4>
+                    <p>Add comments to maintain a visible interaction history for this customer.</p>
+                </div>
+                }
+            </div>
+        </mat-tab>
+
     </mat-tab-group>
 </div>
 }

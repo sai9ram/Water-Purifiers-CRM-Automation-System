@@ -16,6 +16,7 @@ interface BackupSnapshot {
   rentalPlans: unknown[];
   serviceRecords: unknown[];
   payments: unknown[];
+  customerComments: unknown[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -94,14 +95,15 @@ export class BackupSyncService {
   }
 
   private async readSnapshot(): Promise<BackupSnapshot> {
-    const [customers, rentalPlans, serviceRecords, payments] = await Promise.all([
+    const [customers, rentalPlans, serviceRecords, payments, customerComments] = await Promise.all([
       db.customers.toArray(),
       db.rentalPlans.toArray(),
       db.serviceRecords.toArray(),
-      db.payments.toArray()
+      db.payments.toArray(),
+      db.customerComments.toArray()
     ]);
 
-    return { customers, rentalPlans, serviceRecords, payments };
+    return { customers, rentalPlans, serviceRecords, payments, customerComments };
   }
 
   private buildMysqlDump(snapshot: BackupSnapshot, createdAt: Date): string {
@@ -166,6 +168,13 @@ export class BackupSyncService {
       '  notes TEXT NULL,',
       '  created_at DATETIME NOT NULL',
       ');',
+      '',
+      'CREATE TABLE IF NOT EXISTS customer_comments (',
+      '  id BIGINT PRIMARY KEY,',
+      '  customer_id BIGINT NOT NULL,',
+      '  comment TEXT NOT NULL,',
+      '  created_at DATETIME NOT NULL',
+      ');',
       ''
     ];
 
@@ -223,6 +232,13 @@ export class BackupSyncService {
       this.sqlValue(payment.forMonth),
       this.sqlValue(payment.notes),
       this.sqlValue(payment.createdAt)
+    ]));
+
+    lines.push(this.buildInsert('customer_comments', snapshot.customerComments, comment => [
+      this.sqlValue(comment.id),
+      this.sqlValue(comment.customerId),
+      this.sqlValue(comment.comment),
+      this.sqlValue(comment.createdAt)
     ]));
 
     lines.push('SET FOREIGN_KEY_CHECKS = 1;');
