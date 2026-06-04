@@ -40,7 +40,7 @@ export class CustomerListComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  displayedColumns = ['name', 'area', 'purifierModel', 'planName', 'nextDueDate', 'status', 'actions'];
+  displayedColumns = ['name', 'area', 'purifierModel', 'planName', 'nextDueDate', 'nextServiceDate', 'status', 'actions'];
   dataSource = new MatTableDataSource<Customer>([]);
   allCustomers: Customer[] = [];
   plans: RentalPlan[] = [];
@@ -138,6 +138,17 @@ export class CustomerListComponent implements OnInit, AfterViewInit {
     const diff = Math.ceil((d.getTime() - today.getTime()) / 86400000);
     if (diff < 0)  return 'due-overdue';
     if (diff <= 5) return 'due-soon';
+    return 'due-ok';
+  }
+
+  getNextServiceDateClass(date?: Date): string {
+    if (!date) return 'due-ok';
+
+    const d = new Date(date);
+    const today = new Date();
+    const diff = Math.ceil((d.getTime() - today.getTime()) / 86400000);
+    if (diff < 0) return 'due-overdue';
+    if (diff <= 7) return 'due-soon';
     return 'due-ok';
   }
 }

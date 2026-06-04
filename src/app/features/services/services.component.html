@@ -19,18 +19,46 @@
             <span class="chip chip-info">{{ upcomingCustomers.length }} scheduled</span>
         </div>
 
+        <div class="maintenance-filters">
+            <mat-form-field appearance="outline">
+                <mat-label>Filter Range</mat-label>
+                <mat-select [(ngModel)]="maintenanceFilter" (ngModelChange)="onMaintenanceFilterChange($event)">
+                    <mat-option value="this-month">This Month</mat-option>
+                    <mat-option value="last-month">Last Month</mat-option>
+                    <mat-option value="next-month">Next Month</mat-option>
+                    <mat-option value="custom">Custom Range</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>From</mat-label>
+                <input matInput [matDatepicker]="maintenanceFromPicker" [(ngModel)]="maintenanceFrom"
+                    [disabled]="maintenanceFilter !== 'custom'" (dateChange)="onMaintenanceDateChange()" />
+                <mat-datepicker-toggle matSuffix [for]="maintenanceFromPicker"></mat-datepicker-toggle>
+                <mat-datepicker #maintenanceFromPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>To</mat-label>
+                <input matInput [matDatepicker]="maintenanceToPicker" [(ngModel)]="maintenanceTo"
+                    [disabled]="maintenanceFilter !== 'custom'" (dateChange)="onMaintenanceDateChange()" />
+                <mat-datepicker-toggle matSuffix [for]="maintenanceToPicker"></mat-datepicker-toggle>
+                <mat-datepicker #maintenanceToPicker></mat-datepicker>
+            </mat-form-field>
+        </div>
+
         @if (upcomingCustomers.length === 0) {
         <div class="empty-state compact-empty">
             <mat-icon>event_busy</mat-icon>
-            <h4>No upcoming services scheduled</h4>
-            <p>Set last and next service dates on the customer profile or while logging a service visit.</p>
+            <h4>No maintenance records found for this filter</h4>
+            <p>Change the month range or set last and next service dates on the customer profile.</p>
         </div>
         }
 
         @if (upcomingCustomers.length > 0) {
         <div class="upcoming-grid">
             @for (customer of upcomingCustomers.slice(0, 8); track customer.id) {
-            <div class="upcoming-item">
+            <a class="upcoming-item" [routerLink]="['/customers', customer.id]">
                 <div class="upcoming-icon" style="background:#0097a7">
                     <mat-icon>event_repeat</mat-icon>
                 </div>
@@ -43,7 +71,7 @@
                         {{ customer.nextServiceDate | date:'dd MMM yyyy' }}
                     </span>
                 </div>
-            </div>
+            </a>
             }
         </div>
         }

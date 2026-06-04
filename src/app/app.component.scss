@@ -230,6 +230,30 @@
     &.state-error mat-icon { color: var(--danger); }
 }
 
+.backup-action {
+    border: 1px solid var(--border);
+    background: var(--bg-base);
+    border-radius: 999px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.2s ease;
+
+    mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+.backup-action:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
 .backup-copy {
     display: flex;
     flex-direction: column;

@@ -60,4 +60,8 @@ export class AppComponent {
   retryBackupSync(): void {
     void this.backupSyncSvc.retrySync();
   }
+
+  saveBackupAndSync(): void {
+    void (this.backupSyncSvc as any).saveBackupAndSync();
+  }
 }

@@ -49,13 +49,13 @@
             <div class="stat-sub">need follow-up</div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card stat-card-action" (click)="openThisMonthMaintenance()">
             <div class="stat-icon" style="background:#f3e5f5">
                 <mat-icon style="color:#6a1b9a">build</mat-icon>
             </div>
-            <div class="stat-label">Services This Month</div>
-            <div class="stat-value">{{ serviceStats.thisMonth }}</div>
-            <div class="stat-sub">{{ serviceStats.upcoming }} upcoming</div>
+            <div class="stat-label">Maintenance This Month</div>
+            <div class="stat-value">{{ thisMonthMaintenanceCount }}</div>
+            <div class="stat-sub">Open upcoming maintenance →</div>
         </div>
 
         <div class="stat-card">

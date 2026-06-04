@@ -56,22 +56,36 @@ export class BackupSyncService {
       const sql = this.buildMysqlDump(snapshot, timestamp);
       const fileName = this.buildFileName(timestamp);
 
-      this.downloadSqlBackup(fileName, sql);
       this.lastBackupAt.set(timestamp);
 
-      const queueItem: BackupQueueItem = {
-        id: `${timestamp.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
-        createdAt: timestamp.toISOString(),
-        reason,
-        fileName,
-        sql
-      };
-
+      const queueItem = this.createQueueItem(timestamp, reason, fileName, sql);
       this.enqueue(queueItem);
       await this.flushQueue();
     } catch {
       this.state.set('error');
       this.message.set('Backup failed');
+    }
+  }
+
+  async saveBackupAndSync(): Promise<void> {
+    this.state.set('running');
+    this.message.set('Saving backup file');
+
+    try {
+      const snapshot = await this.readSnapshot();
+      const timestamp = new Date();
+      const sql = this.buildMysqlDump(snapshot, timestamp);
+      const fileName = this.buildFileName(timestamp);
+
+      await this.saveSqlBackup(fileName, sql);
+      this.lastBackupAt.set(timestamp);
+
+      const queueItem = this.createQueueItem(timestamp, 'manual save', fileName, sql);
+      this.enqueue(queueItem);
+      await this.flushQueue();
+    } catch {
+      this.state.set('error');
+      this.message.set('Backup save failed');
     }
   }
 
@@ -263,6 +277,33 @@ export class BackupSyncService {
     return `pure-home-waters-backup-${stamp}.sql`;
   }
 
+  private async saveSqlBackup(fileName: string, sql: string): Promise<void> {
+    if (typeof window === 'undefined') return;
+
+    const data = new Blob([sql], { type: 'application/sql;charset=utf-8' });
+    const savePicker = (window as any).showSaveFilePicker;
+
+    if (typeof savePicker === 'function') {
+      const fileHandle = await savePicker({
+        suggestedName: fileName,
+        types: [
+          {
+            description: 'SQL Backup',
+            accept: { 'application/sql': ['.sql'] }
+          }
+        ],
+        excludeAcceptAllOption: false
+      });
+
+      const writable = await fileHandle.createWritable();
+      await writable.write(data);
+      await writable.close();
+      return;
+    }
+
+    this.downloadSqlBackup(fileName, sql);
+  }
+
   private downloadSqlBackup(fileName: string, sql: string): void {
     if (typeof document === 'undefined') return;
 
@@ -276,6 +317,16 @@ export class BackupSyncService {
     anchor.click();
     document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
+  }
+
+  private createQueueItem(timestamp: Date, reason: string, fileName: string, sql: string): BackupQueueItem {
+    return {
+      id: `${timestamp.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
+      createdAt: timestamp.toISOString(),
+      reason,
+      fileName,
+      sql
+    };
   }
 
   private enqueue(item: BackupQueueItem): void {

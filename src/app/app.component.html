@@ -67,6 +67,12 @@
                         </small>
                     </span>
                 </button>
+                <button class="backup-action" type="button" (click)="saveBackupAndSync()"
+                    [disabled]="backupStatus().state === 'running'"
+                    title="Save backup file and sync immediately">
+                    <mat-icon>download</mat-icon>
+                    <span>Save & Sync</span>
+                </button>
                 <div class="topbar-date">
                     <mat-icon>calendar_today</mat-icon>
                     <span>{{ today }}</span>

@@ -1,6 +1,8 @@
 import { AfterViewInit, Component, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
@@ -21,7 +23,7 @@ import { ServiceRecord, Customer, SERVICE_TYPE_LABELS, ServiceType } from '../..
   selector: 'app-services',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, ReactiveFormsModule,
+    CommonModule, FormsModule, ReactiveFormsModule, RouterLink,
     MatTableModule, MatSortModule, MatPaginatorModule,
     MatIconModule, MatButtonModule, MatFormFieldModule,
     MatInputModule, MatSelectModule, MatDatepickerModule,
@@ -42,15 +44,26 @@ export class ServicesComponent implements OnInit, AfterViewInit {
   showForm = false;
   searchQuery = '';
   typeFilter = '';
+  maintenanceFilter: 'this-month' | 'last-month' | 'next-month' | 'custom' = 'this-month';
+  maintenanceFrom: Date | null = null;
+  maintenanceTo: Date | null = null;
   form!: FormGroup;
 
   private serviceSvc = inject(ServiceRecordService);
   private customerSvc = inject(CustomerService);
   private fb = inject(FormBuilder);
   private snack = inject(MatSnackBar);
+  private route = inject(ActivatedRoute);
 
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      const filter = params.get('maintenanceFilter');
+      if (filter === 'this-month' || filter === 'last-month' || filter === 'next-month' || filter === 'custom') {
+        this.setMaintenanceRange(filter);
+        this.upcomingCustomers = this.getFilteredUpcomingCustomers(this.customers);
+      }
+    });
     this.loadData();
     this.initForm();
   }
@@ -84,9 +97,8 @@ export class ServicesComponent implements OnInit, AfterViewInit {
     });
     this.customerSvc.getAll().subscribe(c => {
       this.customers = c;
-      this.upcomingCustomers = [...c]
-        .filter(customer => !!customer.nextServiceDate)
-        .sort((a, b) => new Date(a.nextServiceDate!).getTime() - new Date(b.nextServiceDate!).getTime());
+      this.setMaintenanceRange(this.maintenanceFilter);
+      this.upcomingCustomers = this.getFilteredUpcomingCustomers(c);
     });
   }
 
@@ -182,5 +194,67 @@ export class ServicesComponent implements OnInit, AfterViewInit {
     if (diffDays < 0) return 'chip chip-danger';
     if (diffDays <= 7) return 'chip chip-warning';
     return 'chip chip-success';
+  }
+
+  onMaintenanceFilterChange(filter: 'this-month' | 'last-month' | 'next-month' | 'custom'): void {
+    this.setMaintenanceRange(filter);
+    this.upcomingCustomers = this.getFilteredUpcomingCustomers(this.customers);
+  }
+
+  onMaintenanceDateChange(): void {
+    this.upcomingCustomers = this.getFilteredUpcomingCustomers(this.customers);
+  }
+
+  private getFilteredUpcomingCustomers(customers: Customer[]): Customer[] {
+    const { from, to } = this.getMaintenanceDateBounds();
+
+    return [...customers]
+      .filter(customer => {
+        if (!customer.nextServiceDate) return false;
+
+        const nextServiceDate = new Date(customer.nextServiceDate);
+        nextServiceDate.setHours(0, 0, 0, 0);
+
+        if (from && nextServiceDate < from) return false;
+        if (to && nextServiceDate > to) return false;
+        return true;
+      })
+      .sort((a, b) => new Date(a.nextServiceDate!).getTime() - new Date(b.nextServiceDate!).getTime());
+  }
+
+  private setMaintenanceRange(filter: 'this-month' | 'last-month' | 'next-month' | 'custom'): void {
+    this.maintenanceFilter = filter;
+    if (filter === 'custom') return;
+
+    const today = new Date();
+    const monthDate = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    if (filter === 'last-month') {
+      monthDate.setMonth(monthDate.getMonth() - 1);
+    } else if (filter === 'next-month') {
+      monthDate.setMonth(monthDate.getMonth() + 1);
+    }
+
+    this.maintenanceFrom = this.startOfDay(new Date(monthDate.getFullYear(), monthDate.getMonth(), 1));
+    this.maintenanceTo = this.endOfDay(new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0));
+  }
+
+  private getMaintenanceDateBounds(): { from: Date | null; to: Date | null } {
+    return {
+      from: this.maintenanceFrom ? this.startOfDay(this.maintenanceFrom) : null,
+      to: this.maintenanceTo ? this.endOfDay(this.maintenanceTo) : null
+    };
+  }
+
+  private startOfDay(date: Date): Date {
+    const value = new Date(date);
+    value.setHours(0, 0, 0, 0);
+    return value;
+  }
+
+  private endOfDay(date: Date): Date {
+    const value = new Date(date);
+    value.setHours(23, 59, 59, 999);
+    return value;
   }
 }
