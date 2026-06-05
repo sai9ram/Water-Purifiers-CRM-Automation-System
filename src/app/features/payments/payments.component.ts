@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
 import { PaymentService } from '../../core/services/payment.service';
 import { CustomerService } from '../../core/services/customer.service';
 import { Customer, PaymentRecord } from '../../core/models/models';
@@ -35,6 +36,7 @@ interface PaymentView extends PaymentRecord {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule
   ],
@@ -52,6 +54,7 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
   customers: Customer[] = [];
 
   searchQuery = '';
+  paymentFilter: 'this-month' | 'last-month' | 'next-month' | 'custom' = 'this-month';
   startDate: Date | null = null;
   endDate: Date | null = null;
 
@@ -64,6 +67,7 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
   private customerSvc = inject(CustomerService);
 
   ngOnInit(): void {
+    this.setPaymentRange('this-month');
     this.loadData();
   }
 
@@ -120,7 +124,13 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
     }
   }
 
+  onPaymentFilterChange(filter: 'this-month' | 'last-month' | 'next-month' | 'custom'): void {
+    this.setPaymentRange(filter);
+    this.applyFilter();
+  }
+
   clearDateFilter(): void {
+    this.paymentFilter = 'custom';
     this.startDate = null;
     this.endDate = null;
     this.applyFilter();
@@ -139,6 +149,25 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
     this.filteredTotal = payments.reduce((sum, payment) => sum + payment.amount, 0);
     this.filteredCustomers = new Set(payments.map(payment => payment.customerId)).size;
     this.averagePayment = payments.length ? Math.round(this.filteredTotal / payments.length) : 0;
+  }
+
+  private setPaymentRange(filter: 'this-month' | 'last-month' | 'next-month' | 'custom'): void {
+    this.paymentFilter = filter;
+    if (filter === 'custom') {
+      return;
+    }
+
+    const today = new Date();
+    const monthDate = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    if (filter === 'last-month') {
+      monthDate.setMonth(monthDate.getMonth() - 1);
+    } else if (filter === 'next-month') {
+      monthDate.setMonth(monthDate.getMonth() + 1);
+    }
+
+    this.startDate = this.normalizeStart(new Date(monthDate.getFullYear(), monthDate.getMonth(), 1));
+    this.endDate = this.normalizeEnd(new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0));
   }
 
   private normalizeStart(date: Date): Date {
