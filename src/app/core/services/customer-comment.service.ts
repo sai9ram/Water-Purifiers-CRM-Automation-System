@@ -9,6 +9,10 @@ import { BackupSyncService } from './backup-sync.service';
 export class CustomerCommentService {
   constructor(private backupSyncSvc: BackupSyncService) {}
 
+  getAll(): Observable<CustomerComment[]> {
+    return from(db.customerComments.orderBy('createdAt').reverse().toArray());
+  }
+
   getByCustomer(customerId: number): Observable<CustomerComment[]> {
     return from(
       db.customerComments.where('customerId').equals(customerId).reverse().sortBy('createdAt')

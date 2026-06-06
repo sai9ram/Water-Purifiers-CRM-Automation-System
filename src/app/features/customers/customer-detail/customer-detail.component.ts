@@ -17,9 +17,10 @@ import { CustomerService } from '../../../core/services/customer.service';
 import { ServiceRecordService } from '../../../core/services/service-record.service';
 import { PaymentService } from '../../../core/services/payment.service';
 import { PlanService } from '../../../core/services/plan.service';
+import { TechnicianService } from '../../../core/services/technician.service';
 import { PaymentLinkService } from '../../../core/services/payment-link.service';
 import { WhatsappService } from '../../../core/services/whatsapp.service';
-import { Customer, ServiceRecord, PaymentRecord, RentalPlan, SERVICE_TYPE_LABELS, ServiceType, CustomerComment } from '../../../core/models/models';
+import { Customer, ServiceRecord, PaymentRecord, RentalPlan, SERVICE_TYPE_LABELS, ServiceType, CustomerComment, Technician } from '../../../core/models/models';
 import { CustomerFormDialogComponent } from '../customer-form-dialog/customer-form-dialog.component';
 import { CustomerCommentService } from '../../../core/services/customer-comment.service';
 
@@ -50,6 +51,8 @@ export class CustomerDetailComponent implements OnInit {
   serviceForm!: FormGroup;
   paymentForm!: FormGroup;
   commentForm!: FormGroup;
+  technicians: Technician[] = [];
+  defaultTechnicianName = '';
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -57,6 +60,7 @@ export class CustomerDetailComponent implements OnInit {
   private serviceSvc = inject(ServiceRecordService);
   private paymentSvc = inject(PaymentService);
   private planSvc = inject(PlanService);
+  private technicianSvc = inject(TechnicianService);
   private paymentLinkSvc = inject(PaymentLinkService);
   private waSvc = inject(WhatsappService);
   private commentSvc = inject(CustomerCommentService);
@@ -78,6 +82,7 @@ export class CustomerDetailComponent implements OnInit {
       }
     });
     this.initForms();
+    this.loadTechnicians();
   }
 
   initForms(): void {
@@ -123,6 +128,18 @@ export class CustomerDetailComponent implements OnInit {
     });
   }
 
+  private loadTechnicians(): void {
+    this.technicianSvc.getAll().subscribe(t => this.technicians = t);
+    this.technicianSvc.getDefault().subscribe(defaultTech => {
+      if (defaultTech) {
+        this.defaultTechnicianName = defaultTech.name;
+        if (this.serviceForm && !this.serviceForm.value.technicianName) {
+          this.serviceForm.patchValue({ technicianName: defaultTech.name });
+        }
+      }
+    });
+  }
+
   addService(): void {
     if (this.serviceForm.invalid) return;
     const val = this.serviceForm.value;
@@ -143,7 +160,15 @@ export class CustomerDetailComponent implements OnInit {
       this.loadServiceRecords(this.customer!.id!);
       const nextService = new Date();
       nextService.setMonth(nextService.getMonth() + 3);
-      this.serviceForm.reset({ serviceType: 'filter-change', serviceDate: new Date(), nextServiceDate: nextService, cost: 0 });
+      this.serviceForm.reset({
+        serviceType: 'filter-change',
+        serviceDate: new Date(),
+        nextServiceDate: nextService,
+        technicianName: this.defaultTechnicianName || '',
+        partsReplaced: '',
+        notes: '',
+        cost: 0
+      });
     });
   }
 

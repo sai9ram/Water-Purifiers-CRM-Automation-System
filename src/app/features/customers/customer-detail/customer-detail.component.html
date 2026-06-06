@@ -208,8 +208,12 @@
                         </div>
                         <div class="form-row-2">
                             <mat-form-field appearance="outline">
-                                <mat-label>Technician Name</mat-label>
-                                <input matInput formControlName="technicianName" />
+                                <mat-label>Technician</mat-label>
+                                <mat-select formControlName="technicianName">
+                                    <mat-option *ngFor="let tech of technicians" [value]="tech.name">
+                                        {{ tech.name }}<span *ngIf="tech.isDefault"> (Default)</span>
+                                    </mat-option>
+                                </mat-select>
                             </mat-form-field>
                             <mat-form-field appearance="outline">
                                 <mat-label>Next Service Date</mat-label>

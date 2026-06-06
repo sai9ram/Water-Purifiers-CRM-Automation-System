@@ -1,5 +1,5 @@
 import Dexie, { Table } from 'dexie';
-import { Customer, RentalPlan, ServiceRecord, PaymentRecord, CustomerComment } from '../models/models';
+import { Customer, RentalPlan, ServiceRecord, PaymentRecord, CustomerComment, CustomerComplaint, Technician } from '../models/models';
 
 export class AppDatabase extends Dexie {
   customers!:      Table<Customer, number>;
@@ -7,6 +7,8 @@ export class AppDatabase extends Dexie {
   serviceRecords!: Table<ServiceRecord, number>;
   payments!:       Table<PaymentRecord, number>;
   customerComments!: Table<CustomerComment, number>;
+  customerComplaints!: Table<CustomerComplaint, number>;
+  technicians!:    Table<Technician, number>;
 
   constructor() {
     super('PureHomeWatersDB');
@@ -22,6 +24,33 @@ export class AppDatabase extends Dexie {
       serviceRecords:   '++id, customerId, serviceDate, serviceType, nextServiceDate',
       payments:         '++id, customerId, paidDate',
       customerComments: '++id, customerId, createdAt'
+    });
+
+    this.version(4).stores({
+      customers:        '++id, name, phone, planId, status, nextDueDate, area',
+      rentalPlans:      '++id, name, monthlyRent',
+      serviceRecords:   '++id, customerId, serviceDate, serviceType, nextServiceDate, complaintId',
+      payments:         '++id, customerId, paidDate',
+      customerComments: '++id, customerId, createdAt'
+    });
+
+    this.version(5).stores({
+      customers:         '++id, name, phone, planId, status, nextDueDate, area',
+      rentalPlans:       '++id, name, monthlyRent',
+      serviceRecords:    '++id, customerId, serviceDate, serviceType, nextServiceDate, complaintId',
+      payments:          '++id, customerId, paidDate',
+      customerComments:  '++id, customerId, createdAt',
+      customerComplaints:'++id, customerId, createdAt'
+    });
+
+    this.version(6).stores({
+      customers:         '++id, name, phone, planId, status, nextDueDate, area',
+      rentalPlans:       '++id, name, monthlyRent',
+      serviceRecords:    '++id, customerId, serviceDate, serviceType, nextServiceDate, complaintId',
+      payments:          '++id, customerId, paidDate',
+      customerComments:  '++id, customerId, createdAt',
+      customerComplaints:'++id, customerId, createdAt',
+      technicians:       '++id, name, isDefault'
     });
   }
 }
@@ -57,5 +86,15 @@ db.rentalPlans.count().then(count => {
         createdAt: new Date()
       }
     ]);
+  }
+});
+// Seed a default technician on first run
+ db.technicians.count().then(count => {
+  if (count === 0) {
+    db.technicians.add({
+      name: 'Default Technician',
+      isDefault: true,
+      createdAt: new Date()
+    });
   }
 });

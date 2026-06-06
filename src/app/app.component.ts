@@ -32,6 +32,8 @@ export class AppComponent {
     { path: '/reminders',  icon: 'notifications',    label: 'Reminders'   },
     { path: '/payments',   icon: 'payments',         label: 'Payments'    },
     { path: '/services',   icon: 'build',            label: 'Services'    },
+    { path: '/complaints', icon: 'report_problem',   label: 'Complaints'  },
+    { path: '/technicians', icon: 'engineering',      label: 'Technicians' },
     { path: '/plans',      icon: 'card_membership',  label: 'Plans'       },
   ];
 

@@ -17,7 +17,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ServiceRecordService } from '../../core/services/service-record.service';
 import { CustomerService } from '../../core/services/customer.service';
-import { ServiceRecord, Customer, SERVICE_TYPE_LABELS, ServiceType } from '../../core/models/models';
+import { TechnicianService } from '../../core/services/technician.service';
+import { ServiceRecord, Customer, Technician, SERVICE_TYPE_LABELS, ServiceType } from '../../core/models/models';
 
 @Component({
   selector: 'app-services',
@@ -41,16 +42,21 @@ export class ServicesComponent implements OnInit, AfterViewInit {
   allRecords: ServiceRecord[] = [];
   upcomingCustomers: Customer[] = [];
   customers: Customer[] = [];
+  technicians: Technician[] = [];
   showForm = false;
   searchQuery = '';
   typeFilter = '';
   maintenanceFilter: 'this-month' | 'last-month' | 'next-month' | 'custom' = 'this-month';
   maintenanceFrom: Date | null = null;
   maintenanceTo: Date | null = null;
+  requestCustomerId: number | null = null;
+  requestComplaintId: number | null = null;
+  requestServiceType: string | null = null;
   form!: FormGroup;
 
   private serviceSvc = inject(ServiceRecordService);
   private customerSvc = inject(CustomerService);
+  private technicianSvc = inject(TechnicianService);
   private fb = inject(FormBuilder);
   private snack = inject(MatSnackBar);
   private route = inject(ActivatedRoute);
@@ -63,9 +69,16 @@ export class ServicesComponent implements OnInit, AfterViewInit {
         this.setMaintenanceRange(filter);
         this.upcomingCustomers = this.getFilteredUpcomingCustomers(this.customers);
       }
+
+      this.requestCustomerId = params.get('customerId') ? Number(params.get('customerId')) : null;
+      this.requestComplaintId = params.get('complaintId') ? Number(params.get('complaintId')) : null;
+      this.requestServiceType = params.get('serviceType');
+      if (this.requestServiceType === 'repair') {
+        this.showForm = true;
+      }
     });
-    this.loadData();
     this.initForm();
+    this.loadData();
   }
 
   ngAfterViewInit(): void {
@@ -86,11 +99,13 @@ export class ServicesComponent implements OnInit, AfterViewInit {
       technicianName: ['', Validators.required],
       partsReplaced: [''],
       notes: [''],
-      cost: [0]
+      cost: [0],
+      complaintId: [null]
     });
   }
 
   loadData(): void {
+    this.loadTechnicians();
     this.serviceSvc.getAll().subscribe(r => {
       this.allRecords = r;
       this.applyFilter();
@@ -99,12 +114,38 @@ export class ServicesComponent implements OnInit, AfterViewInit {
       this.customers = c;
       this.setMaintenanceRange(this.maintenanceFilter);
       this.upcomingCustomers = this.getFilteredUpcomingCustomers(c);
+      this.patchRequestedService();
+    });
+  }
+
+  private loadTechnicians(): void {
+    this.technicianSvc.getAll().subscribe(t => this.technicians = t);
+    this.technicianSvc.getDefault().subscribe(defaultTech => {
+      if (defaultTech && this.form && !this.form.value.technicianName) {
+        this.form.patchValue({ technicianName: defaultTech.name });
+      }
     });
   }
 
   onCustomerSelect(id: number): void {
     const c = this.customers.find(x => x.id === id);
     if (c) this.form.patchValue({ customerName: c.name });
+  }
+
+  private patchRequestedService(): void {
+    if (this.requestCustomerId) {
+      this.form.patchValue({ customerId: this.requestCustomerId });
+      const customer = this.customers.find(x => x.id === this.requestCustomerId);
+      if (customer) {
+        this.form.patchValue({ customerName: customer.name });
+      }
+    }
+    if (this.requestComplaintId) {
+      this.form.patchValue({ complaintId: this.requestComplaintId });
+    }
+    if (this.requestServiceType === 'repair') {
+      this.form.patchValue({ serviceType: 'repair' });
+    }
   }
 
   applyFilter(): void {
@@ -164,6 +205,10 @@ export class ServicesComponent implements OnInit, AfterViewInit {
 
   getServiceLabel(type: string): string {
     return SERVICE_TYPE_LABELS[type as ServiceType] ?? type;
+  }
+
+  isComplaintService(record: ServiceRecord): boolean {
+    return !!record.complaintId;
   }
 
   onServiceDateChange(date: Date | null): void {

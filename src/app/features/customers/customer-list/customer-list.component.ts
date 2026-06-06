@@ -21,6 +21,8 @@ import { PlanService } from '../../../core/services/plan.service';
 import { WhatsappService } from '../../../core/services/whatsapp.service';
 import { Customer, RentalPlan, CustomerStatus } from '../../../core/models/models';
 import { CustomerFormDialogComponent } from '../customer-form-dialog/customer-form-dialog.component';
+import { CustomerComplaintDialogComponent } from '../customer-complaint-dialog.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-customer-list',
@@ -53,6 +55,7 @@ export class CustomerListComponent implements OnInit, AfterViewInit {
   private waSvc = inject(WhatsappService);
   private dialog = inject(MatDialog);
   private snack = inject(MatSnackBar);
+  private router = inject(Router);
 
   ngOnInit(): void {
     this.loadPlans();
@@ -113,6 +116,26 @@ export class CustomerListComponent implements OnInit, AfterViewInit {
     });
     ref.afterClosed().subscribe(result => {
       if (result) { this.loadCustomers(); }
+    });
+  }
+
+  openComplaintDialog(customer: Customer): void {
+    const ref = this.dialog.open(CustomerComplaintDialogComponent, {
+      width: '560px',
+      data: { customer }
+    });
+    ref.afterClosed().subscribe(result => {
+      if (result?.schedule && result.complaintId) {
+        this.router.navigate(['/services'], {
+          queryParams: {
+            customerId: customer.id,
+            complaintId: result.complaintId,
+            serviceType: 'repair'
+          }
+        });
+      } else if (result) {
+        this.snack.open('Complaint logged successfully', 'OK', { duration: 3000 });
+      }
     });
   }
 

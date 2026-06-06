@@ -17,6 +17,8 @@ interface BackupSnapshot {
   serviceRecords: unknown[];
   payments: unknown[];
   customerComments: unknown[];
+  customerComplaints: unknown[];
+  technicians: unknown[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -95,15 +97,17 @@ export class BackupSyncService {
   }
 
   private async readSnapshot(): Promise<BackupSnapshot> {
-    const [customers, rentalPlans, serviceRecords, payments, customerComments] = await Promise.all([
+    const [customers, rentalPlans, serviceRecords, payments, customerComments, customerComplaints, technicians] = await Promise.all([
       db.customers.toArray(),
       db.rentalPlans.toArray(),
       db.serviceRecords.toArray(),
       db.payments.toArray(),
-      db.customerComments.toArray()
+      db.customerComments.toArray(),
+      db.customerComplaints.toArray(),
+      db.technicians.toArray()
     ]);
 
-    return { customers, rentalPlans, serviceRecords, payments, customerComments };
+    return { customers, rentalPlans, serviceRecords, payments, customerComments, customerComplaints, technicians };
   }
 
   private buildMysqlDump(snapshot: BackupSnapshot, createdAt: Date): string {
@@ -176,6 +180,20 @@ export class BackupSyncService {
       '  comment TEXT NOT NULL,',
       '  created_at DATETIME NOT NULL',
       ');',
+      '',
+      'CREATE TABLE IF NOT EXISTS customer_complaints (',
+      '  id BIGINT PRIMARY KEY,',
+      '  customer_id BIGINT NOT NULL,',
+      '  complaint TEXT NOT NULL,',
+      '  created_at DATETIME NOT NULL',
+      ');',
+      '',
+      'CREATE TABLE IF NOT EXISTS technicians (',
+      '  id BIGINT PRIMARY KEY,',
+      '  name VARCHAR(255) NOT NULL,',
+      '  is_default TINYINT(1) NOT NULL,',
+      '  created_at DATETIME NOT NULL',
+      ');',
       ''
     ];
 
@@ -241,6 +259,20 @@ export class BackupSyncService {
       this.sqlValue(comment.customerId),
       this.sqlValue(comment.comment),
       this.sqlValue(comment.createdAt)
+    ]));
+
+    lines.push(this.buildInsert('technicians', snapshot.technicians, tech => [
+      this.sqlValue(tech.id),
+      this.sqlValue(tech.name),
+      this.sqlValue(tech.isDefault ? 1 : 0),
+      this.sqlValue(tech.createdAt)
+    ]));
+
+    lines.push(this.buildInsert('customer_complaints', snapshot.customerComplaints, complaint => [
+      this.sqlValue(complaint.id),
+      this.sqlValue(complaint.customerId),
+      this.sqlValue(complaint.complaint),
+      this.sqlValue(complaint.createdAt)
     ]));
 
     lines.push('SET FOREIGN_KEY_CHECKS = 1;');

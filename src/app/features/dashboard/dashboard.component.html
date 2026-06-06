@@ -9,6 +9,39 @@
         </a>
     </div>
 
+    <div class="search-bar">
+        <mat-form-field appearance="outline">
+            <mat-label>Dashboard Range</mat-label>
+            <mat-select [(ngModel)]="dashboardFilter" (ngModelChange)="onDashboardFilterChange($event)">
+                <mat-option value="this-month">This Month</mat-option>
+                <mat-option value="last-month">Last Month</mat-option>
+                <mat-option value="next-month">Next Month</mat-option>
+                <mat-option value="custom">Custom Range</mat-option>
+                <mat-option value="all">All Time</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="date-field">
+            <mat-label>From Date</mat-label>
+            <input matInput [matDatepicker]="fromPicker" [(ngModel)]="startDate"
+                [disabled]="dashboardFilter !== 'custom'" (dateChange)="computeDashboardStats()" />
+            <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+            <mat-datepicker #fromPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="date-field">
+            <mat-label>To Date</mat-label>
+            <input matInput [matDatepicker]="toPicker" [(ngModel)]="endDate"
+                [disabled]="dashboardFilter !== 'custom'" (dateChange)="computeDashboardStats()" />
+            <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+            <mat-datepicker #toPicker></mat-datepicker>
+        </mat-form-field>
+
+        <button mat-stroked-button type="button" (click)="clearDateFilter()" [disabled]="dashboardFilter === 'all' && !startDate && !endDate">
+            <mat-icon>filter_alt_off</mat-icon> Clear Dates
+        </button>
+    </div>
+
     <!-- Stats Grid -->
     <div class="stats-grid">
         <div class="stat-card">
@@ -63,8 +96,8 @@
                 <mat-icon style="color:#283593">savings</mat-icon>
             </div>
             <div class="stat-label">Total Collected</div>
-            <div class="stat-value">₹{{ stats.totalRevenue | number }}</div>
-            <div class="stat-sub">all time</div>
+            <div class="stat-value">₹{{ filteredCollected | number }}</div>
+            <div class="stat-sub">within selected range</div>
         </div>
     </div>
 

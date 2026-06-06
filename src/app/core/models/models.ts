@@ -43,10 +43,18 @@ export interface ServiceRecord {
   serviceType: ServiceType;
   serviceDate: Date;
   nextServiceDate?: Date;
+  complaintId?: number;
   technicianName: string;
   partsReplaced?: string;
   notes?: string;
   cost?: number;
+  createdAt: Date;
+}
+
+export interface Technician {
+  id?: number;
+  name: string;
+  isDefault: boolean;
   createdAt: Date;
 }
 
@@ -64,6 +72,13 @@ export interface CustomerComment {
   id?: number;
   customerId: number;
   comment: string;
+  createdAt: Date;
+}
+
+export interface CustomerComplaint {
+  id?: number;
+  customerId: number;
+  complaint: string;
   createdAt: Date;
 }
 

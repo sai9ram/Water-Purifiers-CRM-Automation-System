@@ -47,18 +47,14 @@
             </mat-form-field>
         </div>
 
-        @if (upcomingCustomers.length === 0) {
-        <div class="empty-state compact-empty">
+        <div *ngIf="upcomingCustomers.length === 0" class="empty-state compact-empty">
             <mat-icon>event_busy</mat-icon>
             <h4>No maintenance records found for this filter</h4>
             <p>Change the month range or set last and next service dates on the customer profile.</p>
         </div>
-        }
 
-        @if (upcomingCustomers.length > 0) {
-        <div class="upcoming-grid">
-            @for (customer of upcomingCustomers.slice(0, 8); track customer.id) {
-            <a class="upcoming-item" [routerLink]="['/customers', customer.id]">
+        <div *ngIf="upcomingCustomers.length > 0" class="upcoming-grid">
+            <a *ngFor="let customer of upcomingCustomers.slice(0, 8)" class="upcoming-item" [routerLink]="['/customers', customer.id]">
                 <div class="upcoming-icon" style="background:#0097a7">
                     <mat-icon>event_repeat</mat-icon>
                 </div>
@@ -72,28 +68,23 @@
                     </span>
                 </div>
             </a>
-            }
         </div>
-        }
     </div>
 
     <!-- Add Service Form -->
-    @if (showForm) {
-    <div class="form-panel">
+    <div *ngIf="showForm" class="form-panel">
         <h3 style="margin-bottom:18px">Log New Service Visit</h3>
         <form [formGroup]="form">
             <div class="form-grid">
                 <mat-form-field appearance="outline">
-                    <mat-label>Customer *</mat-label>
+                    <mat-label>Customer</mat-label>
                     <mat-select formControlName="customerId" (selectionChange)="onCustomerSelect($event.value)">
-                        @for (c of customers; track $index) {
-                        <mat-option [value]="c.id">{{ c.name }} — {{ c.area }}</mat-option>
-                        }
+                        <mat-option *ngFor="let c of customers" [value]="c.id">{{ c.name }} — {{ c.area }}</mat-option>
                     </mat-select>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                    <mat-label>Service Type *</mat-label>
+                    <mat-label>Service Type</mat-label>
                     <mat-select formControlName="serviceType">
                         <mat-option value="filter-change">Filter Change</mat-option>
                         <mat-option value="repair">Repair</mat-option>
@@ -104,7 +95,7 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                    <mat-label>Service Date *</mat-label>
+                    <mat-label>Service Date</mat-label>
                     <input matInput [matDatepicker]="sp" formControlName="serviceDate"
                         (dateChange)="onServiceDateChange($event.value)" />
                     <mat-datepicker-toggle matSuffix [for]="sp"></mat-datepicker-toggle>
@@ -112,8 +103,12 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                    <mat-label>Technician Name *</mat-label>
-                    <input matInput formControlName="technicianName" />
+                    <mat-label>Technician</mat-label>
+                    <mat-select formControlName="technicianName">
+                        <mat-option *ngFor="let tech of technicians" [value]="tech.name">
+                            {{ tech.name }}<span *ngIf="tech.isDefault"> (Default)</span>
+                        </mat-option>
+                    </mat-select>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
@@ -146,7 +141,6 @@
             </div>
         </form>
     </div>
-    }
 
     <!-- Search -->
     <div class="search-bar">
@@ -191,6 +185,7 @@
                             <mat-icon>{{ getServiceIcon(s.serviceType) }}</mat-icon>
                         </div>
                         <span>{{ getServiceLabel(s.serviceType) }}</span>
+                    <span *ngIf="s.complaintId" class="chip chip-danger" style="margin-left:8px; font-size:0.7rem">Complaint</span>
                     </div>
                 </td>
             </ng-container>
@@ -203,12 +198,8 @@
             <ng-container matColumnDef="nextServiceDate">
                 <th mat-header-cell *matHeaderCellDef>Next Maintenance</th>
                 <td mat-cell *matCellDef="let s">
-                    @if (s.nextServiceDate) {
-                    <span [class]="getScheduleClass(s.nextServiceDate)">{{ s.nextServiceDate | date:'dd MMM yyyy' }}</span>
-                    }
-                    @if (!s.nextServiceDate) {
-                    <span style="color:var(--text-muted)">—</span>
-                    }
+                    <span *ngIf="s.nextServiceDate" [class]="getScheduleClass(s.nextServiceDate)">{{ s.nextServiceDate | date:'dd MMM yyyy' }}</span>
+                    <span *ngIf="!s.nextServiceDate" style="color:var(--text-muted)">—</span>
                 </td>
             </ng-container>
 
@@ -220,25 +211,16 @@
             <ng-container matColumnDef="partsReplaced">
                 <th mat-header-cell *matHeaderCellDef>Parts</th>
                 <td mat-cell *matCellDef="let s">
-                    @if (s.partsReplaced) {
-                    <span class="chip chip-info" style="font-size:0.72rem">{{ s.partsReplaced
-                        }}</span>
-                    }
-                    @if (!s.partsReplaced) {
-                    <span style="color:var(--text-muted)">—</span>
-                    }
+                    <span *ngIf="s.partsReplaced" class="chip chip-info" style="font-size:0.72rem">{{ s.partsReplaced }}</span>
+                    <span *ngIf="!s.partsReplaced" style="color:var(--text-muted)">—</span>
                 </td>
             </ng-container>
 
             <ng-container matColumnDef="cost">
                 <th mat-header-cell *matHeaderCellDef>Cost</th>
                 <td mat-cell *matCellDef="let s">
-                    @if (s.cost) {
-                    <span style="font-weight:600; color:var(--brand-dark)">₹{{ s.cost }}</span>
-                    }
-                    @if (!s.cost) {
-                    <span style="color:var(--text-muted)">—</span>
-                    }
+                    <span *ngIf="s.cost" style="font-weight:600; color:var(--brand-dark)">₹{{ s.cost }}</span>
+                    <span *ngIf="!s.cost" style="color:var(--text-muted)">—</span>
                 </td>
             </ng-container>
 
@@ -255,13 +237,11 @@
             <tr mat-row *matRowDef="let row; columns: columns;"></tr>
         </table>
 
-        @if (dataSource.filteredData.length === 0) {
-        <div class="empty-state">
+        <div *ngIf="dataSource.filteredData.length === 0" class="empty-state">
             <mat-icon>build_circle</mat-icon>
             <h4>No service records found</h4>
             <p>Log a service visit to get started.</p>
         </div>
-        }
 
         <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
     </div>
