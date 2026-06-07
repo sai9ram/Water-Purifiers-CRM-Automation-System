@@ -20,9 +20,10 @@ import { PlanService } from '../../../core/services/plan.service';
 import { TechnicianService } from '../../../core/services/technician.service';
 import { PaymentLinkService } from '../../../core/services/payment-link.service';
 import { WhatsappService } from '../../../core/services/whatsapp.service';
-import { Customer, ServiceRecord, PaymentRecord, RentalPlan, SERVICE_TYPE_LABELS, ServiceType, CustomerComment, Technician } from '../../../core/models/models';
+import { Customer, ServiceRecord, PaymentRecord, RentalPlan, SERVICE_TYPE_LABELS, ServiceType, CustomerComment, CustomerComplaint, Technician } from '../../../core/models/models';
 import { CustomerFormDialogComponent } from '../customer-form-dialog/customer-form-dialog.component';
 import { CustomerCommentService } from '../../../core/services/customer-comment.service';
+import { CustomerComplaintService } from '../../../core/services/customer-complaint.service';
 
 @Component({
   selector: 'app-customer-detail',
@@ -41,6 +42,7 @@ export class CustomerDetailComponent implements OnInit {
   serviceRecords: ServiceRecord[] = [];
   payments: PaymentRecord[] = [];
   comments: CustomerComment[] = [];
+  complaints: CustomerComplaint[] = [];
   totalPaid = 0;
   loading = true;
   showAddService = false;
@@ -64,6 +66,7 @@ export class CustomerDetailComponent implements OnInit {
   private paymentLinkSvc = inject(PaymentLinkService);
   private waSvc = inject(WhatsappService);
   private commentSvc = inject(CustomerCommentService);
+  private complaintSvc = inject(CustomerComplaintService);
   private dialog = inject(MatDialog);
   private fb = inject(FormBuilder);
   private snack = inject(MatSnackBar);
@@ -79,6 +82,7 @@ export class CustomerDetailComponent implements OnInit {
         this.loadServiceRecords(id);
         this.loadPayments();
         this.loadComments();
+        this.loadComplaints();
       }
     });
     this.initForms();
@@ -125,6 +129,13 @@ export class CustomerDetailComponent implements OnInit {
   loadComments(): void {
     this.commentSvc.getByCustomer(this.customer!.id!).subscribe(comments => {
       this.comments = comments.slice().reverse();
+    });
+  }
+
+  loadComplaints(): void {
+    if (!this.customer?.id) return;
+    this.complaintSvc.getByCustomer(this.customer.id).subscribe(complaints => {
+      this.complaints = complaints.slice().reverse();
     });
   }
 
@@ -229,6 +240,15 @@ export class CustomerDetailComponent implements OnInit {
     });
   }
 
+  deleteComplaint(complaint: CustomerComplaint): void {
+    if (!complaint.id || !confirm('Delete this complaint?')) return;
+
+    this.complaintSvc.delete(complaint.id).subscribe(() => {
+      this.snack.open('Complaint deleted', 'OK', { duration: 2000 });
+      this.loadComplaints();
+    });
+  }
+
   editCustomer(): void {
     const ref = this.dialog.open(CustomerFormDialogComponent, {
       width: '560px',
@@ -253,6 +273,17 @@ export class CustomerDetailComponent implements OnInit {
     const url = this.getPaymentLink();
     if (!url) return;
     window.open(url, '_blank');
+  }
+
+  copyPhone(): void {
+    if (!this.customer) return;
+    
+    const phone = this.customer.phone;
+    navigator.clipboard.writeText(phone).then(() => {
+      this.snack.open('Phone number copied', 'OK', { duration: 2500 });
+    }).catch(() => {
+      this.snack.open('Unable to copy phone number', 'OK', { duration: 2500 });
+    });
   }
 
   async copyPaymentLink(): Promise<void> {

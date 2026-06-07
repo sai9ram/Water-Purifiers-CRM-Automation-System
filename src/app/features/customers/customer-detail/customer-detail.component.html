@@ -8,7 +8,7 @@
             </a>
             <div>
                 <h2>{{ customer.name }}</h2>
-                <p class="subtitle">{{ customer.area }} · {{ customer.phone }}</p>
+                <p class="subtitle">{{ customer.area }} · {{ customer.phone }} <mat-icon class="phone-copy-icon" (click)="copyPhone()">content_copy</mat-icon></p>
             </div>
         </div>
         <div class="header-actions">
@@ -370,6 +370,44 @@
                     <mat-icon>payments</mat-icon>
                     <h4>No payments recorded</h4>
                     <p>Record the first payment for this customer.</p>
+                </div>
+                }
+            </div>
+        </mat-tab>
+
+        <mat-tab label="Complaints">
+            <div class="tab-content">
+                <div class="tab-toolbar">
+                    <h4>{{ complaints.length }} Complaints</h4>
+                </div>
+
+                @if (complaints.length > 0) {
+                <div class="complaint-list">
+                    @for (complaint of complaints; track complaint.id) {
+                    <div class="complaint-item">
+                        <div class="complaint-icon">
+                            <mat-icon>report_problem</mat-icon>
+                        </div>
+                        <div class="complaint-body">
+                            <div class="complaint-header">
+                                <strong>Complaint</strong>
+                                <span class="complaint-date">{{ complaint.createdAt | date:'dd MMM yyyy, hh:mm a' }}</span>
+                            </div>
+                            <p class="complaint-text">{{ complaint.complaint }}</p>
+                        </div>
+                        <button mat-icon-button color="warn" (click)="deleteComplaint(complaint)">
+                            <mat-icon style="font-size:16px">delete</mat-icon>
+                        </button>
+                    </div>
+                    }
+                </div>
+                }
+
+                @if (complaints.length === 0) {
+                <div class="empty-state">
+                    <mat-icon>report_problem</mat-icon>
+                    <h4>No complaints yet</h4>
+                    <p>Customer complaints will appear here once logged.</p>
                 </div>
                 }
             </div>

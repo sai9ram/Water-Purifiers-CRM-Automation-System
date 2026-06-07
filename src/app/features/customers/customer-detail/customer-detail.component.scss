@@ -2,6 +2,17 @@
     display: flex;
     align-items: center;
     gap: 8px;
+
+    .subtitle {
+        .phone-copy-icon {
+            font-size: 14px;
+            vertical-align: top;
+            margin: 2px 5px;
+            cursor: pointer;
+            color: #4CAF50;
+            font-weight: lighter;
+        }
+    }
 }
 
 .header-actions {

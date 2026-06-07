@@ -44,6 +44,8 @@ export class ServicesComponent implements OnInit, AfterViewInit {
   customers: Customer[] = [];
   technicians: Technician[] = [];
   showForm = false;
+  formMode: 'log' | 'schedule' = 'log';
+  scheduleMinDate = this.getTomorrow();
   searchQuery = '';
   typeFilter = '';
   maintenanceFilter: 'this-month' | 'last-month' | 'next-month' | 'custom' = 'this-month';
@@ -86,16 +88,20 @@ export class ServicesComponent implements OnInit, AfterViewInit {
     this.dataSource.paginator = this.paginator;
   }
 
-  initForm(): void {
-    const lastService = new Date();
-    const nextMaintenance = new Date(lastService);
+  initForm(mode: 'log' | 'schedule' = 'log'): void {
+    this.formMode = mode;
+    const today = new Date();
+    const nextMaintenance = new Date(today);
     nextMaintenance.setMonth(nextMaintenance.getMonth() + 3);
+
+    const serviceDate = mode === 'schedule' ? this.getTomorrow() : today;
+    const nextServiceDate = mode === 'schedule' ? serviceDate : nextMaintenance;
 
     this.form = this.fb.group({
       customerId: [null, Validators.required],
       serviceType: ['filter-change', Validators.required],
-      serviceDate: [new Date(), Validators.required],
-      nextServiceDate: [nextMaintenance],
+      serviceDate: [serviceDate, Validators.required],
+      nextServiceDate: [nextServiceDate],
       technicianName: ['', Validators.required],
       partsReplaced: [''],
       notes: [''],
@@ -116,6 +122,18 @@ export class ServicesComponent implements OnInit, AfterViewInit {
       this.upcomingCustomers = this.getFilteredUpcomingCustomers(c);
       this.patchRequestedService();
     });
+  }
+
+  openForm(mode: 'log' | 'schedule'): void {
+    this.showForm = true;
+    this.initForm(mode);
+  }
+
+  private getTomorrow(): Date {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    return tomorrow;
   }
 
   private loadTechnicians(): void {
@@ -163,19 +181,37 @@ export class ServicesComponent implements OnInit, AfterViewInit {
 
   addService(): void {
     if (this.form.invalid) return;
-    const val = this.form.value;
+    const val = this.form.getRawValue();
+    const serviceDate = new Date(val.serviceDate);
+    const today = this.startOfDay(new Date());
+
+    if (this.formMode === 'schedule' && serviceDate <= today) {
+      this.snack.open('Scheduled service must use a future date.', 'OK', { duration: 3000 });
+      return;
+    }
+
     const customer = this.customers.find(c => c.id === val.customerId);
-    this.serviceSvc.add({ ...val, customerName: customer?.name ?? '' }).subscribe(() => {
+    const record = {
+      ...val,
+      customerName: customer?.name ?? '',
+      nextServiceDate: this.formMode === 'schedule' ? serviceDate : val.nextServiceDate ? new Date(val.nextServiceDate) : undefined
+    };
+
+    this.serviceSvc.add(record).subscribe(() => {
       if (customer?.id) {
-        this.customerSvc.update(customer.id, {
-          lastServiceDate: new Date(val.serviceDate),
-          nextServiceDate: val.nextServiceDate ? new Date(val.nextServiceDate) : undefined
-        }).subscribe(() => this.loadData());
+        const customerChanges = this.formMode === 'schedule'
+          ? { nextServiceDate: serviceDate }
+          : {
+              lastServiceDate: serviceDate,
+              nextServiceDate: val.nextServiceDate ? new Date(val.nextServiceDate) : undefined
+            };
+
+        this.customerSvc.update(customer.id, customerChanges).subscribe(() => this.loadData());
       }
-      this.snack.open('Service logged!', 'OK', { duration: 3000 });
+      this.snack.open(this.formMode === 'schedule' ? 'Service scheduled!' : 'Service logged!', 'OK', { duration: 3000 });
       this.showForm = false;
       this.loadData();
-      this.initForm();
+      this.initForm(this.formMode);
     });
   }
 
@@ -207,13 +243,27 @@ export class ServicesComponent implements OnInit, AfterViewInit {
     return SERVICE_TYPE_LABELS[type as ServiceType] ?? type;
   }
 
+  isScheduledService(record: ServiceRecord): boolean {
+    if (!record.serviceDate) return false;
+    const serviceDate = this.startOfDay(new Date(record.serviceDate));
+    const today = this.startOfDay(new Date());
+    return serviceDate.getTime() > today.getTime();
+  }
+
   isComplaintService(record: ServiceRecord): boolean {
     return !!record.complaintId;
   }
 
   onServiceDateChange(date: Date | null): void {
     if (!date) return;
-    const next = new Date(date);
+    const serviceDate = new Date(date);
+
+    if (this.formMode === 'schedule') {
+      this.form.patchValue({ nextServiceDate: serviceDate });
+      return;
+    }
+
+    const next = new Date(serviceDate);
     next.setMonth(next.getMonth() + 3);
     this.form.patchValue({ nextServiceDate: next });
   }

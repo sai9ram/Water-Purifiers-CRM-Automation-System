@@ -150,7 +150,12 @@ export class DashboardComponent implements OnInit {
 
   private setDashboardRange(filter: 'all' | 'this-month' | 'last-month' | 'next-month' | 'custom'): void {
     this.dashboardFilter = filter;
-    if (filter === 'custom' || filter === 'all') return;
+    if (filter === 'custom') return;
+
+    if (filter === 'all') {
+      this.clearDateFilter();
+      return;
+    }
 
     const today = new Date();
     const monthDate = new Date(today.getFullYear(), today.getMonth(), 1);

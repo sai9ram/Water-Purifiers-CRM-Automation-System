@@ -1,13 +1,19 @@
 <div class="page-container fade-in">
     <div class="page-header">
         <div>
-            <h2>Service Records</h2>
-            <p class="subtitle">Track all service visits, upcoming maintenance, and regular schedules</p>
+            <h2>Service Records & Scheduling</h2>
+            <p class="subtitle">Track actual service visits, scheduled appointments, and upcoming maintenance</p>
         </div>
-        <button mat-raised-button color="primary" (click)="showForm = !showForm">
-            <mat-icon>{{ showForm ? 'close' : 'add' }}</mat-icon>
-            {{ showForm ? 'Cancel' : 'Log Service' }}
-        </button>
+        <div class="header-actions">
+            <button mat-raised-button color="primary" (click)="openForm('log')">
+                <mat-icon>build</mat-icon>
+                Log Service
+            </button>
+            <button mat-stroked-button color="accent" (click)="openForm('schedule')">
+                <mat-icon>event</mat-icon>
+                Schedule Service
+            </button>
+        </div>
     </div>
 
     <div class="table-card upcoming-panel">
@@ -73,7 +79,9 @@
 
     <!-- Add Service Form -->
     <div *ngIf="showForm" class="form-panel">
-        <h3 style="margin-bottom:18px">Log New Service Visit</h3>
+        <h3 style="margin-bottom:18px">
+            {{ formMode === 'schedule' ? 'Schedule Service Appointment' : 'Log New Service Visit' }}
+        </h3>
         <form [formGroup]="form">
             <div class="form-grid">
                 <mat-form-field appearance="outline">
@@ -95,8 +103,9 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                    <mat-label>Service Date</mat-label>
+                    <mat-label>{{ formMode === 'schedule' ? 'Scheduled Date' : 'Service Date' }}</mat-label>
                     <input matInput [matDatepicker]="sp" formControlName="serviceDate"
+                        [min]="formMode === 'schedule' ? scheduleMinDate : null"
                         (dateChange)="onServiceDateChange($event.value)" />
                     <mat-datepicker-toggle matSuffix [for]="sp"></mat-datepicker-toggle>
                     <mat-datepicker #sp></mat-datepicker>
@@ -111,7 +120,7 @@
                     </mat-select>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline">
+                <mat-form-field appearance="outline" *ngIf="formMode !== 'schedule'">
                     <mat-label>Next Maintenance Date</mat-label>
                     <input matInput [matDatepicker]="np" formControlName="nextServiceDate" />
                     <mat-datepicker-toggle matSuffix [for]="np"></mat-datepicker-toggle>
@@ -129,6 +138,10 @@
                 </mat-form-field>
             </div>
 
+            <div *ngIf="formMode === 'schedule'" class="form-note">
+                Schedule only future service dates. Scheduled appointments appear under Upcoming Maintenance.
+            </div>
+
             <mat-form-field appearance="outline" style="width:100%">
                 <mat-label>Notes</mat-label>
                 <textarea matInput formControlName="notes" rows="2"></textarea>
@@ -136,7 +149,8 @@
 
             <div style="display:flex; justify-content:flex-end; margin-top:8px">
                 <button mat-raised-button color="primary" (click)="addService()" [disabled]="form.invalid">
-                    <mat-icon>save</mat-icon> Save Service Record
+                    <mat-icon>save</mat-icon>
+                    {{ formMode === 'schedule' ? 'Save Scheduled Service' : 'Save Service Record' }}
                 </button>
             </div>
         </form>
@@ -185,7 +199,8 @@
                             <mat-icon>{{ getServiceIcon(s.serviceType) }}</mat-icon>
                         </div>
                         <span>{{ getServiceLabel(s.serviceType) }}</span>
-                    <span *ngIf="s.complaintId" class="chip chip-danger" style="margin-left:8px; font-size:0.7rem">Complaint</span>
+                        <span *ngIf="s.complaintId" class="chip chip-danger" style="margin-left:8px; font-size:0.7rem">Complaint</span>
+                        <span *ngIf="isScheduledService(s)" class="chip chip-info" style="margin-left:8px; font-size:0.7rem">Scheduled</span>
                     </div>
                 </td>
             </ng-container>

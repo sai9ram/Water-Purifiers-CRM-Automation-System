@@ -14,6 +14,18 @@
     margin-bottom: 8px;
 }
 
+.header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.form-note {
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+    padding: 0 4px;
+}
+
 .upcoming-panel {
     margin-bottom: 24px;
 }
