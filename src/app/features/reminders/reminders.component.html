@@ -120,6 +120,9 @@
                     <button mat-icon-button matTooltip="Preview Message" (click)="showPreview(c)">
                         <mat-icon>visibility</mat-icon>
                     </button>
+                    <button mat-icon-button matTooltip="Record Payment" (click)="recordPayment(c)">
+                        <mat-icon>currency_rupee</mat-icon>
+                    </button>
                     <button class="wa-send-btn" (click)="sendSingle(c)" [class.sent]="sentIds.has(c.id!)">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="18"
                             alt="WA" />

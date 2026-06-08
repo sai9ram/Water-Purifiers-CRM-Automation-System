@@ -71,6 +71,7 @@ export interface PaymentRecord {
 export interface CustomerComment {
   id?: number;
   customerId: number;
+  complaintId?: number;
   comment: string;
   createdAt: Date;
 }
@@ -79,6 +80,7 @@ export interface CustomerComplaint {
   id?: number;
   customerId: number;
   complaint: string;
+  resolved?: boolean;
   createdAt: Date;
 }
 

@@ -7,12 +7,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { CustomerService } from '../../core/services/customer.service';
 import { WhatsappService } from '../../core/services/whatsapp.service';
 import { Customer } from '../../core/models/models';
+import { PaymentRecordDialogComponent } from './payment-record-dialog.component';
 
 @Component({
   selector: 'app-reminders',
@@ -21,7 +23,7 @@ import { Customer } from '../../core/models/models';
     CommonModule, FormsModule,
     MatIconModule, MatButtonModule, MatFormFieldModule,
     MatInputModule, MatSelectModule, MatCheckboxModule,
-    MatSnackBarModule, MatTooltipModule, MatProgressBarModule
+    MatDialogModule, MatSnackBarModule, MatTooltipModule, MatProgressBarModule
   ],
   templateUrl: './reminders.component.html',
   styleUrl: './reminders.component.scss'
@@ -46,6 +48,7 @@ export class RemindersComponent implements OnInit {
 
   private customerSvc = inject(CustomerService);
   private waSvc = inject(WhatsappService);
+  private dialog = inject(MatDialog);
   private snack = inject(MatSnackBar);
 
   ngOnInit(): void {
@@ -120,6 +123,19 @@ export class RemindersComponent implements OnInit {
   showPreview(c: Customer): void {
     this.previewCustomer = c;
     this.previewMessage = this.waSvc.generateRentReminderMessage(c);
+  }
+
+  recordPayment(c: Customer): void {
+    const ref = this.dialog.open(PaymentRecordDialogComponent, {
+      width: '520px',
+      data: { customer: c }
+    });
+
+    ref.afterClosed().subscribe(saved => {
+      if (saved) {
+        this.loadData();
+      }
+    });
   }
 
   getDueDateClass(date: Date): string {

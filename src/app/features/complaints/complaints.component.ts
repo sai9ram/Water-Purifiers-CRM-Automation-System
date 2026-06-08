@@ -18,6 +18,7 @@ import { CustomerComplaintService } from '../../core/services/customer-complaint
 import { CustomerService } from '../../core/services/customer.service';
 import { CustomerComplaint, Customer } from '../../core/models/models';
 import { CustomerComplaintDialogComponent } from '../customers/customer-complaint-dialog.component';
+import { ComplaintCommentsDialogComponent } from './complaint-comments-dialog.component';
 
 @Component({
   selector: 'app-complaints',
@@ -76,6 +77,11 @@ import { CustomerComplaintDialogComponent } from '../customers/customer-complain
             <td mat-cell *matCellDef="let row">{{ row.complaint }}</td>
           </ng-container>
 
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let row">{{ row.resolved ? 'Resolved' : 'Open' }}</td>
+          </ng-container>
+
           <ng-container matColumnDef="createdAt">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
             <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'dd MMM yyyy' }}</td>
@@ -86,6 +92,15 @@ import { CustomerComplaintDialogComponent } from '../customers/customer-complain
             <td mat-cell *matCellDef="let row">
               <button mat-icon-button color="primary" (click)="scheduleService(row)">
                 <mat-icon>build_circle</mat-icon>
+              </button>
+              <button mat-icon-button color="accent" (click)="openComments(row)">
+                <mat-icon>chat_bubble</mat-icon>
+              </button>
+              <button mat-icon-button color="primary" *ngIf="!row.resolved" (click)="resolveComplaint(row)">
+                <mat-icon>check_circle</mat-icon>
+              </button>
+              <button mat-icon-button color="accent" *ngIf="row.resolved" (click)="reopenComplaint(row)">
+                <mat-icon>undo</mat-icon>
               </button>
               <button mat-icon-button color="warn" (click)="deleteComplaint(row)">
                 <mat-icon>delete</mat-icon>
@@ -110,7 +125,7 @@ export class ComplaintsComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  columns = ['customerName', 'area', 'complaint', 'createdAt', 'actions'];
+  columns = ['customerName', 'area', 'complaint', 'status', 'createdAt', 'actions'];
   dataSource = new MatTableDataSource<(CustomerComplaint & { customerName: string; customerArea: string })>([]);
   allComplaints: (CustomerComplaint & { customerName: string; customerArea: string })[] = [];
   customers: Customer[] = [];
@@ -185,6 +200,53 @@ export class ComplaintsComponent implements OnInit, AfterViewInit {
   scheduleService(complaint: CustomerComplaint & { customerName: string; customerArea: string }): void {
     this.router.navigate(['/services'], {
       queryParams: { customerId: complaint.customerId, complaintId: complaint.id, serviceType: 'repair' }
+    });
+  }
+
+  openComments(complaint: CustomerComplaint & { customerName: string; customerArea: string }): void {
+    if (!complaint.id) {
+      return;
+    }
+
+    this.dialog.open(ComplaintCommentsDialogComponent, {
+      width: '560px',
+      data: {
+        complaintId: complaint.id,
+        customerId: complaint.customerId,
+        customerName: complaint.customerName,
+        complaint: complaint.complaint,
+        resolved: complaint.resolved
+      }
+    });
+  }
+
+  resolveComplaint(complaint: CustomerComplaint & { customerName: string; customerArea: string }): void {
+    if (!complaint.id || complaint.resolved) {
+      return;
+    }
+
+    if (!confirm('Mark this complaint as resolved?')) {
+      return;
+    }
+
+    this.complaintSvc.update(complaint.id, { resolved: true }).subscribe(() => {
+      this.snack.open('Complaint marked as resolved', 'OK', { duration: 3000 });
+      this.loadData();
+    });
+  }
+
+  reopenComplaint(complaint: CustomerComplaint & { customerName: string; customerArea: string }): void {
+    if (!complaint.id || !complaint.resolved) {
+      return;
+    }
+
+    if (!confirm('Reopen this complaint?')) {
+      return;
+    }
+
+    this.complaintSvc.update(complaint.id, { resolved: false }).subscribe(() => {
+      this.snack.open('Complaint reopened', 'OK', { duration: 3000 });
+      this.loadData();
     });
   }
 

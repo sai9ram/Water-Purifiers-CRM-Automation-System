@@ -394,10 +394,24 @@
                                 <span class="complaint-date">{{ complaint.createdAt | date:'dd MMM yyyy, hh:mm a' }}</span>
                             </div>
                             <p class="complaint-text">{{ complaint.complaint }}</p>
+                            <div class="complaint-meta">
+                                <span>Status: <strong>{{ complaint.resolved ? 'Resolved' : 'Open' }}</strong></span>
+                            </div>
                         </div>
-                        <button mat-icon-button color="warn" (click)="deleteComplaint(complaint)">
-                            <mat-icon style="font-size:16px">delete</mat-icon>
-                        </button>
+                        <div class="complaint-actions" style="display:flex; gap:8px; align-items:center;">
+                            <button mat-icon-button color="accent" (click)="openComplaintComments(complaint)">
+                                <mat-icon>chat_bubble</mat-icon>
+                            </button>
+                            <button mat-icon-button color="primary" *ngIf="!complaint.resolved" (click)="resolveComplaint(complaint)">
+                                <mat-icon>check_circle</mat-icon>
+                            </button>
+                            <button mat-icon-button color="accent" *ngIf="complaint.resolved" (click)="reopenComplaint(complaint)">
+                                <mat-icon>undo</mat-icon>
+                            </button>
+                            <button mat-icon-button color="warn" (click)="deleteComplaint(complaint)">
+                                <mat-icon style="font-size:16px">delete</mat-icon>
+                            </button>
+                        </div>
                     </div>
                     }
                 </div>

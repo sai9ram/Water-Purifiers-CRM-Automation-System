@@ -52,6 +52,16 @@ export class AppDatabase extends Dexie {
       customerComplaints:'++id, customerId, createdAt',
       technicians:       '++id, name, isDefault'
     });
+
+    this.version(7).stores({
+      customers:         '++id, name, phone, planId, status, nextDueDate, area',
+      rentalPlans:       '++id, name, monthlyRent',
+      serviceRecords:    '++id, customerId, serviceDate, serviceType, nextServiceDate, complaintId',
+      payments:          '++id, customerId, paidDate',
+      customerComments:  '++id, customerId, complaintId, createdAt',
+      customerComplaints:'++id, customerId, resolved, createdAt',
+      technicians:       '++id, name, isDefault'
+    });
   }
 }
 

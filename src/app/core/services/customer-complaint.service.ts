@@ -20,8 +20,14 @@ export class CustomerComplaintService {
   }
 
   add(complaint: Omit<CustomerComplaint, 'id' | 'createdAt'>): Observable<number> {
-    return from(db.customerComplaints.add({ ...complaint, createdAt: new Date() } as CustomerComplaint))
+    return from(db.customerComplaints.add({ ...complaint, resolved: false, createdAt: new Date() } as CustomerComplaint))
       .pipe(tap(() => void this.backupSyncSvc.triggerBackup('customer complaint create')));
+  }
+
+  update(id: number, updates: Partial<CustomerComplaint>): Observable<number> {
+    return from(db.customerComplaints.update(id, updates)).pipe(
+      tap(() => void this.backupSyncSvc.triggerBackup('customer complaint update'))
+    );
   }
 
   delete(id: number): Observable<void> {

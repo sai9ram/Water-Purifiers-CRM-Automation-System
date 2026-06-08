@@ -177,6 +177,7 @@ export class BackupSyncService {
       'CREATE TABLE IF NOT EXISTS customer_comments (',
       '  id BIGINT PRIMARY KEY,',
       '  customer_id BIGINT NOT NULL,',
+      '  complaint_id BIGINT NULL,',
       '  comment TEXT NOT NULL,',
       '  created_at DATETIME NOT NULL',
       ');',
@@ -185,6 +186,7 @@ export class BackupSyncService {
       '  id BIGINT PRIMARY KEY,',
       '  customer_id BIGINT NOT NULL,',
       '  complaint TEXT NOT NULL,',
+      '  resolved TINYINT(1) NOT NULL DEFAULT 0,',
       '  created_at DATETIME NOT NULL',
       ');',
       '',
@@ -257,6 +259,7 @@ export class BackupSyncService {
     lines.push(this.buildInsert('customer_comments', snapshot.customerComments, comment => [
       this.sqlValue(comment.id),
       this.sqlValue(comment.customerId),
+      this.sqlValue(comment.complaintId),
       this.sqlValue(comment.comment),
       this.sqlValue(comment.createdAt)
     ]));
@@ -272,6 +275,7 @@ export class BackupSyncService {
       this.sqlValue(complaint.id),
       this.sqlValue(complaint.customerId),
       this.sqlValue(complaint.complaint),
+      this.sqlValue(complaint.resolved ? 1 : 0),
       this.sqlValue(complaint.createdAt)
     ]));
 

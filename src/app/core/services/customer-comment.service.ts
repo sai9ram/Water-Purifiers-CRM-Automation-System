@@ -19,6 +19,12 @@ export class CustomerCommentService {
     );
   }
 
+  getByComplaint(complaintId: number): Observable<CustomerComment[]> {
+    return from(
+      db.customerComments.where('complaintId').equals(complaintId).reverse().sortBy('createdAt')
+    );
+  }
+
   add(comment: Omit<CustomerComment, 'id' | 'createdAt'>): Observable<number> {
     return from(db.customerComments.add({ ...comment, createdAt: new Date() } as CustomerComment))
       .pipe(tap(() => void this.backupSyncSvc.triggerBackup('customer comment create')));

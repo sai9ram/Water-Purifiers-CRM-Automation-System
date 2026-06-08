@@ -22,6 +22,7 @@ import { PaymentLinkService } from '../../../core/services/payment-link.service'
 import { WhatsappService } from '../../../core/services/whatsapp.service';
 import { Customer, ServiceRecord, PaymentRecord, RentalPlan, SERVICE_TYPE_LABELS, ServiceType, CustomerComment, CustomerComplaint, Technician } from '../../../core/models/models';
 import { CustomerFormDialogComponent } from '../customer-form-dialog/customer-form-dialog.component';
+import { ComplaintCommentsDialogComponent } from '../../complaints/complaint-comments-dialog.component';
 import { CustomerCommentService } from '../../../core/services/customer-comment.service';
 import { CustomerComplaintService } from '../../../core/services/customer-complaint.service';
 
@@ -245,6 +246,41 @@ export class CustomerDetailComponent implements OnInit {
 
     this.complaintSvc.delete(complaint.id).subscribe(() => {
       this.snack.open('Complaint deleted', 'OK', { duration: 2000 });
+      this.loadComplaints();
+    });
+  }
+
+  openComplaintComments(complaint: CustomerComplaint): void {
+    if (!complaint.id || !this.customer) return;
+
+    this.dialog.open(ComplaintCommentsDialogComponent, {
+      width: '560px',
+      data: {
+        complaintId: complaint.id,
+        customerId: this.customer.id!,
+        customerName: this.customer.name,
+        complaint: complaint.complaint,
+        resolved: complaint.resolved
+      }
+    });
+  }
+
+  resolveComplaint(complaint: CustomerComplaint): void {
+    if (!complaint.id || complaint.resolved) return;
+    if (!confirm('Mark this complaint as resolved?')) return;
+
+    this.complaintSvc.update(complaint.id, { resolved: true }).subscribe(() => {
+      this.snack.open('Complaint marked as resolved', 'OK', { duration: 2000 });
+      this.loadComplaints();
+    });
+  }
+
+  reopenComplaint(complaint: CustomerComplaint): void {
+    if (!complaint.id || !complaint.resolved) return;
+    if (!confirm('Reopen this complaint?')) return;
+
+    this.complaintSvc.update(complaint.id, { resolved: false }).subscribe(() => {
+      this.snack.open('Complaint reopened', 'OK', { duration: 2000 });
       this.loadComplaints();
     });
   }
