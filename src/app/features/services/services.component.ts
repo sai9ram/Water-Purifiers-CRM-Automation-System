@@ -55,6 +55,11 @@ export class ServicesComponent implements OnInit, AfterViewInit {
   requestComplaintId: number | null = null;
   requestServiceType: string | null = null;
   form!: FormGroup;
+  serviceTotalCost = 0;
+  scheduledCompletionRecord: ServiceRecord | null = null;
+  completionParts = '';
+  completionCost = 0;
+  completionNotes = '';
 
   private serviceSvc = inject(ServiceRecordService);
   private customerSvc = inject(CustomerService);
@@ -76,10 +81,11 @@ export class ServicesComponent implements OnInit, AfterViewInit {
       this.requestComplaintId = params.get('complaintId') ? Number(params.get('complaintId')) : null;
       this.requestServiceType = params.get('serviceType');
       if (this.requestServiceType === 'repair') {
-        this.showForm = true;
+        this.openForm('schedule');
+      } else {
+        this.initForm();
       }
     });
-    this.initForm();
     this.loadData();
   }
 
@@ -121,6 +127,7 @@ export class ServicesComponent implements OnInit, AfterViewInit {
       this.setMaintenanceRange(this.maintenanceFilter);
       this.upcomingCustomers = this.getFilteredUpcomingCustomers(c);
       this.patchRequestedService();
+      this.applyFilter();
     });
   }
 
@@ -176,6 +183,18 @@ export class ServicesComponent implements OnInit, AfterViewInit {
       );
     }
     if (this.typeFilter) filtered = filtered.filter(r => r.serviceType === this.typeFilter);
+
+    const { from, to } = this.getMaintenanceDateBounds();
+    if (from || to) {
+      filtered = filtered.filter(r => {
+        const serviceDate = this.startOfDay(new Date(r.serviceDate));
+        if (from && serviceDate < from) return false;
+        if (to && serviceDate > to) return false;
+        return true;
+      });
+    }
+
+    this.serviceTotalCost = filtered.reduce((sum, record) => sum + (record.cost || 0), 0);
     this.dataSource.data = filtered;
   }
 
@@ -216,10 +235,65 @@ export class ServicesComponent implements OnInit, AfterViewInit {
   }
 
   deleteRecord(s: ServiceRecord): void {
-    if (!confirm('Delete this record?')) return;
+    const message = this.isScheduledService(s)
+      ? 'Cancel this scheduled appointment?'
+      : 'Delete this record?';
+
+    if (!confirm(message)) return;
     this.serviceSvc.delete(s.id!).subscribe(() => {
-      this.snack.open('Deleted', 'OK', { duration: 2000 });
+      this.snack.open(this.isScheduledService(s) ? 'Schedule cancelled' : 'Deleted', 'OK', { duration: 2000 });
       this.loadData();
+    });
+  }
+
+  beginCompleteScheduledService(record: ServiceRecord): void {
+    this.scheduledCompletionRecord = record;
+    this.completionParts = record.partsReplaced ?? '';
+    this.completionCost = record.cost ?? 0;
+    this.completionNotes = record.notes ?? '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  cancelCompleteScheduledService(): void {
+    this.scheduledCompletionRecord = null;
+    this.completionParts = '';
+    this.completionCost = 0;
+    this.completionNotes = '';
+  }
+
+  completeScheduledService(): void {
+    const record = this.scheduledCompletionRecord;
+    if (!record?.id) return;
+
+    const serviceDate = this.startOfDay(new Date(record.serviceDate));
+    const nextServiceDate = new Date(serviceDate);
+    nextServiceDate.setMonth(nextServiceDate.getMonth() + 3);
+
+    const changes: Partial<ServiceRecord> = {
+      nextServiceDate,
+      partsReplaced: this.completionParts || undefined,
+      cost: this.completionCost,
+      notes: this.completionNotes || undefined
+    };
+
+    this.serviceSvc.update(record.id, changes).subscribe(() => {
+      const customer = this.customers.find(c => c.id === record.customerId);
+      const customerChange: Partial<Customer> = {
+        lastServiceDate: serviceDate,
+        nextServiceDate
+      };
+
+      const finalize = () => {
+        this.snack.open('Scheduled service marked completed.', 'OK', { duration: 3000 });
+        this.cancelCompleteScheduledService();
+        this.loadData();
+      };
+
+      if (customer?.id) {
+        this.customerSvc.update(customer.id, customerChange).subscribe(finalize);
+      } else {
+        finalize();
+      }
     });
   }
 
@@ -294,10 +368,12 @@ export class ServicesComponent implements OnInit, AfterViewInit {
   onMaintenanceFilterChange(filter: 'this-month' | 'last-month' | 'next-month' | 'custom'): void {
     this.setMaintenanceRange(filter);
     this.upcomingCustomers = this.getFilteredUpcomingCustomers(this.customers);
+    this.applyFilter();
   }
 
   onMaintenanceDateChange(): void {
     this.upcomingCustomers = this.getFilteredUpcomingCustomers(this.customers);
+    this.applyFilter();
   }
 
   private getFilteredUpcomingCustomers(customers: Customer[]): Customer[] {

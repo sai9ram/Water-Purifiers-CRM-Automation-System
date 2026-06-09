@@ -43,6 +43,7 @@ export class CustomerDetailComponent implements OnInit {
   serviceRecords: ServiceRecord[] = [];
   payments: PaymentRecord[] = [];
   comments: CustomerComment[] = [];
+  selectedTabIndex = 0;
   complaints: CustomerComplaint[] = [];
   totalPaid = 0;
   loading = true;
@@ -73,6 +74,11 @@ export class CustomerDetailComponent implements OnInit {
   private snack = inject(MatSnackBar);
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      const tab = params.get('tab');
+      this.selectedTabIndex = tab === 'payment' ? 1 : tab === 'complaints' ? 2 : tab === 'comments' ? 3 : 0;
+    });
+
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.planSvc.getAll().subscribe(p => this.plans = p);
     this.customerSvc.getById(id).subscribe(c => {

@@ -16,6 +16,34 @@
         </div>
     </div>
 
+    <div class="maintenance-filters">
+        <mat-form-field appearance="outline">
+            <mat-label>Date Range</mat-label>
+            <mat-select [(ngModel)]="maintenanceFilter" (ngModelChange)="onMaintenanceFilterChange($event)">
+                <mat-option value="this-month">This Month</mat-option>
+                <mat-option value="last-month">Last Month</mat-option>
+                <mat-option value="next-month">Next Month</mat-option>
+                <mat-option value="custom">Custom Range</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>From</mat-label>
+            <input matInput [matDatepicker]="maintenanceFromPicker" [(ngModel)]="maintenanceFrom"
+                [disabled]="maintenanceFilter !== 'custom'" (dateChange)="onMaintenanceDateChange()" />
+            <mat-datepicker-toggle matSuffix [for]="maintenanceFromPicker"></mat-datepicker-toggle>
+            <mat-datepicker #maintenanceFromPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>To</mat-label>
+            <input matInput [matDatepicker]="maintenanceToPicker" [(ngModel)]="maintenanceTo"
+                [disabled]="maintenanceFilter !== 'custom'" (dateChange)="onMaintenanceDateChange()" />
+            <mat-datepicker-toggle matSuffix [for]="maintenanceToPicker"></mat-datepicker-toggle>
+            <mat-datepicker #maintenanceToPicker></mat-datepicker>
+        </mat-form-field>
+    </div>
+
     <div class="table-card upcoming-panel">
         <div class="section-header">
             <div>
@@ -23,34 +51,6 @@
                 <p>Customers scheduled for 3-month maintenance based on their last service date</p>
             </div>
             <span class="chip chip-info">{{ upcomingCustomers.length }} scheduled</span>
-        </div>
-
-        <div class="maintenance-filters">
-            <mat-form-field appearance="outline">
-                <mat-label>Filter Range</mat-label>
-                <mat-select [(ngModel)]="maintenanceFilter" (ngModelChange)="onMaintenanceFilterChange($event)">
-                    <mat-option value="this-month">This Month</mat-option>
-                    <mat-option value="last-month">Last Month</mat-option>
-                    <mat-option value="next-month">Next Month</mat-option>
-                    <mat-option value="custom">Custom Range</mat-option>
-                </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-                <mat-label>From</mat-label>
-                <input matInput [matDatepicker]="maintenanceFromPicker" [(ngModel)]="maintenanceFrom"
-                    [disabled]="maintenanceFilter !== 'custom'" (dateChange)="onMaintenanceDateChange()" />
-                <mat-datepicker-toggle matSuffix [for]="maintenanceFromPicker"></mat-datepicker-toggle>
-                <mat-datepicker #maintenanceFromPicker></mat-datepicker>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-                <mat-label>To</mat-label>
-                <input matInput [matDatepicker]="maintenanceToPicker" [(ngModel)]="maintenanceTo"
-                    [disabled]="maintenanceFilter !== 'custom'" (dateChange)="onMaintenanceDateChange()" />
-                <mat-datepicker-toggle matSuffix [for]="maintenanceToPicker"></mat-datepicker-toggle>
-                <mat-datepicker #maintenanceToPicker></mat-datepicker>
-            </mat-form-field>
         </div>
 
         <div *ngIf="upcomingCustomers.length === 0" class="empty-state compact-empty">
@@ -177,6 +177,47 @@
         </mat-form-field>
     </div>
 
+    <div *ngIf="scheduledCompletionRecord" class="form-panel" style="margin-top:16px;">
+        <h3>Complete Scheduled Service</h3>
+        <p>Confirm the appointment and add any parts, cost, and notes.</p>
+        <div class="form-grid">
+            <mat-form-field appearance="outline">
+                <mat-label>Customer</mat-label>
+                <input matInput [value]="scheduledCompletionRecord.customerName" disabled />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Scheduled Date</mat-label>
+                <input matInput [value]="scheduledCompletionRecord.serviceDate | date:'dd MMM yyyy'" disabled />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Parts Replaced</mat-label>
+                <input matInput [(ngModel)]="completionParts" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Cost (₹)</mat-label>
+                <input matInput type="number" [(ngModel)]="completionCost" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" style="width:100%">
+                <mat-label>Notes</mat-label>
+                <textarea matInput rows="3" [(ngModel)]="completionNotes"></textarea>
+            </mat-form-field>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
+            <button mat-stroked-button (click)="cancelCompleteScheduledService()">Cancel</button>
+            <button mat-raised-button color="primary" (click)="completeScheduledService()">Complete Service</button>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:12px; align-items:center; margin-top:12px;">
+        <span class="chip chip-info" style="font-size:0.85rem;">Scheduled</span>
+        <span style="color:var(--text-muted); font-size:0.92rem;">Use the check button to mark scheduled appointments complete.</span>
+    </div>
+
+    <div class="table-summary" style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin:16px 10px 5px;">
+        <div><strong>{{ dataSource.filteredData.length }}</strong> service record{{ dataSource.filteredData.length === 1 ? '' : 's' }}</div>
+        <div><strong>Total Cost:</strong> ₹{{ serviceTotalCost | number:'1.0-0' }}</div>
+    </div>
+
     <!-- Table -->
     <div class="table-card">
         <table mat-table [dataSource]="dataSource" matSort>
@@ -184,10 +225,12 @@
             <ng-container matColumnDef="customerName">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Customer</th>
                 <td mat-cell *matCellDef="let s">
-                    <div class="cust-cell">
-                        <div class="cust-av">{{ (s.customerName || 'C')[0] }}</div>
-                        <span>{{ s.customerName }}</span>
-                    </div>
+                    <a [routerLink]="['/customers', s.customerId]" [queryParams]="{ tab: 'service' }" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit; cursor:pointer;">
+                        <div style="width:36px; height:36px; border-radius:50%; background:#0097a7; color:white; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px; flex-shrink:0;">
+                            {{ (s.customerName || 'C')[0].toUpperCase() }}
+                        </div>
+                        <span style="font-weight:500; color:var(--brand-dark);">{{ s.customerName }}</span>
+                    </a>
                 </td>
             </ng-container>
 
@@ -242,7 +285,10 @@
             <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let s">
-                    <button mat-icon-button color="warn" matTooltip="Delete" (click)="deleteRecord(s)">
+                    <button *ngIf="isScheduledService(s)" mat-icon-button color="primary" matTooltip="Complete scheduled service" (click)="beginCompleteScheduledService(s)">
+                        <mat-icon>check_circle</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" matTooltip="{{ isScheduledService(s) ? 'Cancel scheduled appointment' : 'Delete' }}" (click)="deleteRecord(s)">
                         <mat-icon>delete</mat-icon>
                     </button>
                 </td>

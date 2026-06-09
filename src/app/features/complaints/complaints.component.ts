@@ -16,6 +16,8 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { CustomerComplaintService } from '../../core/services/customer-complaint.service';
 import { CustomerService } from '../../core/services/customer.service';
+import { ServiceRecordService } from '../../core/services/service-record.service';
+import { TechnicianService } from '../../core/services/technician.service';
 import { CustomerComplaint, Customer } from '../../core/models/models';
 import { CustomerComplaintDialogComponent } from '../customers/customer-complaint-dialog.component';
 import { ComplaintCommentsDialogComponent } from './complaint-comments-dialog.component';
@@ -90,7 +92,7 @@ import { ComplaintCommentsDialogComponent } from './complaint-comments-dialog.co
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let row">
-              <button mat-icon-button color="primary" (click)="scheduleService(row)">
+              <button mat-icon-button color="primary" *ngIf="!row.resolved" (click)="scheduleService(row)">
                 <mat-icon>build_circle</mat-icon>
               </button>
               <button mat-icon-button color="accent" (click)="openComments(row)">
@@ -133,6 +135,8 @@ export class ComplaintsComponent implements OnInit, AfterViewInit {
 
   private complaintSvc = inject(CustomerComplaintService);
   private customerSvc = inject(CustomerService);
+  private serviceSvc = inject(ServiceRecordService);
+  private technicianSvc = inject(TechnicianService);
   private dialog = inject(MatDialog);
   private snack = inject(MatSnackBar);
   private router = inject(Router);
@@ -198,8 +202,31 @@ export class ComplaintsComponent implements OnInit, AfterViewInit {
   }
 
   scheduleService(complaint: CustomerComplaint & { customerName: string; customerArea: string }): void {
-    this.router.navigate(['/services'], {
-      queryParams: { customerId: complaint.customerId, complaintId: complaint.id, serviceType: 'repair' }
+    if (complaint.resolved) {
+      this.snack.open('Resolved complaints cannot be scheduled.', 'OK', { duration: 3000 });
+      return;
+    }
+
+    const tomorrow = this.getTomorrow();
+    this.technicianSvc.getDefault().subscribe(defaultTech => {
+      const technicianName = defaultTech?.name ?? 'Technician';
+      this.serviceSvc.add({
+        customerId: complaint.customerId,
+        customerName: complaint.customerName,
+        serviceType: 'repair',
+        serviceDate: tomorrow,
+        nextServiceDate: tomorrow,
+        technicianName,
+        partsReplaced: '',
+        notes: `Scheduled from complaint #${complaint.id}`,
+        cost: 0,
+        complaintId: complaint.id
+      }).subscribe(() => {
+        this.customerSvc.update(complaint.customerId, { nextServiceDate: tomorrow }).subscribe(() => {
+          this.snack.open('Service scheduled with default technician', 'OK', { duration: 3000 });
+          this.router.navigate(['/services']);
+        });
+      });
     });
   }
 
@@ -248,6 +275,13 @@ export class ComplaintsComponent implements OnInit, AfterViewInit {
       this.snack.open('Complaint reopened', 'OK', { duration: 3000 });
       this.loadData();
     });
+  }
+
+  private getTomorrow(): Date {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    return tomorrow;
   }
 
   deleteComplaint(complaint: CustomerComplaint): void {
