@@ -111,6 +111,14 @@ export class RemindersComponent implements OnInit {
       });
     };
 
+    const isPastGracePeriod = (): boolean => {
+      const referenceDate = this.startDate ? this.startDate : new Date();
+      const graceDate = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 5);
+      const today = new Date();
+      const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      return todayOnly > graceDate;
+    };
+
     this.dueThisMonth = this.allCustomers.filter(customer => {
       if (!customer.id) return false;
       const unpaidForRange = !hasPaymentForRange(customer.id);
@@ -118,10 +126,9 @@ export class RemindersComponent implements OnInit {
     });
 
     this.overdueCustomers = this.allCustomers.filter(customer => {
-      if (!customer.nextDueDate || !customer.id) return false;
-      const nextDue = new Date(customer.nextDueDate);
+      if (!customer.id) return false;
       const unpaidForRange = !hasPaymentForRange(customer.id);
-      return unpaidForRange && nextDue < today && customer.status !== 'inactive';
+      return unpaidForRange && isPastGracePeriod() && customer.status !== 'inactive';
     });
 
     this.allActive = this.allCustomers.filter(customer => {
