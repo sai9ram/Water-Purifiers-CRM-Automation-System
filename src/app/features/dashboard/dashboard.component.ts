@@ -122,12 +122,21 @@ export class DashboardComponent implements OnInit {
       })
       .reduce((s, p) => s + p.amount, 0);
 
+    const hasPaymentForRange = (customerId: number | undefined): boolean => {
+      if (!customerId) return false;
+      return this.allPayments.some(payment => {
+        if (payment.customerId !== customerId) return false;
+        const paid = new Date(payment.paidDate);
+        const matchesStart = !start || paid >= start;
+        const matchesEnd = !end || paid <= end;
+        return matchesStart && matchesEnd;
+      });
+    };
+
     this.dueCustomers = this.allCustomers.filter(customer => {
-      if (!customer.nextDueDate) return false;
-      const due = new Date(customer.nextDueDate);
-      const matchesStart = !start || due >= start;
-      const matchesEnd = !end || due <= end;
-      return matchesStart && matchesEnd && (customer.status === 'active' || customer.status === 'overdue');
+      if (!customer.id) return false;
+      const unpaidForRange = !hasPaymentForRange(customer.id);
+      return unpaidForRange && (customer.status === 'active' || customer.status === 'overdue');
     });
 
     this.thisMonthMaintenanceCount = this.allServices.filter(record => {

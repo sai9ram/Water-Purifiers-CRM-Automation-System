@@ -6,6 +6,40 @@
         </div>
     </div>
 
+    <div class="reminder-range-bar">
+        <mat-form-field appearance="outline">
+            <mat-label>Reminder Range</mat-label>
+            <mat-select [(ngModel)]="reminderFilter" (ngModelChange)="onReminderFilterChange($event)">
+                <mat-option value="this-month">This Month</mat-option>
+                <mat-option value="last-month">Last Month</mat-option>
+                <mat-option value="next-month">Next Month</mat-option>
+                <mat-option value="custom">Custom Range</mat-option>
+                <mat-option value="all">All Time</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="date-field">
+            <mat-label>From Date</mat-label>
+            <input matInput [matDatepicker]="fromPicker" [(ngModel)]="startDate"
+                [disabled]="reminderFilter !== 'custom'" (dateChange)="computeReminderLists()" />
+            <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+            <mat-datepicker #fromPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="date-field">
+            <mat-label>To Date</mat-label>
+            <input matInput [matDatepicker]="toPicker" [(ngModel)]="endDate"
+                [disabled]="reminderFilter !== 'custom'" (dateChange)="computeReminderLists()" />
+            <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+            <mat-datepicker #toPicker></mat-datepicker>
+        </mat-form-field>
+
+        <button mat-stroked-button type="button" (click)="clearDateFilter()"
+            [disabled]="reminderFilter === 'all' && !startDate && !endDate">
+            <mat-icon>filter_alt_off</mat-icon> Clear Dates
+        </button>
+    </div>
+
     <!-- Stats Bar -->
     <div class="reminder-stats">
         <div class="rstat">

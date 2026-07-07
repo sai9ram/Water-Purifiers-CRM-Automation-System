@@ -1,3 +1,16 @@
+/* Date Range Bar */
+.reminder-range-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.date-field {
+    min-width: 160px;
+}
+
 /* Stats Bar */
 .reminder-stats {
     display: grid;

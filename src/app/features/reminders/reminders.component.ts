@@ -6,14 +6,17 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { CustomerService } from '../../core/services/customer.service';
+import { PaymentService } from '../../core/services/payment.service';
 import { WhatsappService } from '../../core/services/whatsapp.service';
-import { Customer } from '../../core/models/models';
+import { Customer, PaymentRecord } from '../../core/models/models';
 import { PaymentRecordDialogComponent } from './payment-record-dialog.component';
 
 @Component({
@@ -22,8 +25,8 @@ import { PaymentRecordDialogComponent } from './payment-record-dialog.component'
   imports: [
     CommonModule, FormsModule,
     MatIconModule, MatButtonModule, MatFormFieldModule,
-    MatInputModule, MatSelectModule, MatCheckboxModule,
-    MatDialogModule, MatSnackBarModule, MatTooltipModule, MatProgressBarModule
+    MatInputModule, MatSelectModule, MatDatepickerModule, MatNativeDateModule,
+    MatCheckboxModule, MatDialogModule, MatSnackBarModule, MatTooltipModule, MatProgressBarModule
   ],
   templateUrl: './reminders.component.html',
   styleUrl: './reminders.component.scss'
@@ -33,8 +36,13 @@ export class RemindersComponent implements OnInit {
   overdueCustomers: Customer[] = [];
   allActive: Customer[] = [];
   displayedCustomers: Customer[] = [];
+  allCustomers: Customer[] = [];
+  allPayments: PaymentRecord[] = [];
 
   activeTab = 'month';
+  reminderFilter: 'all' | 'this-month' | 'last-month' | 'next-month' | 'custom' = 'this-month';
+  startDate: Date | null = null;
+  endDate: Date | null = null;
   selectedIds = new Set<number>();
   sentIds = new Set<number>();
   sentCount = 0;
@@ -47,24 +55,117 @@ export class RemindersComponent implements OnInit {
   bulkProgress = 0;
 
   private customerSvc = inject(CustomerService);
+  private paymentSvc = inject(PaymentService);
   private waSvc = inject(WhatsappService);
   private dialog = inject(MatDialog);
   private snack = inject(MatSnackBar);
 
   ngOnInit(): void {
+    this.setReminderRange('this-month');
     this.loadData();
   }
 
   loadData(): void {
-    this.customerSvc.getDueThisMonth().subscribe(c => {
-      this.dueThisMonth = c;
-      this.totalDue = c.reduce((s, x) => s + (x.monthlyRent ?? 0), 0);
-      this.setTab('month');
+    this.customerSvc.getAll().subscribe(customers => {
+      this.allCustomers = customers;
+      this.paymentSvc.getAll().subscribe(payments => {
+        this.allPayments = payments;
+        this.computeReminderLists();
+      });
+    });
+  }
+
+  onReminderFilterChange(filter: 'all' | 'this-month' | 'last-month' | 'next-month' | 'custom'): void {
+    this.setReminderRange(filter);
+    this.computeReminderLists();
+  }
+
+  clearDateFilter(): void {
+    this.reminderFilter = 'all';
+    this.startDate = null;
+    this.endDate = null;
+    this.computeReminderLists();
+  }
+
+  computeReminderLists(): void {
+    const start = this.startDate ? this.normalizeStart(this.startDate) : null;
+    const end = this.endDate ? this.normalizeEnd(this.endDate) : null;
+    const today = this.normalizeStart(new Date());
+
+    const matchesRange = (value?: Date | string | null): boolean => {
+      if (!value) return false;
+      const date = new Date(value);
+      const matchesStart = !start || date >= start;
+      const matchesEnd = !end || date <= end;
+      return matchesStart && matchesEnd;
+    };
+
+    const hasPaymentForRange = (customerId: number | undefined): boolean => {
+      if (!customerId) return false;
+      return this.allPayments.some(payment => {
+        if (payment.customerId !== customerId) return false;
+        const paidDate = new Date(payment.paidDate);
+        const matchesStart = !start || paidDate >= start;
+        const matchesEnd = !end || paidDate <= end;
+        return matchesStart && matchesEnd;
+      });
+    };
+
+    this.dueThisMonth = this.allCustomers.filter(customer => {
+      if (!customer.id) return false;
+      const unpaidForRange = !hasPaymentForRange(customer.id);
+      return unpaidForRange && (customer.status === 'active' || customer.status === 'overdue');
     });
 
-    this.customerSvc.getOverdue().subscribe(c => this.overdueCustomers = c);
+    this.overdueCustomers = this.allCustomers.filter(customer => {
+      if (!customer.nextDueDate || !customer.id) return false;
+      const nextDue = new Date(customer.nextDueDate);
+      const unpaidForRange = !hasPaymentForRange(customer.id);
+      return unpaidForRange && nextDue < today && customer.status !== 'inactive';
+    });
 
-    this.customerSvc.getByStatus('active').subscribe(c => this.allActive = c);
+    this.allActive = this.allCustomers.filter(customer => {
+      if (!customer.id || customer.status !== 'active') return false;
+      const unpaidForRange = !hasPaymentForRange(customer.id);
+      return unpaidForRange;
+    });
+
+    this.totalDue = this.dueThisMonth.reduce((sum, customer) => sum + (customer.monthlyRent ?? 0), 0);
+    this.setTab(this.activeTab);
+  }
+
+  private setReminderRange(filter: 'all' | 'this-month' | 'last-month' | 'next-month' | 'custom'): void {
+    this.reminderFilter = filter;
+    if (filter === 'custom') return;
+
+    if (filter === 'all') {
+      this.clearDateFilter();
+      return;
+    }
+
+    const today = new Date();
+    const monthDate = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    if (filter === 'last-month') {
+      monthDate.setMonth(monthDate.getMonth() - 1);
+    } else if (filter === 'next-month') {
+      monthDate.setMonth(monthDate.getMonth() + 1);
+    }
+
+    this.startDate = this.normalizeStart(new Date(monthDate.getFullYear(), monthDate.getMonth(), 1));
+    this.endDate = this.normalizeEnd(new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0));
+  }
+
+  private normalizeStart(date: Date): Date {
+    const normalized = new Date(date);
+    normalized.setHours(0, 0, 0, 0);
+    return normalized;
+  }
+
+  private normalizeEnd(date: Date): Date {
+    const normalized = new Date(date);
+    normalized.setHours(23, 59, 59, 999);
+    return normalized;
   }
 
   setTab(tab: string): void {
