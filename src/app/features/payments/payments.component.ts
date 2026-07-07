@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RouterLink } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -15,6 +16,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { PaymentService } from '../../core/services/payment.service';
 import { CustomerService } from '../../core/services/customer.service';
 import { Customer, PaymentRecord } from '../../core/models/models';
+import { EditReceiverDialogComponent } from './edit-receiver-dialog.component';
 
 interface PaymentView extends PaymentRecord {
   customerName: string;
@@ -38,7 +40,8 @@ interface PaymentView extends PaymentRecord {
     MatInputModule,
     MatSelectModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatDialogModule
   ],
   templateUrl: './payments.component.html',
   styleUrl: './payments.component.scss'
@@ -47,13 +50,14 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  columns = ['customer', 'forMonth', 'paidDate', 'amount', 'notes'];
+  columns = ['customer', 'forMonth', 'paidDate', 'amount', 'receiver', 'notes', 'actions'];
   // columns = ['customer', 'forMonth', 'paidDate', 'amount', 'notes', 'actions'];
   dataSource = new MatTableDataSource<PaymentView>([]);
   allPayments: PaymentView[] = [];
   customers: Customer[] = [];
 
   searchQuery = '';
+  receiverFilter = '';
   paymentFilter: 'this-month' | 'last-month' | 'next-month' | 'custom' = 'this-month';
   startDate: Date | null = null;
   endDate: Date | null = null;
@@ -65,6 +69,7 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
 
   private paymentSvc = inject(PaymentService);
   private customerSvc = inject(CustomerService);
+  private dialog = inject(MatDialog);
 
   ngOnInit(): void {
     this.setPaymentRange('this-month');
@@ -110,10 +115,11 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
         payment.notes ?? ''
       ].some(value => value.toLowerCase().includes(query));
 
+      const matchesReceiver = !this.receiverFilter || (payment.receiver || 'Charan').toLowerCase() === this.receiverFilter.toLowerCase();
       const matchesStart = !start || paidDate >= start;
       const matchesEnd = !end || paidDate <= end;
 
-      return matchesQuery && matchesStart && matchesEnd;
+      return matchesQuery && matchesReceiver && matchesStart && matchesEnd;
     });
 
     this.dataSource.data = filtered;
@@ -134,6 +140,26 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
     this.startDate = null;
     this.endDate = null;
     this.applyFilter();
+  }
+
+  editReceiver(payment: PaymentView): void {
+    if (!payment.id) return;
+
+    const ref = this.dialog.open(EditReceiverDialogComponent, {
+      width: '420px',
+      data: { receiver: payment.receiver || 'Charan' }
+    });
+
+    ref.afterClosed().subscribe(result => {
+      if (!result) return;
+      const trimmed = result.trim();
+      if (!trimmed) return;
+
+      this.paymentSvc.update(payment.id!, { receiver: trimmed }).subscribe(() => {
+        payment.receiver = trimmed;
+        this.applyFilter();
+      });
+    });
   }
 
   deletePayment(payment: PaymentView): void {

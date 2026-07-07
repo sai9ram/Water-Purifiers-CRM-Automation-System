@@ -64,6 +64,7 @@ export interface PaymentRecord {
   amount: number;
   paidDate: Date;
   forMonth: string;           // e.g. "April 2025"
+  receiver?: string;          // who received the payment
   notes?: string;
   createdAt: Date;
 }

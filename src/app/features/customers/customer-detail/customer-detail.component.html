@@ -328,6 +328,13 @@
                             <input matInput formControlName="forMonth" placeholder="e.g. April 2025" />
                         </mat-form-field>
                         <mat-form-field appearance="outline">
+                            <mat-label>Received By</mat-label>
+                            <mat-select formControlName="receiver">
+                                <mat-option value="Charan">Charan</mat-option>
+                                <mat-option value="Nagarjuna">Nagarjuna</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
                             <mat-label>Notes</mat-label>
                             <input matInput formControlName="notes" placeholder="Optional" />
                         </mat-form-field>
@@ -353,6 +360,7 @@
                         <div class="payment-info">
                             <strong>₹{{ p.amount }}</strong>
                             <span>{{ p.forMonth }} · {{ p.paidDate | date:'dd MMM yyyy' }}</span>
+                            <span class="payment-note">Received by {{ p.receiver || 'Charan' }}</span>
                             @if (p.notes) {
                             <span class="payment-note">{{ p.notes }}</span>
                             }

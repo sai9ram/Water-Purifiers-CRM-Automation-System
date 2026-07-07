@@ -258,7 +258,9 @@ a { color: var(--brand-primary); text-decoration: none; }
   margin-bottom: 20px;
   flex-wrap: wrap;
 
-  mat-form-field { flex: 1; min-width: 220px; }
+  mat-form-field { min-width: 220px; }
+
+  .search-field { flex: 1; min-width: 320px; }
 }
 
 // ── Empty State ───────────────────────────────────────────────────────────────

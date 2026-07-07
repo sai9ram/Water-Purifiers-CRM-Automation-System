@@ -24,6 +24,11 @@ export class PaymentService {
       .pipe(tap(() => void this.backupSyncSvc.triggerBackup('payment create')));
   }
 
+  update(id: number, changes: Partial<PaymentRecord>): Observable<number> {
+    return from(db.payments.update(id, changes))
+      .pipe(tap(() => void this.backupSyncSvc.triggerBackup('payment update')));
+  }
+
   delete(id: number): Observable<void> {
     return from(db.payments.delete(id));
   }

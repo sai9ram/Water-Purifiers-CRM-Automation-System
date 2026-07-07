@@ -113,6 +113,7 @@ export class CustomerDetailComponent implements OnInit {
       amount: [this.customer?.monthlyRent ?? 0, Validators.required],
       paidDate: [new Date(), Validators.required],
       forMonth: [curMonth, Validators.required],
+      receiver: ['Charan', Validators.required],
       notes: ['']
     });
     this.commentForm = this.fb.group({
