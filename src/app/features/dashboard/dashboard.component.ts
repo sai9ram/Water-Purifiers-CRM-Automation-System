@@ -37,6 +37,7 @@ export class DashboardComponent implements OnInit {
   allServices: ServiceRecord[] = [];
   allPayments: PaymentRecord[] = [];
   filteredCollected = 0;
+  filteredServiceCost = 0;
 
   private customerSvc = inject(CustomerService);
   private serviceSvc = inject(ServiceRecordService);
@@ -136,6 +137,15 @@ export class DashboardComponent implements OnInit {
       const matchesEnd = !end || nextService <= end;
       return matchesStart && matchesEnd;
     }).length;
+
+    this.filteredServiceCost = this.allServices
+      .filter(record => {
+        const serviceDate = new Date(record.serviceDate);
+        const matchesStart = !start || serviceDate >= start;
+        const matchesEnd = !end || serviceDate <= end;
+        return matchesStart && matchesEnd;
+      })
+      .reduce((sum, record) => sum + (record.cost || 0), 0);
 
     this.recentServices = this.allServices
       .filter(record => {
