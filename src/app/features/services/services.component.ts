@@ -15,10 +15,12 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ServiceRecordService } from '../../core/services/service-record.service';
 import { CustomerService } from '../../core/services/customer.service';
 import { TechnicianService } from '../../core/services/technician.service';
 import { ServiceRecord, Customer, Technician, SERVICE_TYPE_LABELS, ServiceType } from '../../core/models/models';
+import { EditCostDialogComponent } from './edit-cost-dialog.component';
 
 @Component({
   selector: 'app-services',
@@ -28,7 +30,7 @@ import { ServiceRecord, Customer, Technician, SERVICE_TYPE_LABELS, ServiceType }
     MatTableModule, MatSortModule, MatPaginatorModule,
     MatIconModule, MatButtonModule, MatFormFieldModule,
     MatInputModule, MatSelectModule, MatDatepickerModule,
-    MatNativeDateModule, MatSnackBarModule, MatTooltipModule
+    MatNativeDateModule, MatSnackBarModule, MatTooltipModule, MatDialogModule
   ],
   templateUrl: './services.component.html',
   styleUrl: './services.component.scss'
@@ -66,6 +68,7 @@ export class ServicesComponent implements OnInit, AfterViewInit {
   private technicianSvc = inject(TechnicianService);
   private fb = inject(FormBuilder);
   private snack = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
   private route = inject(ActivatedRoute);
 
 
@@ -231,6 +234,34 @@ export class ServicesComponent implements OnInit, AfterViewInit {
       this.showForm = false;
       this.loadData();
       this.initForm(this.formMode);
+    });
+  }
+
+  editCost(record: ServiceRecord): void {
+    if (!record.id) return;
+
+    const ref = this.dialog.open(EditCostDialogComponent, {
+      width: '420px',
+      data: {
+        customerName: record.customerName,
+        serviceType: this.getServiceLabel(record.serviceType),
+        cost: record.cost ?? 0,
+        partsReplaced: record.partsReplaced || ''
+      }
+    });
+
+    ref.afterClosed().subscribe(result => {
+      if (result === null || result === undefined) return;
+      
+      this.serviceSvc.update(record.id!, { 
+        cost: result.cost,
+        partsReplaced: result.partsReplaced
+      }).subscribe(() => {
+        record.cost = result.cost;
+        record.partsReplaced = result.partsReplaced;
+        this.applyFilter();
+        this.snack.open('Service details updated successfully', 'OK', { duration: 2000 });
+      });
     });
   }
 

@@ -285,6 +285,9 @@
             <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let s">
+                    <button mat-icon-button color="accent" matTooltip="Edit cost" (click)="editCost(s)">
+                        <mat-icon>edit</mat-icon>
+                    </button>
                     <button *ngIf="isScheduledService(s)" mat-icon-button color="primary" matTooltip="Complete scheduled service" (click)="beginCompleteScheduledService(s)">
                         <mat-icon>check_circle</mat-icon>
                     </button>
