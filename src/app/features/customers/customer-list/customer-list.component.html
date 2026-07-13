@@ -3,6 +3,10 @@
         <div>
             <h2>Customers</h2>
             <p class="subtitle">{{ dataSource.filteredData.length }} of {{ allCustomers.length }} customers</p>
+            <div class="page-totals">
+                <span>Total Deposits: ₹{{ totalDeposit | number }}</span>
+                <span>Total Rent: ₹{{ totalRent | number }}/mo</span>
+            </div>
         </div>
         <button mat-raised-button color="primary" (click)="openAddDialog()">
             <mat-icon>person_add</mat-icon> Add Customer

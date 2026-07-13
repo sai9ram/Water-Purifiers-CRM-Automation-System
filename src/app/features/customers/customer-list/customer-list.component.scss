@@ -29,6 +29,20 @@
     color: var(--text-secondary);
 }
 
+.page-totals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.page-totals span {
+    display: inline-flex;
+    gap: 6px;
+}
+
 .plan-cell {
     display: flex;
     flex-direction: column;

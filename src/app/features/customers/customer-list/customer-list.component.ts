@@ -36,7 +36,7 @@ import { Router } from '@angular/router';
     MatTooltipModule, MatChipsModule
   ],
   templateUrl: './customer-list.component.html',
-  styleUrl: './customer-list.component.scss'
+  styleUrls: ['./customer-list.component.scss']
 })
 export class CustomerListComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
@@ -49,6 +49,18 @@ export class CustomerListComponent implements OnInit, AfterViewInit {
   searchQuery = '';
   statusFilter = 'active';
   planFilter: number | '' = '';
+
+  get totalDeposit(): number {
+    return this.allCustomers
+      .filter(customer => customer.status === 'active')
+      .reduce((sum, customer) => sum + (customer.depositPaid || 0), 0);
+  }
+
+  get totalRent(): number {
+    return this.allCustomers
+      .filter(customer => customer.status === 'active')
+      .reduce((sum, customer) => sum + (customer.monthlyRent || 0), 0);
+  }
 
   private customerSvc = inject(CustomerService);
   private planSvc = inject(PlanService);
