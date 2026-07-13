@@ -1,3 +1,22 @@
+.search-bar {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.search-bar mat-form-field {
+    flex: 1 1 220px;
+    min-width: 220px;
+}
+
+.search-bar button {
+    flex: 0 0 auto;
+    min-width: 160px;
+    height: 55px;
+    padding: 0 20px;
+}
+
 .two-col {
     display: grid;
     grid-template-columns: 1fr 1fr;

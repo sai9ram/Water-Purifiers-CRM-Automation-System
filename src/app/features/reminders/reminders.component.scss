@@ -1,10 +1,22 @@
 /* Date Range Bar */
 .reminder-range-bar {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: row;
+    gap: 16px;
     flex-wrap: wrap;
     margin-bottom: 20px;
+}
+
+.reminder-range-bar mat-form-field {
+    flex: 1 1 220px;
+    min-width: 220px;
+}
+
+.reminder-range-bar button {
+    flex: 0 0 auto;
+    min-width: 160px;
+    height: 55px;
+    padding: 0 20px;
 }
 
 .date-field {

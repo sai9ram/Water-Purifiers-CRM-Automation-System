@@ -253,7 +253,6 @@ a { color: var(--brand-primary); text-decoration: none; }
 // ── Search Bar ───────────────────────────────────────────────────────────────
 .search-bar {
   display: flex;
-  align-items: center;
   gap: 16px;
   margin-bottom: 20px;
   flex-wrap: wrap;
