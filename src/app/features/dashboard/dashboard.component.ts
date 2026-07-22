@@ -15,6 +15,7 @@ import { ServiceRecordService } from '../../core/services/service-record.service
 import { Customer, ServiceRecord, PaymentRecord } from '../../core/models/models';
 import { WhatsappService } from '../../core/services/whatsapp.service';
 import { PaymentService } from '../../core/services/payment.service';
+import { CustomerReportExportService } from '../../core/services/customer-report-export.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -43,6 +44,7 @@ export class DashboardComponent implements OnInit {
   private serviceSvc = inject(ServiceRecordService);
   private waSvc = inject(WhatsappService);
   private paymentSvc = inject(PaymentService);
+  private exportSvc = inject(CustomerReportExportService);
   private router = inject(Router);
 
   ngOnInit(): void {
@@ -82,6 +84,14 @@ export class DashboardComponent implements OnInit {
   openThisMonthMaintenance(): void {
     void this.router.navigate(['/services'], {
       queryParams: { maintenanceFilter: 'this-month' }
+    });
+  }
+
+  exportCustomerReport(): void {
+    void this.exportSvc.exportCustomerReport({
+      startDate: this.startDate,
+      endDate: this.endDate,
+      fileName: 'customer-report.xlsx'
     });
   }
 

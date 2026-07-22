@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
 import { BackupSyncService } from './core/services/backup-sync.service';
+import { CustomerReportExportService } from './core/services/customer-report-export.service';
 
 interface NavItem {
   path: string;
@@ -37,7 +38,10 @@ export class AppComponent {
     { path: '/plans',      icon: 'card_membership',  label: 'Plans'       },
   ];
 
-  constructor(private backupSyncSvc: BackupSyncService) {
+  constructor(
+    private backupSyncSvc: BackupSyncService,
+    private exportSvc: CustomerReportExportService
+  ) {
     this.backupStatus = this.backupSyncSvc.status;
   }
 
@@ -65,5 +69,11 @@ export class AppComponent {
 
   saveBackupAndSync(): void {
     void (this.backupSyncSvc as any).saveBackupAndSync();
+  }
+
+  exportCustomerReport(): void {
+    void this.exportSvc.exportCustomerReport({
+      fileName: 'customer-report.xlsx'
+    });
   }
 }

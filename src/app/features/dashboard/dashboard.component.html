@@ -40,6 +40,10 @@
         <button mat-stroked-button type="button" (click)="clearDateFilter()" [disabled]="dashboardFilter === 'all' && !startDate && !endDate">
             <mat-icon>filter_alt_off</mat-icon> Clear Dates
         </button>
+
+        <button mat-raised-button color="accent" type="button" (click)="exportCustomerReport()">
+            <mat-icon>download</mat-icon> Export Excel Report
+        </button>
     </div>
 
     <!-- Stats Grid -->

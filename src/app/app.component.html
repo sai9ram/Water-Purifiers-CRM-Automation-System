@@ -73,6 +73,11 @@
                     <mat-icon>download</mat-icon>
                     <span>Save & Sync</span>
                 </button>
+                <button class="report-action" type="button" (click)="exportCustomerReport()"
+                    title="Download customer rent, payment, and service report">
+                    <mat-icon>table_view</mat-icon>
+                    <span>Export Report</span>
+                </button>
                 <div class="topbar-date">
                     <mat-icon>calendar_today</mat-icon>
                     <span>{{ today }}</span>

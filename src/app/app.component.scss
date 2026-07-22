@@ -230,7 +230,8 @@
     &.state-error mat-icon { color: var(--danger); }
 }
 
-.backup-action {
+.backup-action,
+.report-action {
     border: 1px solid var(--border);
     background: var(--bg-base);
     border-radius: 999px;
