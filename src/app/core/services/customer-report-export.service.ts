@@ -45,17 +45,33 @@ export class CustomerReportExportService {
     XLSX.utils.book_append_sheet(wb, wsCustomerDetails, 'Customer Details');
 
     // Sheet 2: Rent History (Monthly Rent by Customer)
+    const rentMonths = Array.from(
+      new Set(payments.map(payment => payment.forMonth).filter(Boolean))
+    ).sort((a, b) => this.parseForMonth(a).getTime() - this.parseForMonth(b).getTime());
+
+    const paymentMap = new Map<string, number>();
+    payments.forEach(payment => {
+      const key = `${payment.customerId}__${payment.forMonth}`;
+      paymentMap.set(key, (paymentMap.get(key) ?? 0) + payment.amount);
+    });
+
     const rentHistoryData: any[] = [];
     customers.forEach(customer => {
       const monthlyRent = customer.monthlyRent ?? planMap.get(customer.planId) ?? 0;
-      rentHistoryData.push({
+      const rentRow: Record<string, string | number> = {
         'Customer Name': customer.name,
         'Monthly Rent': monthlyRent,
         'Rent Start Date': this.formatDate(customer.joinDate),
         'Status': customer.status,
         'Plan Name': customer.planName || '',
         'Notes': customer.notes ?? ''
+      };
+
+      rentMonths.forEach(month => {
+        rentRow[month] = paymentMap.get(`${customer.id}__${month}`) ?? '';
       });
+
+      rentHistoryData.push(rentRow);
     });
     const wsRentHistory = XLSX.utils.json_to_sheet(rentHistoryData);
     this.autoFitColumns(wsRentHistory, rentHistoryData);
@@ -149,6 +165,11 @@ export class CustomerReportExportService {
 
   private formatDate(value: Date): string {
     return new Date(value).toLocaleDateString('en-IN');
+  }
+
+  private parseForMonth(value: string): Date {
+    const parsed = new Date(`1 ${value}`);
+    return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed;
   }
 
   private escapeCsv(value: unknown): string {
