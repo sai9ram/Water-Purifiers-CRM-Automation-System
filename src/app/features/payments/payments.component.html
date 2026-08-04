@@ -4,9 +4,56 @@
             <h2>Payments</h2>
             <p class="subtitle">Track rent collections with customer-wise history and calendar filters</p>
         </div>
-        <a routerLink="/customers" mat-raised-button color="primary">
+        <!-- <a routerLink="/customers" mat-raised-button color="primary">
             <mat-icon>person_search</mat-icon> View Customers
-        </a>
+        </a> -->
+    </div>
+
+    <div class="search-bar">
+        <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search by customer, phone, area, month...</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="date-field">
+            <mat-label>Receiver</mat-label>
+            <mat-select [(ngModel)]="receiverFilter" (selectionChange)="applyFilter()">
+                <mat-option value="">All Receivers</mat-option>
+                <mat-option value="Charan">Charan</mat-option>
+                <mat-option value="Nagarjuna">Nagarjuna</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="date-field">
+            <mat-label>Filter Range</mat-label>
+            <mat-select [(ngModel)]="paymentFilter" (ngModelChange)="onPaymentFilterChange($event)">
+                <mat-option value="this-month">This Month</mat-option>
+                <mat-option value="last-month">Last Month</mat-option>
+                <mat-option value="next-month">Next Month</mat-option>
+                <mat-option value="custom">Custom Range</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="date-field">
+            <mat-label>From Date</mat-label>
+            <input matInput [matDatepicker]="fromPicker" [(ngModel)]="startDate"
+                [disabled]="paymentFilter !== 'custom'" (dateChange)="applyFilter()" />
+            <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+            <mat-datepicker #fromPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="date-field">
+            <mat-label>To Date</mat-label>
+            <input matInput [matDatepicker]="toPicker" [(ngModel)]="endDate"
+                [disabled]="paymentFilter !== 'custom'" (dateChange)="applyFilter()" />
+            <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+            <mat-datepicker #toPicker></mat-datepicker>
+        </mat-form-field>
+
+        <button mat-stroked-button type="button" (click)="clearDateFilter()" [disabled]="paymentFilter === 'custom' && !startDate && !endDate">
+            <mat-icon>filter_alt_off</mat-icon> Clear Dates
+        </button>
     </div>
 
     <div class="stats-grid">
@@ -60,53 +107,6 @@
             <div class="stat-value">₹{{ averagePayment | number }}</div>
             <div class="stat-sub">per transaction</div>
         </div>
-    </div>
-
-    <div class="search-bar">
-        <mat-form-field appearance="outline" class="search-field">
-            <mat-label>Search by customer, phone, area, month...</mat-label>
-            <mat-icon matPrefix>search</mat-icon>
-            <input matInput [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="date-field">
-            <mat-label>Receiver</mat-label>
-            <mat-select [(ngModel)]="receiverFilter" (selectionChange)="applyFilter()">
-                <mat-option value="">All Receivers</mat-option>
-                <mat-option value="Charan">Charan</mat-option>
-                <mat-option value="Nagarjuna">Nagarjuna</mat-option>
-            </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="date-field">
-            <mat-label>Filter Range</mat-label>
-            <mat-select [(ngModel)]="paymentFilter" (ngModelChange)="onPaymentFilterChange($event)">
-                <mat-option value="this-month">This Month</mat-option>
-                <mat-option value="last-month">Last Month</mat-option>
-                <mat-option value="next-month">Next Month</mat-option>
-                <mat-option value="custom">Custom Range</mat-option>
-            </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="date-field">
-            <mat-label>From Date</mat-label>
-            <input matInput [matDatepicker]="fromPicker" [(ngModel)]="startDate"
-                [disabled]="paymentFilter !== 'custom'" (dateChange)="applyFilter()" />
-            <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
-            <mat-datepicker #fromPicker></mat-datepicker>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="date-field">
-            <mat-label>To Date</mat-label>
-            <input matInput [matDatepicker]="toPicker" [(ngModel)]="endDate"
-                [disabled]="paymentFilter !== 'custom'" (dateChange)="applyFilter()" />
-            <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
-            <mat-datepicker #toPicker></mat-datepicker>
-        </mat-form-field>
-
-        <button mat-stroked-button type="button" (click)="clearDateFilter()" [disabled]="paymentFilter === 'custom' && !startDate && !endDate">
-            <mat-icon>filter_alt_off</mat-icon> Clear Dates
-        </button>
     </div>
 
     <div class="table-card">
