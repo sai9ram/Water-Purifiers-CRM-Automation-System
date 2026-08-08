@@ -1,5 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { db } from '../db/database';
+import { Customer, RentalPlan, ServiceRecord, PaymentRecord, CustomerComment, CustomerComplaint, Technician } from '../models/models';
 
 type BackupState = 'idle' | 'running' | 'synced' | 'queued' | 'error';
 
@@ -94,6 +95,395 @@ export class BackupSyncService {
 
   async retrySync(): Promise<void> {
     await this.flushQueue(true);
+  }
+
+  async importBackupFile(file: File): Promise<void> {
+    this.state.set('running');
+    this.message.set(`Importing ${file.name}`);
+
+    try {
+      const sql = await file.text();
+      const snapshot = this.parseSqlBackup(sql);
+      await this.replaceDatabase(snapshot);
+      this.lastBackupAt.set(new Date());
+      this.state.set('synced');
+      this.message.set(`Imported backup from ${file.name}`);
+    } catch (error) {
+      console.error('Backup import failed', error);
+      this.state.set('error');
+      this.message.set('Backup import failed');
+    }
+  }
+
+  private async replaceDatabase(snapshot: BackupSnapshot): Promise<void> {
+    await Promise.all([
+      db.rentalPlans.clear(),
+      db.customers.clear(),
+      db.serviceRecords.clear(),
+      db.payments.clear(),
+      db.customerComments.clear(),
+      db.customerComplaints.clear(),
+      db.technicians.clear()
+    ]);
+
+    await Promise.all([
+      snapshot.rentalPlans.length ? db.rentalPlans.bulkPut(snapshot.rentalPlans as RentalPlan[]) : Promise.resolve(),
+      snapshot.customers.length ? db.customers.bulkPut(snapshot.customers as Customer[]) : Promise.resolve(),
+      snapshot.serviceRecords.length ? db.serviceRecords.bulkPut(snapshot.serviceRecords as ServiceRecord[]) : Promise.resolve(),
+      snapshot.payments.length ? db.payments.bulkPut(snapshot.payments as PaymentRecord[]) : Promise.resolve(),
+      snapshot.customerComments.length ? db.customerComments.bulkPut(snapshot.customerComments as CustomerComment[]) : Promise.resolve(),
+      snapshot.customerComplaints.length ? db.customerComplaints.bulkPut(snapshot.customerComplaints as CustomerComplaint[]) : Promise.resolve(),
+      snapshot.technicians.length ? db.technicians.bulkPut(snapshot.technicians as Technician[]) : Promise.resolve()
+    ]);
+  }
+
+  private parseSqlBackup(sql: string): BackupSnapshot {
+    const sanitized = sql
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*--.*$/gm, '');
+
+    const tableMap: Record<string, keyof BackupSnapshot> = {
+      rental_plans: 'rentalPlans',
+      customers: 'customers',
+      service_records: 'serviceRecords',
+      payments: 'payments',
+      customer_comments: 'customerComments',
+      customer_complaints: 'customerComplaints',
+      technicians: 'technicians'
+    };
+
+    const snapshot: BackupSnapshot = {
+      customers: [],
+      rentalPlans: [],
+      serviceRecords: [],
+      payments: [],
+      customerComments: [],
+      customerComplaints: [],
+      technicians: []
+    };
+    const snapshotState: Partial<Record<keyof BackupSnapshot, unknown[]>> = snapshot;
+
+    const insertMatches = sanitized.matchAll(/INSERT INTO (\w+) VALUES\s*([\s\S]*?);/gi);
+
+    for (const match of insertMatches) {
+      const tableName = match[1]?.toLowerCase();
+      const targetKey = tableName ? tableMap[tableName] : undefined;
+
+      if (!targetKey) continue;
+
+      const rows = this.parseInsertRows(match[2] ?? '');
+      const parsedRows = rows.map(row => this.mapRow(tableName!, row));
+      snapshotState[targetKey] = parsedRows;
+    }
+
+    return snapshot;
+  }
+
+  private parseInsertRows(valuesBody: string): string[][] {
+    const rows: string[][] = [];
+    let index = 0;
+
+    while (index < valuesBody.length) {
+      while (index < valuesBody.length && /\s/.test(valuesBody[index])) {
+        index++;
+      }
+
+      if (valuesBody[index] !== '(') {
+        index++;
+        continue;
+      }
+
+      let rowStart = index;
+      let depth = 0;
+      let inSingleQuote = false;
+      let escaped = false;
+
+      for (; index < valuesBody.length; index++) {
+        const char = valuesBody[index];
+
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+
+        if (char === '\\') {
+          escaped = true;
+          continue;
+        }
+
+        if (char === "'") {
+          inSingleQuote = !inSingleQuote;
+          continue;
+        }
+
+        if (!inSingleQuote) {
+          if (char === '(') {
+            depth++;
+          } else if (char === ')') {
+            depth--;
+            if (depth === 0) {
+              const rowContent = valuesBody.slice(rowStart + 1, index);
+              rows.push(this.splitSqlRow(rowContent));
+              index++;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    return rows;
+  }
+
+  private splitSqlRow(row: string): string[] {
+    const values: string[] = [];
+    let current = '';
+    let inSingleQuote = false;
+    let escaped = false;
+    let depth = 0;
+
+    for (let index = 0; index < row.length; index++) {
+      const char = row[index];
+
+      if (escaped) {
+        current += char;
+        escaped = false;
+        continue;
+      }
+
+      if (char === '\\') {
+        current += char;
+        escaped = true;
+        continue;
+      }
+
+      if (char === "'") {
+        current += char;
+        inSingleQuote = !inSingleQuote;
+        continue;
+      }
+
+      if (!inSingleQuote) {
+        if (char === '(') {
+          depth++;
+          current += char;
+          continue;
+        }
+
+        if (char === ')') {
+          if (depth > 0) {
+            depth--;
+          }
+          current += char;
+          continue;
+        }
+
+        if (char === ',' && depth === 0) {
+          values.push(current.trim());
+          current = '';
+          continue;
+        }
+      }
+
+      current += char;
+    }
+
+    if (current.trim()) {
+      values.push(current.trim());
+    }
+
+    return values;
+  }
+
+  private parseSqlValue(value: string): unknown {
+    const trimmed = value.trim();
+
+    if (!trimmed || trimmed === 'NULL') {
+      return null;
+    }
+
+    if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
+      return trimmed.slice(1, -1).replace(/''/g, "'");
+    }
+
+    if (trimmed === 'TRUE') {
+      return true;
+    }
+
+    if (trimmed === 'FALSE') {
+      return false;
+    }
+
+    if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+      return Number(trimmed);
+    }
+
+    return trimmed;
+  }
+
+  private mapRow(tableName: string, values: string[]): unknown {
+    const parsed = values.map(value => this.parseSqlValue(value));
+
+    switch (tableName.toLowerCase()) {
+      case 'rental_plans':
+        return {
+          id: this.toNumber(parsed[0]),
+          name: this.toStringValue(parsed[1]),
+          monthlyRent: this.toNumber(parsed[2]),
+          depositAmount: this.toNumber(parsed[3]),
+          description: this.toStringValue(parsed[4]),
+          features: this.normalizeFeatures(parsed[5]),
+          createdAt: this.toDateOrNow(parsed[6])
+        } as RentalPlan;
+      case 'customers':
+        return {
+          id: this.toNumber(parsed[0]),
+          name: this.toStringValue(parsed[1]),
+          phone: this.toStringValue(parsed[2]),
+          alternatePhone: this.toStringValue(parsed[3]) || undefined,
+          address: this.toStringValue(parsed[4]),
+          area: this.toStringValue(parsed[5]),
+          purifierModel: this.toStringValue(parsed[6]),
+          planId: this.toNumber(parsed[7]),
+          planName: this.toStringValue(parsed[8]) || undefined,
+          monthlyRent: this.toNumber(parsed[9]) || undefined,
+          depositPaid: this.toNumber(parsed[10]),
+          joinDate: this.toDateOrNow(parsed[11]),
+          nextDueDate: this.toDateOrNow(parsed[12]),
+          lastPaymentDate: this.toDateOrNull(parsed[13]) ?? undefined,
+          lastServiceDate: this.toDateOrNull(parsed[14]) ?? undefined,
+          nextServiceDate: this.toDateOrNull(parsed[15]) ?? undefined,
+          status: this.toStringValue(parsed[16]) as Customer['status'],
+          initialInvestment: this.toNumber(parsed[17]) || undefined,
+          notes: this.toStringValue(parsed[18]) || undefined,
+          createdAt: this.toDateOrNow(parsed[19])
+        } as Customer;
+      case 'service_records':
+        return {
+          id: this.toNumber(parsed[0]),
+          customerId: this.toNumber(parsed[1]),
+          customerName: this.toStringValue(parsed[2]) || undefined,
+          serviceType: this.toStringValue(parsed[3]) as ServiceRecord['serviceType'],
+          serviceDate: this.toDateOrNow(parsed[4]),
+          nextServiceDate: this.toDateOrNull(parsed[5]) ?? undefined,
+          technicianName: this.toStringValue(parsed[6]),
+          partsReplaced: this.toStringValue(parsed[7]) || undefined,
+          notes: this.toStringValue(parsed[8]) || undefined,
+          cost: this.toNumber(parsed[9]) || undefined,
+          createdAt: this.toDateOrNow(parsed[10])
+        } as ServiceRecord;
+      case 'payments':
+        return {
+          id: this.toNumber(parsed[0]),
+          customerId: this.toNumber(parsed[1]),
+          amount: this.toNumber(parsed[2]),
+          paidDate: this.toDateOrNow(parsed[3]),
+          forMonth: this.toStringValue(parsed[4]),
+          notes: this.toStringValue(parsed[5]) || undefined,
+          createdAt: this.toDateOrNow(parsed[6])
+        } as PaymentRecord;
+      case 'customer_comments':
+        return {
+          id: this.toNumber(parsed[0]),
+          customerId: this.toNumber(parsed[1]),
+          complaintId: this.toNumber(parsed[2]) || undefined,
+          comment: this.toStringValue(parsed[3]),
+          createdAt: this.toDateOrNow(parsed[4])
+        } as CustomerComment;
+      case 'customer_complaints':
+        return {
+          id: this.toNumber(parsed[0]),
+          customerId: this.toNumber(parsed[1]),
+          complaint: this.toStringValue(parsed[2]),
+          resolved: this.toBoolean(parsed[3]),
+          createdAt: this.toDateOrNow(parsed[4])
+        } as CustomerComplaint;
+      case 'technicians':
+        return {
+          id: this.toNumber(parsed[0]),
+          name: this.toStringValue(parsed[1]),
+          isDefault: this.toBoolean(parsed[2]),
+          createdAt: this.toDateOrNow(parsed[3])
+        } as Technician;
+      default:
+        return null;
+    }
+  }
+
+  private toDateOrNull(value: unknown): Date | null {
+    if (value instanceof Date) {
+      return Number.isNaN(value.getTime()) ? null : value;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    if (typeof value === 'number') {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    return null;
+  }
+
+  private toDateOrNow(value: unknown): Date {
+    return this.toDateOrNull(value) ?? new Date();
+  }
+
+  private toNumber(value: unknown): number {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    return 0;
+  }
+
+  private toBoolean(value: unknown): boolean {
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    if (typeof value === 'number') {
+      return value !== 0;
+    }
+
+    if (typeof value === 'string') {
+      return value === '1' || value.toLowerCase() === 'true';
+    }
+
+    return false;
+  }
+
+  private toStringValue(value: unknown): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    return String(value);
+  }
+
+  private normalizeFeatures(value: unknown): string[] {
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === 'string');
+    }
+
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : [];
+      } catch {
+        return [];
+      }
+    }
+
+    return [];
   }
 
   private async readSnapshot(): Promise<BackupSnapshot> {

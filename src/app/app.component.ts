@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, ElementRef, signal, ViewChild } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
@@ -21,6 +21,8 @@ interface NavItem {
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
+  @ViewChild('backupFileInput') backupFileInput?: ElementRef<HTMLInputElement>;
+
   sidebarCollapsed = signal(false);
   mobileOpen       = signal(false);
   backupStatus;
@@ -69,6 +71,21 @@ export class AppComponent {
 
   saveBackupAndSync(): void {
     void (this.backupSyncSvc as any).saveBackupAndSync();
+  }
+
+  triggerBackupImport(): void {
+    this.backupFileInput?.nativeElement.click();
+  }
+
+  handleBackupImport(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (file) {
+      void this.backupSyncSvc.importBackupFile(file);
+    }
+
+    input.value = '';
   }
 
   exportCustomerReport(): void {

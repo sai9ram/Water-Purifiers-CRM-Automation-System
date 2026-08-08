@@ -73,6 +73,12 @@
                     <mat-icon>download</mat-icon>
                     <span>Save & Sync</span>
                 </button>
+                <button class="backup-action" type="button" (click)="triggerBackupImport()"
+                    title="Import a previously saved backup file">
+                    <mat-icon>upload</mat-icon>
+                    <span>Import Backup</span>
+                </button>
+                <input #backupFileInput type="file" accept=".sql,.txt" hidden (change)="handleBackupImport($event)">
                 <button class="report-action" type="button" (click)="exportCustomerReport()"
                     title="Download customer rent, payment, and service report">
                     <mat-icon>table_view</mat-icon>
