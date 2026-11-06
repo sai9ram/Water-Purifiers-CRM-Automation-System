@@ -8,6 +8,8 @@
 
         .phone-copy-icon {
             font-size: 13px;
+            width: 13px;
+            height: 13px;
             vertical-align: middle;
             margin: 0 4px;
             cursor: pointer;
@@ -33,7 +35,7 @@
 .info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 12px;
+    gap: 10px;
     margin-bottom: 18px;
 }
 
@@ -41,7 +43,7 @@
     background: #ffffff;
     border: 1px solid var(--border-clean);
     border-radius: var(--radius-box);
-    padding: 12px 14px;
+    padding: 10px 14px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -56,8 +58,8 @@
 }
 
 .info-icon {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 6px;
     display: flex;
     align-items: center;
@@ -72,7 +74,7 @@
 }
 
 .info-label {
-    font-size: 0.68rem;
+    font-size: 0.66rem;
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -80,12 +82,243 @@
 }
 
 .info-value {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     font-weight: 700;
     color: var(--text-main);
-    margin-top: 1px;
+    margin-top: 2px;
+    line-height: 1.3;
+
+    &.small {
+        font-size: 0.74rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.payment-link-copy-icon {
+    font-size: 13px;
+    width: 13px;
+    height: 13px;
+    vertical-align: middle;
+    margin-left: 4px;
+    cursor: pointer;
+    color: var(--brand-primary);
+}
+
+.muted-text {
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
 .overdue-text {
     color: #dc2626 !important;
+}
+
+/* ── Detail Tabs & Content ────────────────────────────── */
+.detail-tabs {
+    background: #ffffff;
+    border: 1px solid var(--border-clean);
+    border-radius: var(--radius-box);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+}
+
+.tab-content {
+    padding: 16px 18px;
+}
+
+.tab-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+
+    h4 {
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+}
+
+.inline-form {
+    background: #f8fafc;
+    border: 1px solid var(--border-clean);
+    border-radius: var(--radius-box);
+    padding: 16px;
+    margin-bottom: 16px;
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+/* ── Service Timeline ─────────────────────────────────── */
+.service-timeline,
+.payment-list,
+.complaint-list,
+.comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.timeline-item,
+.payment-item,
+.complaint-item,
+.comment-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #ffffff;
+    border: 1px solid var(--border-clean);
+    border-radius: 6px;
+    transition: background 0.1s ease;
+
+    &:hover {
+        background: #f8fafc;
+    }
+}
+
+.timeline-dot,
+.payment-icon,
+.complaint-icon,
+.comment-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #ffffff;
+    background: var(--brand-primary);
+
+    mat-icon {
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
+    }
+}
+
+.payment-icon {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #16a34a;
+}
+
+.complaint-icon {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+
+.comment-icon {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    color: #0284c7;
+}
+
+.timeline-body,
+.payment-info,
+.complaint-body,
+.comment-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    font-size: 0.76rem;
+    line-height: 1.35;
+}
+
+.timeline-header,
+.complaint-header,
+.comment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    strong {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+}
+
+.timeline-date,
+.complaint-date,
+.comment-date {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.timeline-meta,
+.complaint-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+
+    span {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    mat-icon {
+        font-size: 13px;
+        width: 13px;
+        height: 13px;
+    }
+}
+
+.timeline-notes,
+.complaint-text,
+.comment-text {
+    margin: 2px 0 0;
+    font-size: 0.75rem;
+    color: var(--text-body);
+}
+
+.payment-info {
+    strong {
+        font-size: 0.84rem;
+        font-weight: 800;
+        color: #166534;
+    }
+
+    span {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+    }
+
+    .payment-note {
+        font-size: 0.7rem;
+        color: var(--text-body);
+    }
 }

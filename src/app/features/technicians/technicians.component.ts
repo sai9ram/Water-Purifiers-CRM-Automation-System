@@ -90,9 +90,11 @@ import { Technician } from '../../core/models/models';
     </div>
   `,
   styles: [
-    `.tech-form { gap: 16px; display: flex; flex-direction: column; }
+    `.form-panel h3 { margin-bottom: 14px; font-size: 0.9rem; }
+    .tech-form { gap: 12px; display: flex; flex-direction: column; }
     .form-row-2 { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-    .form-actions { display: flex; gap: 12px; justify-content: flex-end; }
+    .form-row-2 ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none !important; }
+    .form-actions { display: flex; gap: 10px; justify-content: flex-end; }
     .full-width-table { width: 100%; }
     `
   ]

@@ -208,12 +208,12 @@
         </div>
     </div>
 
-    <div style="display:flex; gap:12px; align-items:center; margin-top:12px;">
-        <span class="chip chip-info" style="font-size:0.85rem;">Scheduled</span>
-        <span style="color:var(--text-muted); font-size:0.92rem;">Use the check button to mark scheduled appointments complete.</span>
+    <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+        <span class="chip chip-info" style="font-size:0.7rem;">Scheduled</span>
+        <span style="color:var(--text-muted); font-size:0.75rem;">Use the check button to mark scheduled appointments complete.</span>
     </div>
 
-    <div class="table-summary" style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin:16px 10px 5px;">
+    <div class="table-summary" style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin:12px 4px 6px; font-size:0.76rem;">
         <div><strong>{{ dataSource.filteredData.length }}</strong> service record{{ dataSource.filteredData.length === 1 ? '' : 's' }}</div>
         <div><strong>Total Cost:</strong> ₹{{ serviceTotalCost | number:'1.0-0' }}</div>
     </div>
@@ -225,11 +225,11 @@
             <ng-container matColumnDef="customerName">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Customer</th>
                 <td mat-cell *matCellDef="let s">
-                    <a [routerLink]="['/customers', s.customerId]" [queryParams]="{ tab: 'service' }" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit; cursor:pointer;">
-                        <div style="width:36px; height:36px; border-radius:50%; background:#0097a7; color:white; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px; flex-shrink:0;">
+                    <a [routerLink]="['/customers', s.customerId]" [queryParams]="{ tab: 'service' }" style="display:flex; align-items:center; gap:8px; text-decoration:none; color:inherit; cursor:pointer;">
+                        <div style="width:26px; height:26px; border-radius:50%; background:#e0f2fe; color:#0284c7; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.76rem; flex-shrink:0;">
                             {{ (s.customerName || 'C')[0].toUpperCase() }}
                         </div>
-                        <span style="font-weight:500; color:var(--brand-dark);">{{ s.customerName }}</span>
+                        <span style="font-weight:700; font-size:0.78rem; color:var(--text-main);">{{ s.customerName }}</span>
                     </a>
                 </td>
             </ng-container>

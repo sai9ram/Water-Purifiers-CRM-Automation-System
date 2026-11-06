@@ -29,9 +29,9 @@
     <div class="mini-filter-card">
         <!-- Search input -->
         <mat-form-field appearance="outline" class="mini-search-field">
+            <mat-label>Search customer, area, phone, month...</mat-label>
             <mat-icon matPrefix class="search-icon">search</mat-icon>
-            <input matInput [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()"
-                placeholder="Search customer, area, phone, month..." />
+            <input matInput [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()" />
             @if (searchQuery) {
             <button matSuffix mat-icon-button (click)="searchQuery=''; applyFilter()" aria-label="Clear search">
                 <mat-icon>close</mat-icon>

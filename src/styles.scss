@@ -60,6 +60,20 @@ $theme: mat.define-light-theme((
   /* Shadows */
   --shadow-card:        0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-hover:       0 2px 8px rgba(0, 0, 0, 0.06);
+
+  /* Angular Material 17 Compact Form Field Tokens */
+  --mat-form-field-container-height: 36px;
+  --mat-form-field-container-vertical-padding: 7px;
+  --mat-form-field-filled-with-label-container-padding-top: 7px;
+  --mat-form-field-filled-with-label-container-padding-bottom: 7px;
+  --mdc-outlined-text-field-label-text-size: 0.78rem;
+  --mat-form-field-outlined-label-text-populated-size: 0.78rem;
+  --mat-form-field-container-text-size: 0.78rem;
+  --mat-form-field-container-text-line-height: 20px;
+  --mat-select-trigger-text-size: 0.78rem;
+  --mat-select-trigger-text-line-height: 20px;
+  --mat-form-field-subscript-text-size: 0.7rem;
+  --mat-form-field-subscript-text-line-height: 16px;
 }
 
 // ── Global Base Typography (Small & Minimalist) ─────────────────────────────
@@ -123,11 +137,10 @@ a {
 
 // ── Form Fields & Dropdowns (Global Alignment & Small Text) ──────────────────
 .mat-mdc-form-field {
-  font-size: 0.76rem !important;
+  font-size: 0.78rem !important;
 
   .mat-mdc-text-field-wrapper {
     background-color: #ffffff !important;
-    padding: 0 10px !important;
   }
 
   // Consistent vertical alignment for both inputs & selects
@@ -136,9 +149,9 @@ a {
   }
 
   .mat-mdc-form-field-infix {
-    min-height: 36px !important;
-    padding-top: 6px !important;
-    padding-bottom: 6px !important;
+    min-height: var(--mat-form-field-container-height) !important;
+    padding-top: var(--mat-form-field-container-vertical-padding) !important;
+    padding-bottom: var(--mat-form-field-container-vertical-padding) !important;
     display: flex !important;
     align-items: center !important;
   }
@@ -147,7 +160,7 @@ a {
   .mat-mdc-select {
     display: flex !important;
     align-items: center !important;
-    font-size: 0.76rem !important;
+    font-size: 0.78rem !important;
     color: var(--text-main) !important;
     width: 100% !important;
   }
@@ -161,10 +174,10 @@ a {
   }
 
   .mat-mdc-select-value {
-    font-size: 0.76rem !important;
+    font-size: 0.78rem !important;
     font-weight: 500 !important;
     color: var(--text-main) !important;
-    line-height: normal !important;
+    line-height: 20px !important;
     display: flex !important;
     align-items: center !important;
   }
@@ -196,37 +209,60 @@ a {
     height: 14px !important;
   }
 
-  // Input text alignment
-  input.mat-mdc-input-element {
-    font-size: 0.76rem !important;
-    color: var(--text-main) !important;
+  // Input & textarea text alignment
+  input.mat-mdc-input-element,
+  textarea.mat-mdc-input-element {
+    font-size: 0.78rem !important;
+    line-height: 20px !important;
+
+    &:not(:disabled) {
+      color: var(--text-main) !important;
+    }
   }
 
-  // Floating label positioning
-  .mdc-floating-label {
-    font-size: 0.76rem !important;
-    line-height: normal !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
+  // Floating label positioning (aligned cleanly in box when empty, and in top border notch when floating)
+  .mat-mdc-floating-label.mdc-floating-label {
+    font-size: 0.78rem !important;
+    line-height: 18px !important;
+    vertical-align: top !important;
   }
 
-  &.mat-form-field-should-float .mdc-floating-label {
-    transform: translateY(-110%) scale(0.85) !important;
+  .mdc-text-field--outlined .mdc-notched-outline--upgraded .mdc-floating-label--float-above {
+    --mat-mdc-form-field-label-transform: translateY(calc(calc(6.75px + var(--mat-form-field-container-height) / 2) * -1)) scale(var(--mat-mdc-form-field-floating-label-scale, 0.75));
+    transform: var(--mat-mdc-form-field-label-transform) !important;
   }
 
   .mdc-text-field--outlined {
     --mdc-outlined-text-field-outline-color: var(--border-clean);
+    --mdc-outlined-text-field-hover-outline-color: #94a3b8;
+    --mdc-outlined-text-field-disabled-outline-color: var(--border-clean);
+    --mdc-outlined-text-field-disabled-label-text-color: var(--text-muted);
+    --mdc-outlined-text-field-disabled-input-text-color: var(--text-muted);
     --mdc-outlined-text-field-focus-outline-color: var(--brand-primary);
     --mdc-outlined-text-field-container-shape: 6px;
   }
 
+  // Compact prefix & suffix icons
+  .mat-mdc-form-field-icon-prefix > .mat-icon,
+  .mat-mdc-form-field-icon-suffix > .mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    padding: 0 8px !important;
+    color: var(--text-muted) !important;
+  }
+
   // Datepicker toggle icon alignment
   .mat-datepicker-toggle button {
-    width: 24px !important;
-    height: 24px !important;
+    width: 26px !important;
+    height: 26px !important;
     padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 
-    mat-icon {
+    mat-icon,
+    .mat-datepicker-toggle-default-icon {
       font-size: 16px !important;
       width: 16px !important;
       height: 16px !important;
@@ -286,10 +322,21 @@ a {
 .simple-filter-box,
 .simple-period-bar,
 .mini-filter-card,
-.maintenance-filters {
+.maintenance-filters,
+.search-bar {
   .mat-mdc-form-field-subscript-wrapper {
     display: none !important;
   }
+}
+
+// ── Shared Form Panel ────────────────────────────────────────────────────────
+.form-panel {
+  background: #ffffff;
+  border: 1px solid var(--border-clean);
+  border-radius: var(--radius-box);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-card);
 }
 
 // ── Material Button Overrides (Small) ────────────────────────────────────────
@@ -388,7 +435,7 @@ a {
   }
 
   .mat-mdc-row {
-    height: 40px !important;
+    height: 46px !important;
     transition: background 0.1s ease;
 
     &:hover {
@@ -410,6 +457,8 @@ a {
 
 .mat-mdc-paginator {
   font-size: 0.72rem;
+  border-top: 1px solid var(--border-clean);
+
   .mat-mdc-paginator-range-label,
   .mat-mdc-paginator-page-size-label,
   .mat-mdc-select-value {

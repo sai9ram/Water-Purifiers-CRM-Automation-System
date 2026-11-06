@@ -3,13 +3,13 @@
     border: 1px solid var(--border-clean);
     border-radius: var(--radius-box);
     padding: 16px 20px;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
     box-shadow: var(--shadow-card);
 }
 
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
     gap: 10px;
     margin-bottom: 6px;
     font-size: 0.78rem;
@@ -19,6 +19,7 @@
     display: flex;
     gap: 8px;
     align-items: center;
+    flex-wrap: wrap;
 
     button {
         font-size: 0.76rem !important;
@@ -29,12 +30,31 @@
 
 .form-note {
     color: var(--text-muted);
+    font-size: 0.74rem;
+    padding: 0 4px 8px;
+}
+
+.maintenance-filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+    background: #ffffff;
+    border: 1px solid var(--border-clean);
+    border-radius: var(--radius-box);
+    padding: 12px 14px 10px;
+    box-shadow: var(--shadow-card);
     font-size: 0.76rem;
-    padding: 0 4px;
+
+    mat-form-field {
+        flex: 1 1 160px;
+        min-width: 140px;
+    }
 }
 
 .upcoming-panel {
-    margin-bottom: 18px;
+    margin-bottom: 16px;
 }
 
 .section-header {
@@ -42,7 +62,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    padding: 12px 16px;
+    padding: 10px 16px;
     border-bottom: 1px solid var(--border-clean);
     background: #f8fafc;
 
@@ -50,7 +70,7 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        font-size: 0.88rem;
+        font-size: 0.86rem;
         font-weight: 700;
         color: var(--text-main);
     }
@@ -69,19 +89,117 @@
     }
 }
 
+.upcoming-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+    padding: 12px 14px;
+}
+
+.upcoming-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-clean);
+    border-radius: 6px;
+    background: #ffffff;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.12s ease, border-color 0.12s ease;
+
+    &:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    .upcoming-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        flex-shrink: 0;
+
+        mat-icon {
+            font-size: 15px;
+            width: 15px;
+            height: 15px;
+        }
+    }
+
+    .upcoming-copy {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+        line-height: 1.25;
+
+        strong {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        span {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+        }
+    }
+
+    .upcoming-date {
+        flex-shrink: 0;
+        font-size: 0.7rem;
+    }
+}
+
 .compact-empty {
     padding: 20px 16px;
 }
 
-.maintenance-filters {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+.search-bar {
+    display: flex;
+    align-items: center;
     gap: 10px;
-    margin-bottom: 14px;
+    flex-wrap: wrap;
     background: #ffffff;
     border: 1px solid var(--border-clean);
     border-radius: var(--radius-box);
-    padding: 8px 12px 0;
+    padding: 12px 14px 10px;
+    margin-bottom: 12px;
     box-shadow: var(--shadow-card);
-    font-size: 0.76rem;
+
+    mat-form-field:first-child {
+        flex: 1 1 240px;
+        min-width: 200px;
+    }
+}
+
+.type-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    .type-dot {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        flex-shrink: 0;
+
+        mat-icon {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+        }
+    }
 }

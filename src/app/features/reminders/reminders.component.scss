@@ -34,7 +34,7 @@
     background: #ffffff;
     border: 1px solid var(--border-clean);
     border-radius: var(--radius-box);
-    padding: 8px 12px;
+    padding: 12px 14px 10px;
     margin-bottom: 16px;
     box-shadow: var(--shadow-card);
 
@@ -265,10 +265,12 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    gap: 2px;
+    line-height: 1.25;
     min-width: 0;
 
     .cust-title {
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         font-weight: 700;
         color: var(--text-main);
     }
@@ -289,6 +291,8 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    gap: 2px;
+    line-height: 1.25;
 
     .rent-amount {
         font-weight: 800;

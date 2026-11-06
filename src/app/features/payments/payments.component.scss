@@ -73,12 +73,12 @@
     background: #ffffff;
     border: 1px solid var(--border-clean);
     border-radius: var(--radius-box);
-    padding: 8px 12px;
+    padding: 12px 14px 10px;
     margin-bottom: 14px;
     box-shadow: var(--shadow-card);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     flex-wrap: wrap;
 
     .mini-search-field {
@@ -94,15 +94,15 @@
     .date-pickers-wrap {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
 
         &.disabled-wrap {
-            opacity: 0.45;
+            opacity: 0.65;
             pointer-events: none;
         }
 
         .inline-date-field {
-            width: 120px;
+            width: 136px;
         }
     }
 
@@ -169,7 +169,8 @@
 .cust-text-wrap {
     display: flex;
     flex-direction: column;
-    line-height: 1.2;
+    gap: 2px;
+    line-height: 1.25;
 
     .cust-name-sm {
         font-size: 0.78rem;
