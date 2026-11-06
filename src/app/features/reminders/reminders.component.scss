@@ -25,7 +25,7 @@
     }
 }
 
-/* Simple Period Bar (Small) */
+/* Simple Period Bar (Small & Aligned) */
 .simple-period-bar {
     display: flex;
     align-items: center;
@@ -34,7 +34,7 @@
     background: #ffffff;
     border: 1px solid var(--border-clean);
     border-radius: var(--radius-box);
-    padding: 8px 12px 0;
+    padding: 8px 12px;
     margin-bottom: 16px;
     box-shadow: var(--shadow-card);
 
@@ -51,11 +51,12 @@
     }
 
     .reset-btn {
-        height: 48px;
-        margin-bottom: 20px;
+        height: 32px;
+        margin: 0;
         color: var(--text-muted);
         font-weight: 600;
         font-size: 0.74rem;
+        padding: 0 8px;
 
         &:hover:not(:disabled) {
             color: var(--text-main);

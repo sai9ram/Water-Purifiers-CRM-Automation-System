@@ -27,66 +27,64 @@
 
     <!-- Minimalist Filter Bar -->
     <div class="mini-filter-card">
-        <div class="filter-row">
-            <!-- Search input -->
-            <div class="search-wrap">
-                <mat-icon class="search-icon">search</mat-icon>
-                <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()"
-                    placeholder="Search customer, area, phone, month..." class="mini-search-input" />
-                @if (searchQuery) {
-                <button type="button" class="clear-search-btn" (click)="searchQuery=''; applyFilter()">
-                    <mat-icon>close</mat-icon>
-                </button>
-                }
-            </div>
-
-            <!-- Receiver select -->
-            <div class="mini-control">
-                <label class="control-label">Receiver</label>
-                <select [(ngModel)]="receiverFilter" (change)="applyFilter()" class="mini-select">
-                    <option value="">All Receivers</option>
-                    <option value="Charan">Charan</option>
-                    <option value="Nagarjuna">Nagarjuna</option>
-                </select>
-            </div>
-
-            <!-- Period range select -->
-            <div class="mini-control">
-                <label class="control-label">Period</label>
-                <select [(ngModel)]="paymentFilter" (change)="onPaymentFilterChange(paymentFilter)" class="mini-select">
-                    <option value="this-month">This Month</option>
-                    <option value="last-month">Last Month</option>
-                    <option value="next-month">Next Month</option>
-                    <option value="custom">Custom Dates</option>
-                </select>
-            </div>
-
-            <!-- Date pickers (compact) -->
-            <div class="date-pickers-wrap" [class.disabled-wrap]="paymentFilter !== 'custom'">
-                <mat-form-field appearance="outline" class="inline-date-field" subscriptSizing="dynamic">
-                    <input matInput [matDatepicker]="fromPicker" [(ngModel)]="startDate"
-                        placeholder="From" [disabled]="paymentFilter !== 'custom'" (dateChange)="applyFilter()" />
-                    <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
-                    <mat-datepicker #fromPicker></mat-datepicker>
-                </mat-form-field>
-
-                <span class="date-sep">–</span>
-
-                <mat-form-field appearance="outline" class="inline-date-field" subscriptSizing="dynamic">
-                    <input matInput [matDatepicker]="toPicker" [(ngModel)]="endDate"
-                        placeholder="To" [disabled]="paymentFilter !== 'custom'" (dateChange)="applyFilter()" />
-                    <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
-                    <mat-datepicker #toPicker></mat-datepicker>
-                </mat-form-field>
-            </div>
-
-            @if (paymentFilter === 'custom' && (startDate || endDate)) {
-            <button type="button" class="mini-reset-btn" (click)="clearDateFilter()" title="Clear date filter">
-                <mat-icon>clear</mat-icon>
-                <span>Reset</span>
+        <!-- Search input -->
+        <mat-form-field appearance="outline" class="mini-search-field">
+            <mat-icon matPrefix class="search-icon">search</mat-icon>
+            <input matInput [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()"
+                placeholder="Search customer, area, phone, month..." />
+            @if (searchQuery) {
+            <button matSuffix mat-icon-button (click)="searchQuery=''; applyFilter()" aria-label="Clear search">
+                <mat-icon>close</mat-icon>
             </button>
             }
+        </mat-form-field>
+
+        <!-- Receiver select -->
+        <mat-form-field appearance="outline" class="mini-filter-select">
+            <mat-label>Receiver</mat-label>
+            <mat-select [(ngModel)]="receiverFilter" (selectionChange)="applyFilter()">
+                <mat-option value="">All Receivers</mat-option>
+                <mat-option value="Charan">Charan</mat-option>
+                <mat-option value="Nagarjuna">Nagarjuna</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <!-- Period range select -->
+        <mat-form-field appearance="outline" class="mini-filter-select">
+            <mat-label>Period</mat-label>
+            <mat-select [(ngModel)]="paymentFilter" (ngModelChange)="onPaymentFilterChange($event)">
+                <mat-option value="this-month">This Month</mat-option>
+                <mat-option value="last-month">Last Month</mat-option>
+                <mat-option value="next-month">Next Month</mat-option>
+                <mat-option value="custom">Custom Dates</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <!-- Date pickers (compact) -->
+        <div class="date-pickers-wrap" [class.disabled-wrap]="paymentFilter !== 'custom'">
+            <mat-form-field appearance="outline" class="inline-date-field">
+                <mat-label>From Date</mat-label>
+                <input matInput [matDatepicker]="fromPicker" [(ngModel)]="startDate"
+                    [disabled]="paymentFilter !== 'custom'" (dateChange)="applyFilter()" />
+                <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+                <mat-datepicker #fromPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="inline-date-field">
+                <mat-label>To Date</mat-label>
+                <input matInput [matDatepicker]="toPicker" [(ngModel)]="endDate"
+                    [disabled]="paymentFilter !== 'custom'" (dateChange)="applyFilter()" />
+                <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+                <mat-datepicker #toPicker></mat-datepicker>
+            </mat-form-field>
         </div>
+
+        @if (paymentFilter === 'custom' && (startDate || endDate)) {
+        <button mat-button class="mini-reset-btn" (click)="clearDateFilter()" title="Clear date filter">
+            <mat-icon>clear</mat-icon>
+            <span>Reset</span>
+        </button>
+        }
     </div>
 
     <!-- Minimalist Compact Table -->

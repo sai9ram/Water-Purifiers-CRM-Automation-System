@@ -38,7 +38,7 @@
     }
 }
 
-/* ── Simple Search Card (Small) ─────────────────────── */
+/* ── Simple Search Card (Small & Aligned) ───────────── */
 .simple-search-card {
     display: flex;
     gap: 10px;
@@ -47,7 +47,7 @@
     background: #ffffff;
     border: 1px solid var(--border-clean);
     border-radius: var(--radius-box);
-    padding: 8px 12px 0;
+    padding: 8px 12px;
     margin-bottom: 16px;
     box-shadow: var(--shadow-card);
 

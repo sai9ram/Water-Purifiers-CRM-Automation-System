@@ -40,12 +40,12 @@
     }
 }
 
-/* ── Simple Filter Box (Small) ──────────────────────── */
+/* ── Simple Filter Box (Small & Aligned) ────────────── */
 .simple-filter-box {
     background: #ffffff;
     border: 1px solid var(--border-clean);
     border-radius: var(--radius-box);
-    padding: 10px 14px 0;
+    padding: 8px 12px;
     margin-bottom: 16px;
     display: flex;
     align-items: center;
@@ -59,7 +59,8 @@
         font-weight: 700;
         font-size: 0.74rem;
         color: var(--text-muted);
-        margin-bottom: 10px;
+        margin: 0;
+        flex-shrink: 0;
 
         mat-icon {
             font-size: 16px;
@@ -71,28 +72,27 @@
     .filter-inputs {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         flex-wrap: wrap;
         flex: 1;
 
         .period-select {
-            flex: 1 1 160px;
-            min-width: 140px;
-            font-size: 0.76rem;
+            flex: 1 1 150px;
+            min-width: 130px;
         }
 
         .date-input {
-            flex: 1 1 140px;
+            flex: 1 1 130px;
             min-width: 120px;
-            font-size: 0.76rem;
         }
 
         .clear-dates-btn {
-            height: 48px;
-            margin-bottom: 20px;
+            height: 32px;
+            margin: 0;
             color: var(--text-muted);
             font-weight: 600;
             font-size: 0.74rem;
+            padding: 0 8px;
 
             &:hover:not(:disabled) {
                 color: var(--text-main);

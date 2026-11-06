@@ -1,5 +1,5 @@
 .payments-page {
-    padding: 20px 24px;
+    padding: 18px 22px;
     max-width: 1360px;
 }
 
@@ -8,20 +8,20 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
 
     .page-title {
-        font-size: 1.35rem;
+        font-size: 1.25rem;
         font-weight: 800;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.01em;
         color: var(--text-main);
         margin: 0;
     }
 
     .page-desc {
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         color: var(--text-muted);
         margin: 2px 0 0;
     }
@@ -30,29 +30,29 @@
 .header-summary-pills {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
 
     .kpi-pill {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         background: #ffffff;
         border: 1px solid var(--border-clean);
         border-radius: var(--radius-box);
-        padding: 5px 12px;
+        padding: 4px 10px;
         box-shadow: var(--shadow-card);
 
         .kpi-label {
-            font-size: 0.68rem;
+            font-size: 0.66rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.03em;
             color: var(--text-muted);
         }
 
         .kpi-val {
-            font-size: 0.86rem;
+            font-size: 0.82rem;
             font-weight: 800;
             font-family: 'Sora', sans-serif;
             color: var(--text-main);
@@ -62,193 +62,65 @@
             background: #f0fdf4;
             border-color: #bbf7d0;
 
-            .kpi-label {
-                color: #166534;
-            }
-
-            .kpi-val {
-                color: #16a34a;
-            }
+            .kpi-label { color: #166534; }
+            .kpi-val { color: #16a34a; }
         }
     }
 }
 
-/* ── Minimalist Filter Bar ─────────────────────────────── */
+/* ── Minimalist Filter Bar (Aligned) ───────────────────── */
 .mini-filter-card {
     background: #ffffff;
     border: 1px solid var(--border-clean);
     border-radius: var(--radius-box);
-    padding: 10px 14px;
-    margin-bottom: 16px;
+    padding: 8px 12px;
+    margin-bottom: 14px;
     box-shadow: var(--shadow-card);
-}
-
-.filter-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
-}
 
-.search-wrap {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: #f8fafc;
-    border: 1px solid var(--border-clean);
-    border-radius: 6px;
-    padding: 0 10px;
-    height: 36px;
-    flex: 1 1 240px;
-    min-width: 200px;
-    transition: border-color 0.15s ease, background 0.15s ease;
-
-    &:focus-within {
-        background: #ffffff;
-        border-color: var(--brand-primary);
+    .mini-search-field {
+        flex: 1 1 220px;
+        min-width: 200px;
     }
 
-    .search-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
-        color: var(--text-muted);
+    .mini-filter-select {
+        flex: 0 1 150px;
+        min-width: 130px;
     }
 
-    .mini-search-input {
-        border: none;
-        outline: none;
-        background: transparent;
-        font-size: 0.78rem;
-        color: var(--text-main);
-        width: 100%;
-        font-family: inherit;
+    .date-pickers-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
 
-        &::placeholder {
-            color: var(--text-light);
+        &.disabled-wrap {
+            opacity: 0.45;
+            pointer-events: none;
+        }
+
+        .inline-date-field {
+            width: 120px;
         }
     }
 
-    .clear-search-btn {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0;
-        display: flex;
+    .mini-reset-btn {
+        height: 32px;
+        padding: 0 8px;
+        color: #dc2626;
+        font-weight: 600;
+        font-size: 0.74rem;
+        display: inline-flex;
         align-items: center;
-        color: var(--text-muted);
+        gap: 4px;
 
         mat-icon {
             font-size: 14px;
             width: 14px;
             height: 14px;
         }
-
-        &:hover {
-            color: var(--text-main);
-        }
-    }
-}
-
-.mini-control {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: #f8fafc;
-    border: 1px solid var(--border-clean);
-    border-radius: 6px;
-    padding: 0 8px;
-    height: 36px;
-
-    .control-label {
-        font-size: 0.68rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        color: var(--text-muted);
-    }
-
-    .mini-select {
-        border: none;
-        outline: none;
-        background: transparent;
-        font-size: 0.78rem;
-        font-weight: 600;
-        color: var(--text-main);
-        font-family: inherit;
-        cursor: pointer;
-    }
-}
-
-.date-pickers-wrap {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-
-    &.disabled-wrap {
-        opacity: 0.45;
-        pointer-events: none;
-    }
-
-    .inline-date-field {
-        width: 110px;
-        font-size: 0.74rem;
-
-        ::ng-deep {
-            .mat-mdc-text-field-wrapper {
-                height: 36px;
-                padding: 0 6px;
-            }
-            .mat-mdc-form-field-flex {
-                height: 36px;
-                align-items: center;
-            }
-            .mat-mdc-form-field-infix {
-                padding: 0 !important;
-                min-height: 0 !important;
-            }
-            .mat-datepicker-toggle button {
-                width: 24px;
-                height: 24px;
-                padding: 0;
-                mat-icon {
-                    font-size: 16px;
-                    width: 16px;
-                    height: 16px;
-                }
-            }
-        }
-    }
-
-    .date-sep {
-        font-size: 0.78rem;
-        color: var(--text-muted);
-    }
-}
-
-.mini-reset-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    height: 36px;
-    padding: 0 10px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #dc2626;
-    border-radius: 6px;
-    font-size: 0.74rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.12s ease;
-
-    mat-icon {
-        font-size: 14px;
-        width: 14px;
-        height: 14px;
-    }
-
-    &:hover {
-        background: #fee2e2;
     }
 }
 
@@ -264,42 +136,6 @@
 .mini-table {
     width: 100%;
     border-collapse: collapse;
-
-    .mat-mdc-header-row {
-        background: #f8fafc;
-        border-bottom: 1px solid var(--border-clean);
-        height: 38px;
-
-        .mat-mdc-header-cell {
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-            padding: 8px 14px;
-            border: none;
-        }
-    }
-
-    .mini-table-row {
-        height: 44px;
-        transition: background 0.1s ease;
-
-        &:hover {
-            background: #fbfcfd;
-        }
-
-        .mat-mdc-cell {
-            padding: 7px 14px;
-            font-size: 0.78rem;
-            border-bottom: 1px solid var(--border-clean);
-            color: var(--text-body);
-        }
-
-        &:last-child .mat-mdc-cell {
-            border-bottom: none;
-        }
-    }
 }
 
 /* ── Cell Specific Micro Styling ────────────────────────── */
@@ -316,12 +152,12 @@
 }
 
 .cust-avatar-sm {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: #e0f2fe;
-    color: #0369a1;
-    font-size: 0.75rem;
+    color: #0284c7;
+    font-size: 0.72rem;
     font-weight: 800;
     font-family: 'Sora', sans-serif;
     display: inline-flex;
@@ -333,38 +169,38 @@
 .cust-text-wrap {
     display: flex;
     flex-direction: column;
-    line-height: 1.25;
+    line-height: 1.2;
 
     .cust-name-sm {
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 700;
         color: var(--text-main);
     }
 
     .cust-meta-sm {
-        font-size: 0.7rem;
+        font-size: 0.68rem;
         color: var(--text-muted);
     }
 }
 
 .badge-month {
     display: inline-block;
-    padding: 2px 7px;
+    padding: 1px 6px;
     background: #f1f5f9;
     border: 1px solid var(--border-clean);
     border-radius: 4px;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: #475569;
 }
 
 .text-date {
-    font-size: 0.76rem;
+    font-size: 0.74rem;
     color: var(--text-muted);
 }
 
 .text-amount {
-    font-size: 0.84rem;
+    font-size: 0.8rem;
     font-weight: 800;
     color: #166534;
     font-family: 'Sora', sans-serif;
@@ -373,16 +209,16 @@
 .badge-receiver {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
+    gap: 3px;
+    padding: 1px 7px;
     background: #f0fdf4;
     border: 1px solid #bbf7d0;
     border-radius: var(--radius-pill);
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 700;
     color: #15803d;
     cursor: pointer;
-    transition: background 0.12s ease;
+    transition: background 0.1s ease;
 
     .inline-edit-icon {
         font-size: 11px;
@@ -397,9 +233,9 @@
 }
 
 .text-notes {
-    font-size: 0.73rem;
+    font-size: 0.72rem;
     color: var(--text-muted);
-    max-width: 180px;
+    max-width: 160px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -409,14 +245,14 @@
 
 .text-muted-dash {
     color: var(--text-light);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
 }
 
 /* ── Actions Column ─────────────────────────────────────── */
 .th-actions,
 .td-actions {
     text-align: right !important;
-    width: 70px;
+    width: 60px;
 }
 
 .row-actions-group {
@@ -426,8 +262,8 @@
 }
 
 .row-action-btn {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border-radius: 4px;
     border: 1px solid transparent;
     background: transparent;
@@ -437,12 +273,12 @@
     cursor: pointer;
     padding: 0;
     color: var(--text-muted);
-    transition: all 0.12s ease;
+    transition: all 0.1s ease;
 
     mat-icon {
-        font-size: 14px;
-        width: 14px;
-        height: 14px;
+        font-size: 13px;
+        width: 13px;
+        height: 13px;
     }
 
     &.btn-edit:hover {
@@ -459,26 +295,20 @@
 }
 
 .mini-empty {
-    padding: 36px 16px;
+    padding: 30px 14px;
     mat-icon {
-        font-size: 36px;
-        width: 36px;
-        height: 36px;
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
     }
     h4 {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
     }
     p {
-        font-size: 0.78rem;
+        font-size: 0.75rem;
     }
 }
 
 .mini-paginator {
-    font-size: 0.74rem;
-    ::ng-deep {
-        .mat-mdc-paginator-range-label,
-        .mat-mdc-select-value {
-            font-size: 0.74rem;
-        }
-    }
+    font-size: 0.72rem;
 }
