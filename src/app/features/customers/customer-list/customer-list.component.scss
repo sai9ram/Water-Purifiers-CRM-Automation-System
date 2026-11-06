@@ -1,15 +1,15 @@
 .simple-totals {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 8px;
+    gap: 8px;
+    margin-top: 6px;
 
     .total-badge {
         background: #ffffff;
         border: 1px solid var(--border-clean);
         border-radius: var(--radius-pill);
-        padding: 4px 12px;
-        font-size: 0.78rem;
+        padding: 3px 10px;
+        font-size: 0.72rem;
         color: var(--text-body);
 
         b {
@@ -27,42 +27,53 @@
 
 .add-btn {
     border-radius: var(--radius-box) !important;
+    height: 32px !important;
+    font-size: 0.76rem !important;
+    padding: 0 12px !important;
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
 }
 
-/* ── Simple Search Card ─────────────────────────────── */
+/* ── Simple Search Card (Small) ─────────────────────── */
 .simple-search-card {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
     flex-wrap: wrap;
     background: #ffffff;
     border: 1px solid var(--border-clean);
     border-radius: var(--radius-box);
-    padding: 12px 16px 0;
-    margin-bottom: 20px;
+    padding: 8px 12px 0;
+    margin-bottom: 16px;
     box-shadow: var(--shadow-card);
 
     .search-input {
-        flex: 1 1 260px;
-        min-width: 240px;
+        flex: 1 1 240px;
+        min-width: 220px;
+        font-size: 0.76rem;
     }
 
     .filter-dropdown {
-        flex: 0 1 180px;
-        min-width: 150px;
+        flex: 0 1 160px;
+        min-width: 130px;
+        font-size: 0.76rem;
     }
 }
 
-/* ── Customer Info Cell ─────────────────────────────── */
+/* ── Customer Info Cell (Small) ─────────────────────── */
 .customer-info-cell {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .customer-avatar {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: #e0f2fe;
     color: #0284c7;
@@ -70,28 +81,28 @@
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     flex-shrink: 0;
 }
 
 .cust-title {
     font-weight: 700;
-    font-size: 0.92rem;
+    font-size: 0.82rem;
     color: var(--text-main);
 }
 
 .cust-phone {
-    font-size: 0.76rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
 }
 
 .simple-tag {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 2px 6px;
     background: #f1f5f9;
     border: 1px solid var(--border-clean);
-    border-radius: 6px;
-    font-size: 0.76rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
     color: var(--text-body);
     font-weight: 600;
 }
@@ -102,23 +113,23 @@
 
     .rent-number {
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 0.82rem;
         color: var(--text-main);
     }
 
     .rent-plan-name {
-        font-size: 0.72rem;
+        font-size: 0.68rem;
         color: var(--text-muted);
     }
 }
 
-/* ── Date Badges ────────────────────────────────────── */
+/* ── Date Badges (Small) ────────────────────────────── */
 .date-badge,
 .service-badge {
     display: inline-block;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 0.78rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.72rem;
     font-weight: 600;
 }
 
@@ -157,15 +168,15 @@
 
 .actions-group {
     display: flex;
-    gap: 4px;
+    gap: 3px;
     align-items: center;
     justify-content: flex-end;
 }
 
 .icon-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
     border: 1px solid var(--border-clean);
     background: #ffffff;
     display: inline-flex;
@@ -173,12 +184,12 @@
     justify-content: center;
     cursor: pointer;
     padding: 0;
-    transition: background 0.12s ease;
+    transition: background 0.1s ease;
 
     mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
         color: var(--text-muted);
     }
 

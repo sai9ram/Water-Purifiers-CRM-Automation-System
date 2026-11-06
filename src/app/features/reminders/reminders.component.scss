@@ -1,58 +1,61 @@
-/* Friendly Tip Banner */
+/* Friendly Tip Banner (Small) */
 .simple-tip-banner {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
+    gap: 8px;
     background: #f0fdf4;
     border: 1px solid #bbf7d0;
     border-radius: var(--radius-box);
-    padding: 12px 16px;
-    margin-bottom: 20px;
+    padding: 8px 12px;
+    margin-bottom: 16px;
 
     mat-icon {
         color: #16a34a;
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
         margin-top: 2px;
     }
 
     p {
         margin: 0;
-        font-size: 0.86rem;
+        font-size: 0.78rem;
         color: #166534;
-        line-height: 1.45;
+        line-height: 1.4;
     }
 }
 
-/* Simple Period Bar */
+/* Simple Period Bar (Small) */
 .simple-period-bar {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
     background: #ffffff;
     border: 1px solid var(--border-clean);
     border-radius: var(--radius-box);
-    padding: 12px 16px 0;
-    margin-bottom: 20px;
+    padding: 8px 12px 0;
+    margin-bottom: 16px;
     box-shadow: var(--shadow-card);
 
     .select-field {
-        flex: 1 1 180px;
-        min-width: 160px;
+        flex: 1 1 160px;
+        min-width: 140px;
+        font-size: 0.76rem;
     }
 
     .date-field {
-        flex: 1 1 160px;
-        min-width: 140px;
+        flex: 1 1 140px;
+        min-width: 120px;
+        font-size: 0.76rem;
     }
 
     .reset-btn {
-        height: 52px;
-        margin-bottom: 22px;
+        height: 48px;
+        margin-bottom: 20px;
         color: var(--text-muted);
         font-weight: 600;
+        font-size: 0.74rem;
 
         &:hover:not(:disabled) {
             color: var(--text-main);
@@ -60,12 +63,12 @@
     }
 }
 
-/* Stats Row */
+/* Stats Row (Small) */
 .simple-stats-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    margin-bottom: 22px;
+    gap: 10px;
+    margin-bottom: 16px;
 
     @media (max-width: 800px) {
         grid-template-columns: repeat(2, 1fr);
@@ -76,24 +79,24 @@
     background: #ffffff;
     border: 1px solid var(--border-clean);
     border-radius: var(--radius-box);
-    padding: 14px 18px;
+    padding: 10px 14px;
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-card);
 
     .pill-number {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
         font-family: 'Sora', sans-serif;
         font-weight: 800;
         color: var(--text-main);
-        line-height: 1.2;
+        line-height: 1.15;
     }
 
     .pill-title {
-        font-size: 0.78rem;
+        font-size: 0.72rem;
         font-weight: 600;
         color: var(--text-muted);
-        margin-top: 2px;
+        margin-top: 1px;
     }
 
     &.stat-red .pill-number { color: #dc2626; }
@@ -101,14 +104,14 @@
     &.stat-blue .pill-number { color: #0284c7; }
 }
 
-/* Tab Control Bar */
+/* Tab Control Bar (Small) */
 .tab-control-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 18px;
+    gap: 10px;
+    margin-bottom: 14px;
 }
 
 .simple-tabs {
@@ -117,15 +120,15 @@
     flex-wrap: wrap;
 
     .simple-tab-btn {
-        padding: 8px 16px;
+        padding: 5px 12px;
         border-radius: var(--radius-pill);
         border: 1px solid var(--border-clean);
         background: #ffffff;
         color: var(--text-body);
-        font-size: 0.82rem;
+        font-size: 0.74rem;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: all 0.12s ease;
 
         &:hover {
             background: #f8fafc;
@@ -142,89 +145,93 @@
 
 .bulk-buttons {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
     flex-wrap: wrap;
 
     .select-btn {
         border-radius: var(--radius-box);
         border-color: var(--border-clean);
-        height: 38px;
+        height: 30px;
+        font-size: 0.74rem;
         font-weight: 600;
         color: var(--text-body);
+        padding: 0 10px;
     }
 
     .bulk-send-btn {
         border-radius: var(--radius-box);
-        height: 38px;
+        height: 30px;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         font-weight: 700;
+        font-size: 0.74rem;
+        padding: 0 12px;
     }
 }
 
 .bulk-progress-bar {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     border-radius: 4px;
     overflow: hidden;
 }
 
-/* Message Preview */
+/* Message Preview (Small) */
 .message-preview-card {
     background: #ffffff;
     border: 1px solid var(--border-clean);
     border-radius: var(--radius-box);
     overflow: hidden;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     box-shadow: var(--shadow-card);
 
     .preview-title-bar {
         background: #f8fafc;
         border-bottom: 1px solid var(--border-clean);
-        padding: 10px 16px;
+        padding: 8px 12px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         font-weight: 700;
-        font-size: 0.88rem;
+        font-size: 0.8rem;
         color: var(--text-main);
 
         mat-icon {
-            font-size: 18px;
-            width: 18px;
-            height: 18px;
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
         }
     }
 
     .preview-body {
-        padding: 16px 20px;
+        padding: 12px 14px;
         background: #fafafa;
 
         pre {
             margin: 0;
             font-family: inherit;
-            font-size: 0.88rem;
+            font-size: 0.78rem;
             white-space: pre-wrap;
-            line-height: 1.5;
+            line-height: 1.45;
             color: var(--text-body);
         }
     }
 }
 
-/* Customer Table List */
+/* Customer Table List (Small) */
 .reminder-table-list {
-    padding: 6px;
+    padding: 4px;
 }
 
 .reminder-row {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 12px 16px;
-    border-radius: 8px;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
     border-bottom: 1px solid var(--border-clean);
-    transition: background 0.12s ease;
+    transition: background 0.1s ease;
 
     &:last-child {
         border-bottom: none;
@@ -240,8 +247,8 @@
 }
 
 .row-avatar {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: #e0f2fe;
     color: #0284c7;
@@ -249,7 +256,7 @@
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     flex-shrink: 0;
 }
 
@@ -260,18 +267,18 @@
     min-width: 0;
 
     .cust-title {
-        font-size: 0.92rem;
+        font-size: 0.82rem;
         font-weight: 700;
         color: var(--text-main);
     }
 
     .cust-phone-area {
-        font-size: 0.78rem;
+        font-size: 0.7rem;
         color: var(--text-muted);
     }
 
     .cust-model {
-        font-size: 0.74rem;
+        font-size: 0.68rem;
         color: #0284c7;
         font-weight: 600;
     }
@@ -281,16 +288,15 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 2px;
 
     .rent-amount {
         font-weight: 800;
-        font-size: 0.92rem;
+        font-size: 0.84rem;
         color: var(--text-main);
     }
 
     .due-text {
-        font-size: 0.76rem;
+        font-size: 0.7rem;
         font-weight: 600;
     }
 }
@@ -302,12 +308,12 @@
 .row-actions {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
 
     .simple-icon-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
+        width: 26px;
+        height: 26px;
+        border-radius: 4px;
         border: 1px solid var(--border-clean);
         background: #ffffff;
         display: inline-flex;
@@ -317,9 +323,9 @@
         padding: 0;
 
         mat-icon {
-            font-size: 16px;
-            width: 16px;
-            height: 16px;
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
             color: var(--text-muted);
         }
 
@@ -332,16 +338,16 @@
     .whatsapp-action-btn {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         background: #f0fdf4;
         border: 1px solid #bbf7d0;
         color: #166534;
-        font-size: 0.78rem;
+        font-size: 0.72rem;
         font-weight: 700;
-        padding: 6px 14px;
+        padding: 4px 10px;
         border-radius: var(--radius-pill);
         cursor: pointer;
-        transition: background 0.12s ease;
+        transition: background 0.1s ease;
 
         &:hover {
             background: #dcfce7;

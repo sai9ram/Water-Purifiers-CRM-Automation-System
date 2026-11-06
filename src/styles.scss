@@ -9,61 +9,60 @@ $warn-palette:    mat.define-palette(mat.$red-palette);
 $theme: mat.define-light-theme((
   color: (primary: $primary-palette, accent: $accent-palette, warn: $warn-palette),
   typography: mat.define-typography-config($font-family: "'Plus Jakarta Sans', system-ui, sans-serif"),
-  density: 0
+  density: -2
 ));
 
 @include mat.all-component-themes($theme);
 
 // ── Minimalist Clean Design Tokens ──────────────────────────────────────────
 :root {
-  /* Brand colors - friendly water ocean cyan */
-  --brand-primary:      #0284c7; /* clean sky-600 */
-  --brand-primary-hover:#0369a1; /* sky-700 */
-  --brand-light:        #f0f9ff; /* sky-50 */
-  --brand-border:       #bae6fd; /* sky-200 */
+  /* Brand colors */
+  --brand-primary:      #0284c7;
+  --brand-primary-hover:#0369a1;
+  --brand-light:        #f0f9ff;
+  --brand-border:       #bae6fd;
 
-  /* Neutral surfaces - clean light background */
-  --bg-page:            #f8fafc; /* calm, soft slate-50 */
+  /* Neutral surfaces */
+  --bg-page:            #f8fafc;
   --bg-card:            #ffffff;
-  --bg-subtle:          #f1f5f9; /* slate-100 */
-  --bg-sidebar:         #ffffff; /* clean white sidebar */
+  --bg-subtle:          #f1f5f9;
+  --bg-sidebar:         #ffffff;
 
-  /* Readable high-contrast typography */
-  --text-main:          #0f172a; /* slate-900 */
-  --text-body:          #334155; /* slate-700 */
-  --text-muted:         #64748b; /* slate-500 */
-  --text-light:         #94a3b8; /* slate-400 */
+  /* Readable typography */
+  --text-main:          #0f172a;
+  --text-body:          #334155;
+  --text-muted:         #64748b;
+  --text-light:         #94a3b8;
 
   /* Crisp minimal borders */
-  --border-clean:       #e2e8f0; /* slate-200 */
+  --border-clean:       #e2e8f0;
   --border-light:       #f1f5f9;
 
-  /* Friendly status colors */
-  --status-green:       #16a34a; /* green-600 */
+  /* Status colors */
+  --status-green:       #16a34a;
   --status-green-bg:    #f0fdf4;
   --status-green-border:#bbf7d0;
 
-  --status-amber:       #d97706; /* amber-600 */
+  --status-amber:       #d97706;
   --status-amber-bg:    #fffbeb;
   --status-amber-border:#fde68a;
 
-  --status-red:         #dc2626; /* red-600 */
+  --status-red:         #dc2626;
   --status-red-bg:      #fef2f2;
   --status-red-border:  #fecaca;
 
   /* Dimensions */
-  --sidebar-w:          240px;
-  --topbar-h:           64px;
-  --radius-box:         10px;
+  --sidebar-w:          220px;
+  --topbar-h:           56px;
+  --radius-box:         8px;
   --radius-pill:        9999px;
 
-  /* Subtle minimal shadows */
-  --shadow-flat:        0 1px 3px rgba(0, 0, 0, 0.05);
-  --shadow-card:        0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-hover:       0 4px 12px rgba(0, 0, 0, 0.06);
+  /* Shadows */
+  --shadow-card:        0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-hover:       0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-// ── Reset & Base ─────────────────────────────────────────────────────────────
+// ── Global Base Typography (Small & Minimalist) ─────────────────────────────
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -74,31 +73,29 @@ html, body {
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   background: var(--bg-page);
   color: var(--text-main);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13px; /* Clean, compact baseline */
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4 {
-  font-family: 'Sora', 'Plus Jakarta Sans', sans-serif;
-  font-weight: 700;
-  color: var(--text-main);
-  margin: 0;
-}
+h1 { font-size: 1.35rem; font-weight: 800; margin: 0; }
+h2 { font-size: 1.25rem; font-weight: 800; margin: 0; }
+h3 { font-size: 0.95rem; font-weight: 700; margin: 0; }
+h4 { font-size: 0.85rem; font-weight: 700; margin: 0; }
 
 a {
   color: var(--brand-primary);
   text-decoration: none;
 }
 
-// ── Clean Container Layout ───────────────────────────────────────────────────
+// ── Container & Header ───────────────────────────────────────────────────────
 .page-container {
-  padding: 24px 28px;
+  padding: 18px 22px;
   max-width: 1360px;
   margin: 0 auto;
 
   @media (max-width: 768px) {
-    padding: 16px 12px;
+    padding: 12px 10px;
   }
 }
 
@@ -106,24 +103,25 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 22px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 
   h2 {
-    font-size: 1.6rem;
+    font-size: 1.25rem;
     font-weight: 800;
     color: var(--text-main);
+    letter-spacing: -0.01em;
   }
 
   .subtitle {
-    font-size: 0.9rem;
+    font-size: 0.78rem;
     color: var(--text-muted);
-    margin: 3px 0 0;
+    margin: 2px 0 0;
   }
 }
 
-// ── Material Minimalist Tweaks ───────────────────────────────────────────────
+// ── Material Overrides (Small & Compact) ─────────────────────────────────────
 .mat-mdc-card {
   background: #ffffff !important;
   border-radius: var(--radius-box) !important;
@@ -136,9 +134,10 @@ a {
   color: #ffffff !important;
   border-radius: var(--radius-box) !important;
   font-weight: 600 !important;
+  font-size: 0.78rem !important;
   box-shadow: none !important;
-  padding: 0 18px !important;
-  height: 40px !important;
+  padding: 0 14px !important;
+  height: 34px !important;
 
   &:hover {
     background-color: var(--brand-primary-hover) !important;
@@ -149,23 +148,31 @@ a {
 .mat-mdc-outlined-button {
   border-radius: var(--radius-box) !important;
   font-weight: 600 !important;
+  font-size: 0.78rem !important;
+  height: 34px !important;
+  padding: 0 12px !important;
 }
 
 .mdc-text-field--outlined {
   --mdc-outlined-text-field-outline-color: var(--border-clean);
   --mdc-outlined-text-field-focus-outline-color: var(--brand-primary);
-  --mdc-outlined-text-field-container-shape: 8px;
+  --mdc-outlined-text-field-container-shape: 6px;
   background-color: #ffffff;
+  font-size: 0.78rem;
 }
 
-// ── Simple Status Badges ─────────────────────────────────────────────────────
+.mat-mdc-form-field {
+  font-size: 0.78rem;
+}
+
+// ── Status Badges (Small) ────────────────────────────────────────────────────
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
+  gap: 4px;
+  padding: 2px 8px;
   border-radius: var(--radius-pill);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
 
   &.chip-success {
@@ -199,7 +206,7 @@ a {
   }
 }
 
-// ── Clean Table Styling ──────────────────────────────────────────────────────
+// ── Global Table Styling (Small, Tight & Minimalist) ─────────────────────────
 .table-card {
   background: #ffffff;
   border: 1px solid var(--border-clean);
@@ -215,30 +222,32 @@ a {
   .mat-mdc-header-row {
     background: #f8fafc;
     border-bottom: 1px solid var(--border-clean);
+    height: 36px !important;
 
     .mat-mdc-header-cell {
       font-weight: 700;
-      font-size: 0.76rem;
+      font-size: 0.7rem;
       text-transform: uppercase;
       letter-spacing: 0.04em;
       color: var(--text-muted);
-      padding: 14px 18px;
+      padding: 6px 12px;
+      border: none;
     }
   }
 
   .mat-mdc-row {
-    transition: background 0.12s ease;
-    cursor: pointer;
+    height: 42px !important;
+    transition: background 0.1s ease;
 
     &:hover {
-      background: #f8fafc;
+      background: #fbfcfd;
     }
 
     .mat-mdc-cell {
       border-bottom: 1px solid var(--border-clean);
-      padding: 12px 18px;
+      padding: 6px 12px;
       color: var(--text-body);
-      font-size: 0.88rem;
+      font-size: 0.78rem;
     }
 
     &:last-child .mat-mdc-cell {
@@ -247,76 +256,85 @@ a {
   }
 }
 
-// ── Empty State ──────────────────────────────────────────────────────────────
+.mat-mdc-paginator {
+  font-size: 0.74rem;
+  .mat-mdc-paginator-range-label,
+  .mat-mdc-paginator-page-size-label {
+    font-size: 0.74rem;
+  }
+}
+
+// ── Empty State (Small) ──────────────────────────────────────────────────────
 .empty-state {
-  padding: 48px 20px;
+  padding: 36px 16px;
   text-align: center;
   color: var(--text-muted);
 
   mat-icon {
-    font-size: 44px;
-    width: 44px;
-    height: 44px;
-    margin-bottom: 10px;
-    opacity: 0.4;
+    font-size: 38px;
+    width: 38px;
+    height: 38px;
+    margin-bottom: 8px;
+    opacity: 0.35;
   }
 
   h4 {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     color: var(--text-main);
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
   p {
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     margin: 0;
   }
 }
 
-// ── Simple Dialog ────────────────────────────────────────────────────────────
+// ── Dialog ───────────────────────────────────────────────────────────────────
 .mat-mdc-dialog-container .mdc-dialog__surface {
   border-radius: var(--radius-box) !important;
   padding: 0 !important;
   border: 1px solid var(--border-clean);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08) !important;
 }
 
 .dialog-header {
-  padding: 20px 24px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--border-clean);
   background: #f8fafc;
 
   h3 {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     color: var(--text-main);
   }
 
   p {
-    font-size: 0.82rem;
+    font-size: 0.76rem;
     color: var(--text-muted);
-    margin: 3px 0 0;
+    margin: 2px 0 0;
   }
 }
 
 .dialog-body {
-  padding: 20px 24px;
+  padding: 16px 20px;
+  font-size: 0.78rem;
 }
 
 .dialog-footer {
-  padding: 14px 24px;
+  padding: 12px 20px;
   border-top: 1px solid var(--border-clean);
   background: #f8fafc;
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
 }
 
-// ── Animations ───────────────────────────────────────────────────────────────
+// ── Animation ────────────────────────────────────────────────────────────────
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 .fade-in {
-  animation: fadeIn 0.2s ease-out both;
+  animation: fadeIn 0.15s ease-out both;
 }

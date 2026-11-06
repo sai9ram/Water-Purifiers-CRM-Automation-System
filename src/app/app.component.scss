@@ -5,7 +5,7 @@
     background: var(--bg-page);
 }
 
-/* ── Minimalist Clean Sidebar ────────────────────────── */
+/* ── Minimalist Clean Sidebar (Small & Compact) ────────── */
 .sidebar {
     width: var(--sidebar-w);
     min-width: var(--sidebar-w);
@@ -19,12 +19,12 @@
 }
 
 .app-shell.sidebar-collapsed .sidebar {
-    width: 68px;
-    min-width: 68px;
+    width: 60px;
+    min-width: 60px;
 
     .sidebar-brand {
         justify-content: center;
-        padding: 16px 8px;
+        padding: 12px 6px;
     }
 
     .collapse-btn {
@@ -33,21 +33,21 @@
 
     .nav-item {
         justify-content: center;
-        padding: 10px;
+        padding: 8px;
     }
 }
 
 .sidebar-brand {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 18px 16px;
+    gap: 8px;
+    padding: 14px 14px;
     border-bottom: 1px solid var(--border-clean);
     min-height: var(--topbar-h);
 }
 
 .brand-icon {
-    font-size: 22px;
+    font-size: 18px;
     line-height: 1;
     flex-shrink: 0;
 }
@@ -60,14 +60,14 @@
 
 .brand-title {
     font-family: 'Sora', sans-serif;
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-weight: 700;
     color: var(--text-main);
     white-space: nowrap;
 }
 
 .brand-sub {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     color: var(--text-muted);
     font-weight: 500;
 }
@@ -76,8 +76,8 @@
     background: none;
     border: none;
     cursor: pointer;
-    padding: 4px;
-    border-radius: 6px;
+    padding: 3px;
+    border-radius: 4px;
     color: var(--text-muted);
     margin-left: auto;
     display: flex;
@@ -89,41 +89,41 @@
     }
 
     mat-icon {
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
     }
 }
 
 .sidebar-nav {
     flex: 1;
-    padding: 12px 10px;
+    padding: 8px 8px;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
     overflow-y: auto;
 }
 
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    border-radius: var(--radius-box);
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
     color: var(--text-body);
-    font-size: 0.88rem;
+    font-size: 0.8rem;
     font-weight: 600;
     text-decoration: none;
-    transition: all 0.15s ease;
+    transition: all 0.12s ease;
     cursor: pointer;
     white-space: nowrap;
 
     .nav-icon {
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
         color: var(--text-muted);
-        transition: color 0.15s ease;
+        transition: color 0.12s ease;
     }
 
     &:hover {
@@ -153,25 +153,25 @@
     background: var(--status-amber);
     color: #ffffff;
     border-radius: var(--radius-pill);
-    padding: 1px 7px;
-    font-size: 0.7rem;
+    padding: 1px 6px;
+    font-size: 0.65rem;
     font-weight: 700;
 }
 
 .sidebar-footer {
-    padding: 14px 16px;
+    padding: 10px 14px;
     border-top: 1px solid var(--border-clean);
 
     .footer-simple {
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 0.76rem;
+        gap: 6px;
+        font-size: 0.7rem;
         color: var(--text-muted);
 
         .footer-dot {
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background: #16a34a;
         }
@@ -194,19 +194,19 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 24px;
-    gap: 16px;
+    padding: 0 20px;
+    gap: 12px;
     flex-shrink: 0;
 }
 
 .topbar-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .simple-tagline {
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--text-muted);
 }
@@ -217,8 +217,8 @@
     border: none;
     cursor: pointer;
     color: var(--text-body);
-    padding: 4px;
-    border-radius: 6px;
+    padding: 3px;
+    border-radius: 4px;
 
     @media (max-width: 768px) {
         display: flex;
@@ -228,28 +228,28 @@
 .topbar-right {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     margin-left: auto;
 }
 
 .simple-pill-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: var(--radius-box);
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 6px;
     border: 1px solid var(--border-clean);
     background: #ffffff;
     color: var(--text-body);
-    font-size: 0.82rem;
+    font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.12s ease;
 
     mat-icon {
-        font-size: 17px;
-        width: 17px;
-        height: 17px;
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
         color: var(--text-muted);
     }
 
@@ -286,18 +286,18 @@
 .date-badge {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.8rem;
+    gap: 5px;
+    font-size: 0.74rem;
     color: var(--text-muted);
     background: #f8fafc;
     border: 1px solid var(--border-clean);
-    padding: 6px 12px;
-    border-radius: var(--radius-box);
+    padding: 5px 10px;
+    border-radius: 6px;
 
     mat-icon {
-        font-size: 15px;
-        width: 15px;
-        height: 15px;
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
     }
 }
 
