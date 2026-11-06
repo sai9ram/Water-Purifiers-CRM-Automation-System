@@ -2,20 +2,28 @@
     <!-- Header -->
     <div class="page-header">
         <div>
-            <h2>Rent Reminders Center</h2>
-            <p class="subtitle">Broadcast and send pre-filled WhatsApp payment reminders directly to customers</p>
+            <h2>Send WhatsApp Rent Reminders</h2>
+            <p class="subtitle">Send ready-made payment reminder messages directly to customer WhatsApp in 1 click.</p>
         </div>
     </div>
 
-    <!-- Date Range Bar -->
-    <div class="reminder-range-card">
-        <mat-form-field appearance="outline" class="range-select">
-            <mat-label>Reminder Period</mat-label>
+    <!-- Friendly Instructions Banner -->
+    <div class="simple-tip-banner">
+        <mat-icon>lightbulb</mat-icon>
+        <p>
+            <b>How it works:</b> Click the green <b>Send WhatsApp</b> button next to any customer. WhatsApp will open with the customer's name, due rent amount, and payment details already typed. Just press <b>Send</b> in WhatsApp!
+        </p>
+    </div>
+
+    <!-- Simple Time Filter -->
+    <div class="simple-period-bar">
+        <mat-form-field appearance="outline" class="select-field">
+            <mat-label>Show Dues For</mat-label>
             <mat-select [(ngModel)]="reminderFilter" (ngModelChange)="onReminderFilterChange($event)">
                 <mat-option value="this-month">This Month</mat-option>
                 <mat-option value="last-month">Last Month</mat-option>
                 <mat-option value="next-month">Next Month</mat-option>
-                <mat-option value="custom">Custom Range</mat-option>
+                <mat-option value="custom">Choose Dates</mat-option>
                 <mat-option value="all">All Time</mat-option>
             </mat-select>
         </mat-form-field>
@@ -24,7 +32,7 @@
             <mat-label>From Date</mat-label>
             <input matInput [matDatepicker]="fromPicker" [(ngModel)]="startDate"
                 [disabled]="reminderFilter !== 'custom'" (dateChange)="computeReminderLists()" />
-                <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+            <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
             <mat-datepicker #fromPicker></mat-datepicker>
         </mat-form-field>
 
@@ -36,157 +44,123 @@
             <mat-datepicker #toPicker></mat-datepicker>
         </mat-form-field>
 
-        <button mat-stroked-button class="reset-date-btn" type="button" (click)="clearDateFilter()"
+        <button mat-button class="reset-btn" type="button" (click)="clearDateFilter()"
             [disabled]="reminderFilter === 'all' && !startDate && !endDate">
-            <mat-icon>filter_alt_off</mat-icon> Reset Dates
+            Reset Dates
         </button>
     </div>
 
-    <!-- Stats Bar -->
-    <div class="reminder-stats-grid">
-        <div class="rstat-card stat-amber">
-            <div class="rstat-icon">
-                <mat-icon>notification_important</mat-icon>
-            </div>
-            <div class="rstat-text">
-                <span class="rstat-num">{{ dueThisMonth.length }}</span>
-                <span class="rstat-title">Due This Month</span>
-            </div>
+    <!-- Simple Stats Grid -->
+    <div class="simple-stats-row">
+        <div class="stat-pill-box">
+            <span class="pill-number">{{ dueThisMonth.length }}</span>
+            <span class="pill-title">Due This Month</span>
         </div>
-        <div class="rstat-card stat-rose">
-            <div class="rstat-icon">
-                <mat-icon>warning</mat-icon>
-            </div>
-            <div class="rstat-text">
-                <span class="rstat-num">{{ overdueCustomers.length }}</span>
-                <span class="rstat-title">Overdue</span>
-            </div>
+        <div class="stat-pill-box stat-red">
+            <span class="pill-number">{{ overdueCustomers.length }}</span>
+            <span class="pill-title">Late on Rent</span>
         </div>
-        <div class="rstat-card stat-emerald">
-            <div class="rstat-icon">
-                <mat-icon>check_circle</mat-icon>
-            </div>
-            <div class="rstat-text">
-                <span class="rstat-num">{{ sentCount }}</span>
-                <span class="rstat-title">Sent This Session</span>
-            </div>
+        <div class="stat-pill-box stat-green">
+            <span class="pill-number">{{ sentCount }}</span>
+            <span class="pill-title">Sent Today</span>
         </div>
-        <div class="rstat-card stat-cyan">
-            <div class="rstat-icon">
-                <mat-icon>currency_rupee</mat-icon>
-            </div>
-            <div class="rstat-text">
-                <span class="rstat-num">₹{{ totalDue | number }}</span>
-                <span class="rstat-title">Total Outstanding</span>
-            </div>
+        <div class="stat-pill-box stat-blue">
+            <span class="pill-number">₹{{ totalDue | number }}</span>
+            <span class="pill-title">Total Unpaid Rent</span>
         </div>
     </div>
 
-    <!-- Filters & Bulk Actions -->
-    <div class="reminder-toolbar">
-        <div class="filter-tabs">
-            <button class="tab-btn" [class.active]="activeTab === 'month'" (click)="setTab('month')">
-                <mat-icon>calendar_month</mat-icon>
-                <span>Due This Month</span>
-                <span class="tab-count">{{ dueThisMonth.length }}</span>
+    <!-- Category Tabs & Multi-Select Bar -->
+    <div class="tab-control-bar">
+        <div class="simple-tabs">
+            <button class="simple-tab-btn" [class.active]="activeTab === 'month'" (click)="setTab('month')">
+                Due This Month ({{ dueThisMonth.length }})
             </button>
-            <button class="tab-btn" [class.active]="activeTab === 'overdue'" (click)="setTab('overdue')">
-                <mat-icon>warning</mat-icon>
-                <span>Overdue</span>
-                <span class="tab-count count-danger">{{ overdueCustomers.length }}</span>
+            <button class="simple-tab-btn" [class.active]="activeTab === 'overdue'" (click)="setTab('overdue')">
+                Late on Rent ({{ overdueCustomers.length }})
             </button>
-            <button class="tab-btn" [class.active]="activeTab === 'all'" (click)="setTab('all')">
-                <mat-icon>groups</mat-icon>
-                <span>All Active</span>
+            <button class="simple-tab-btn" [class.active]="activeTab === 'all'" (click)="setTab('all')">
+                All Active Customers
             </button>
         </div>
 
-        <div class="toolbar-actions">
-            <button mat-stroked-button class="action-outline-btn" (click)="selectAll()">Select All</button>
-            <button mat-stroked-button class="action-outline-btn" (click)="deselectAll()">Clear</button>
-            <button mat-raised-button color="primary" class="bulk-wa-btn" [disabled]="selectedIds.size === 0" (click)="sendBulkReminders()">
+        <div class="bulk-buttons">
+            <button mat-stroked-button class="select-btn" (click)="selectAll()">Select All</button>
+            <button mat-stroked-button class="select-btn" (click)="deselectAll()">Clear</button>
+            <button mat-raised-button color="primary" class="bulk-send-btn" [disabled]="selectedIds.size === 0" (click)="sendBulkReminders()">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="16" height="16" alt="WA" />
-                <span>Send to {{ selectedIds.size }} Selected</span>
+                <span>Send to {{ selectedIds.size }} Customers</span>
             </button>
         </div>
     </div>
 
-    <!-- Progress bar during bulk send -->
+    <!-- Bulk Progress -->
     @if (bulkSending) {
-    <div class="bulk-progress-wrap">
+    <div class="bulk-progress-bar">
         <mat-progress-bar mode="determinate" [value]="bulkProgress"></mat-progress-bar>
     </div>
     }
 
-    <!-- WhatsApp Message Preview -->
+    <!-- Message Preview Box -->
     @if (previewCustomer) {
-    <div class="message-preview-container">
-        <div class="preview-header">
-            <div class="preview-header-left">
-                <mat-icon>chat</mat-icon>
-                <span>WhatsApp Message Preview · {{ previewCustomer.name }}</span>
-            </div>
+    <div class="message-preview-card">
+        <div class="preview-title-bar">
+            <span>Message Preview for {{ previewCustomer.name }}</span>
             <button mat-icon-button (click)="previewCustomer = null" aria-label="Close preview">
                 <mat-icon>close</mat-icon>
             </button>
         </div>
-        <div class="whatsapp-mock-screen">
-            <div class="whatsapp-bubble">
-                <pre>{{ previewMessage }}</pre>
-                <div class="bubble-meta">
-                    <span class="bubble-time">Now</span>
-                    <mat-icon class="check-double">done_all</mat-icon>
-                </div>
-            </div>
+        <div class="preview-body">
+            <pre>{{ previewMessage }}</pre>
         </div>
     </div>
     }
 
-    <!-- Customer Reminder List -->
+    <!-- Customer Rows -->
     <div class="table-card">
         @if (displayedCustomers.length === 0) {
         <div class="empty-state">
-            <mat-icon>notifications_off</mat-icon>
-            <h4>No Customers in this Category</h4>
-            <p>Switch categories or clear date range to view customers.</p>
+            <mat-icon>check_circle</mat-icon>
+            <h4>No Customers Here</h4>
+            <p>All customers are paid up, or no records match this category.</p>
         </div>
         }
 
         @if (displayedCustomers.length > 0) {
-        <div class="reminder-list">
+        <div class="reminder-table-list">
             @for (c of displayedCustomers; track $index) {
-            <div class="reminder-item" [class.selected]="selectedIds.has(c.id!)">
+            <div class="reminder-row" [class.row-selected]="selectedIds.has(c.id!)">
                 <mat-checkbox [checked]="selectedIds.has(c.id!)" (change)="toggleSelect(c.id!, $event.checked)"
                     color="primary">
                 </mat-checkbox>
 
-                <div class="customer-avatar">{{ c.name[0] }}</div>
+                <div class="row-avatar">{{ c.name[0] }}</div>
 
-                <div class="customer-info">
+                <div class="row-cust-info">
                     <strong class="cust-title">{{ c.name }}</strong>
-                    <span class="cust-meta">{{ c.area }} · {{ c.phone }}</span>
-                    <span class="model-tag">{{ c.purifierModel }}</span>
+                    <span class="cust-phone-area">{{ c.area }} · {{ c.phone }}</span>
+                    <span class="cust-model">Purifier: {{ c.purifierModel }}</span>
                 </div>
 
-                <div class="due-info">
-                    <div class="rent-amount">₹{{ c.monthlyRent }}/mo</div>
-                    <div [class]="getDueDateClass(c.nextDueDate)" class="due-date-text">
+                <div class="row-rent-info">
+                    <div class="rent-amount">₹{{ c.monthlyRent }}/month</div>
+                    <div [class]="getDueDateClass(c.nextDueDate)" class="due-text">
                         Due: {{ c.nextDueDate | date:'dd MMM yyyy' }}
                     </div>
                 </div>
 
                 <span [class]="getStatusChip(c.status)">{{ c.status }}</span>
 
-                <div class="reminder-actions">
-                    <button class="round-tool-btn" matTooltip="Preview Message" (click)="showPreview(c)">
+                <div class="row-actions">
+                    <button class="simple-icon-btn" matTooltip="Preview WhatsApp Message" (click)="showPreview(c)">
                         <mat-icon>visibility</mat-icon>
                     </button>
-                    <button class="round-tool-btn" matTooltip="Record Payment" (click)="recordPayment(c)">
+                    <button class="simple-icon-btn" matTooltip="Mark Payment Received" (click)="recordPayment(c)">
                         <mat-icon>currency_rupee</mat-icon>
                     </button>
-                    <button class="wa-send-btn" (click)="sendSingle(c)" [class.sent]="sentIds.has(c.id!)">
+                    <button class="whatsapp-action-btn" (click)="sendSingle(c)" [class.already-sent]="sentIds.has(c.id!)">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="16" height="16" alt="WA" />
-                        <span>{{ sentIds.has(c.id!) ? 'Sent ✓' : 'Send' }}</span>
+                        <span>{{ sentIds.has(c.id!) ? 'Sent ✓' : 'Send WhatsApp' }}</span>
                     </button>
                 </div>
             </div>
@@ -194,15 +168,4 @@
         </div>
         }
     </div>
-
-    <!-- Bulk Send Instructions -->
-    @if (selectedIds.size > 0) {
-    <div class="info-banner">
-        <mat-icon>tips_and_updates</mat-icon>
-        <p>
-            <strong>Bulk Send Automation:</strong> Each customer's WhatsApp web/app link will trigger sequentially with the pre-filled message.
-            Just confirm <strong>Send</strong> in WhatsApp for each contact.
-        </p>
-    </div>
-    }
 </div>

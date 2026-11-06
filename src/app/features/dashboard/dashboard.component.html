@@ -1,45 +1,41 @@
 <div class="page-container fade-in">
     <!-- Header -->
-    <div class="dashboard-hero">
-        <div class="hero-content">
-            <div class="hero-badge">
-                <span class="badge-dot"></span>
-                <span>Operations Dashboard</span>
-            </div>
-            <h2>Overview & Analytics</h2>
-            <p class="subtitle">Real-time tracking of water purifier rentals, monthly collections & service maintenance.</p>
+    <div class="page-header">
+        <div>
+            <h2>Home Overview</h2>
+            <p class="subtitle">Simple summary of your customers, monthly rent collection, and filter services.</p>
         </div>
-        <div class="hero-actions">
-            <a routerLink="/customers" mat-raised-button color="primary" class="primary-action-btn">
+        <div class="header-buttons">
+            <a routerLink="/customers" mat-raised-button color="primary" class="main-add-btn">
                 <mat-icon>person_add</mat-icon>
                 <span>Add Customer</span>
             </a>
-            <button mat-flat-button class="export-report-btn" type="button" (click)="exportCustomerReport()">
+            <button mat-stroked-button class="excel-btn" type="button" (click)="exportCustomerReport()">
                 <mat-icon>download</mat-icon>
-                <span>Export Excel</span>
+                <span>Download Excel</span>
             </button>
         </div>
     </div>
 
-    <!-- Filter Control Card -->
-    <div class="filter-card">
-        <div class="filter-title">
-            <mat-icon>tune</mat-icon>
-            <span>Time Range & Filters</span>
+    <!-- Simple Time Filter -->
+    <div class="simple-filter-box">
+        <div class="filter-label">
+            <mat-icon>calendar_month</mat-icon>
+            <span>Show data for:</span>
         </div>
-        <div class="filter-controls">
-            <mat-form-field appearance="outline" class="select-field">
-                <mat-label>Dashboard Range</mat-label>
+        <div class="filter-inputs">
+            <mat-form-field appearance="outline" class="period-select">
+                <mat-label>Time Period</mat-label>
                 <mat-select [(ngModel)]="dashboardFilter" (ngModelChange)="onDashboardFilterChange($event)">
                     <mat-option value="this-month">This Month</mat-option>
                     <mat-option value="last-month">Last Month</mat-option>
                     <mat-option value="next-month">Next Month</mat-option>
-                    <mat-option value="custom">Custom Range</mat-option>
+                    <mat-option value="custom">Choose Dates</mat-option>
                     <mat-option value="all">All Time</mat-option>
                 </mat-select>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="date-field">
+            <mat-form-field appearance="outline" class="date-input">
                 <mat-label>From Date</mat-label>
                 <input matInput [matDatepicker]="fromPicker" [(ngModel)]="startDate"
                     [disabled]="dashboardFilter !== 'custom'" (dateChange)="computeDashboardStats()" />
@@ -47,7 +43,7 @@
                 <mat-datepicker #fromPicker></mat-datepicker>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="date-field">
+            <mat-form-field appearance="outline" class="date-input">
                 <mat-label>To Date</mat-label>
                 <input matInput [matDatepicker]="toPicker" [(ngModel)]="endDate"
                     [disabled]="dashboardFilter !== 'custom'" (dateChange)="computeDashboardStats()" />
@@ -55,151 +51,121 @@
                 <mat-datepicker #toPicker></mat-datepicker>
             </mat-form-field>
 
-            <button mat-stroked-button class="clear-btn" type="button" (click)="clearDateFilter()" [disabled]="dashboardFilter === 'all' && !startDate && !endDate">
-                <mat-icon>filter_alt_off</mat-icon>
-                <span>Reset Dates</span>
+            <button mat-button class="clear-dates-btn" type="button" (click)="clearDateFilter()" [disabled]="dashboardFilter === 'all' && !startDate && !endDate">
+                Reset Dates
             </button>
         </div>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="stats-grid">
-        <!-- Customers -->
-        <div class="stat-card">
-            <div class="stat-top">
-                <div class="stat-icon icon-cyan">
-                    <mat-icon>group</mat-icon>
-                </div>
-                <span class="stat-pill pill-cyan">{{ stats.active }} Active</span>
+    <!-- Minimalist Summary Cards -->
+    <div class="cards-grid">
+        <!-- Card 1 -->
+        <div class="simple-card">
+            <div class="card-head">
+                <span class="card-title">Total Customers</span>
+                <mat-icon class="icon-blue">people</mat-icon>
             </div>
-            <div class="stat-label">Total Customers</div>
-            <div class="stat-value">{{ stats.total }}</div>
-            <div class="stat-sub">Across all registered locations</div>
+            <div class="card-number">{{ stats.total }}</div>
+            <div class="card-note">{{ stats.active }} active right now</div>
         </div>
 
-        <!-- Monthly Revenue -->
-        <div class="stat-card">
-            <div class="stat-top">
-                <div class="stat-icon icon-emerald">
-                    <mat-icon>currency_rupee</mat-icon>
-                </div>
-                <span class="stat-pill pill-emerald">Projected Rent</span>
+        <!-- Card 2 -->
+        <div class="simple-card">
+            <div class="card-head">
+                <span class="card-title">Monthly Rent Income</span>
+                <mat-icon class="icon-green">currency_rupee</mat-icon>
             </div>
-            <div class="stat-label">Monthly Revenue</div>
-            <div class="stat-value">₹{{ stats.monthlyRevenue | number }}</div>
-            <div class="stat-sub">From active recurring rentals</div>
+            <div class="card-number">₹{{ stats.monthlyRevenue | number }}</div>
+            <div class="card-note">Rent expected every month</div>
         </div>
 
-        <!-- Due This Month -->
-        <div class="stat-card">
-            <div class="stat-top">
-                <div class="stat-icon icon-amber">
-                    <mat-icon>notification_important</mat-icon>
-                </div>
-                <span class="stat-pill pill-amber">Needs Reminder</span>
+        <!-- Card 3 -->
+        <div class="simple-card">
+            <div class="card-head">
+                <span class="card-title">Need to Pay Rent</span>
+                <mat-icon class="icon-amber">notification_important</mat-icon>
             </div>
-            <div class="stat-label">Due This Month</div>
-            <div class="stat-value">{{ dueCustomers.length }}</div>
-            <div class="stat-sub">
-                <a routerLink="/reminders" class="stat-link">Send WhatsApp Reminders →</a>
+            <div class="card-number">{{ dueCustomers.length }}</div>
+            <div class="card-note">
+                <a routerLink="/reminders" class="simple-link">Send WhatsApp reminders →</a>
             </div>
         </div>
 
-        <!-- Overdue -->
-        <div class="stat-card stat-overdue">
-            <div class="stat-top">
-                <div class="stat-icon icon-rose">
-                    <mat-icon>warning_amber</mat-icon>
-                </div>
-                <span class="stat-pill pill-rose">Immediate Action</span>
+        <!-- Card 4 -->
+        <div class="simple-card card-alert">
+            <div class="card-head">
+                <span class="card-title">Late on Rent (Overdue)</span>
+                <mat-icon class="icon-red">warning</mat-icon>
             </div>
-            <div class="stat-label">Overdue Customers</div>
-            <div class="stat-value">{{ stats.overdue }}</div>
-            <div class="stat-sub">Pending payments beyond due date</div>
+            <div class="card-number">{{ stats.overdue }}</div>
+            <div class="card-note">Payment date has passed</div>
         </div>
 
-        <!-- Maintenance This Month -->
-        <div class="stat-card stat-card-action" (click)="openThisMonthMaintenance()">
-            <div class="stat-top">
-                <div class="stat-icon icon-purple">
-                    <mat-icon>construction</mat-icon>
-                </div>
-                <span class="stat-pill pill-purple">Maintenance</span>
+        <!-- Card 5 -->
+        <div class="simple-card card-clickable" (click)="openThisMonthMaintenance()">
+            <div class="card-head">
+                <span class="card-title">Filter Changes Due</span>
+                <mat-icon class="icon-purple">build</mat-icon>
             </div>
-            <div class="stat-label">Services Scheduled</div>
-            <div class="stat-value">{{ thisMonthMaintenanceCount }}</div>
-            <div class="stat-sub">
-                <span class="stat-link">View upcoming maintenance →</span>
+            <div class="card-number">{{ thisMonthMaintenanceCount }}</div>
+            <div class="card-note">
+                <span class="simple-link">View upcoming services →</span>
             </div>
         </div>
 
-        <!-- Total Collected -->
-        <div class="stat-card">
-            <div class="stat-top">
-                <div class="stat-icon icon-indigo">
-                    <mat-icon>account_balance_wallet</mat-icon>
-                </div>
-                <span class="stat-pill pill-indigo">Collected</span>
+        <!-- Card 6 -->
+        <div class="simple-card">
+            <div class="card-head">
+                <span class="card-title">Total Rent Collected</span>
+                <mat-icon class="icon-teal">savings</mat-icon>
             </div>
-            <div class="stat-label">Total Collected</div>
-            <div class="stat-value">₹{{ filteredCollected | number }}</div>
-            <div class="stat-sub">Within selected date range</div>
+            <div class="card-number">₹{{ filteredCollected | number }}</div>
+            <div class="card-note">Money collected in this period</div>
         </div>
 
-        <!-- Service Cost -->
-        <div class="stat-card">
-            <div class="stat-top">
-                <div class="stat-icon icon-slate">
-                    <mat-icon>handyman</mat-icon>
-                </div>
-                <span class="stat-pill pill-slate">Expenses</span>
+        <!-- Card 7 -->
+        <div class="simple-card">
+            <div class="card-head">
+                <span class="card-title">Money Spent on Repairs</span>
+                <mat-icon class="icon-slate">handyman</mat-icon>
             </div>
-            <div class="stat-label">Service & Parts Cost</div>
-            <div class="stat-value">₹{{ filteredServiceCost | number }}</div>
-            <div class="stat-sub">Spent on maintenance in range</div>
+            <div class="card-number">₹{{ filteredServiceCost | number }}</div>
+            <div class="card-note">Cost of filters & parts</div>
         </div>
     </div>
 
-    <!-- Two-column Activity Area -->
-    <div class="two-col">
-        <!-- Due This Month -->
-        <div class="table-card activity-card">
-            <div class="card-header">
-                <div class="header-left">
-                    <div class="header-icon-wrap icon-amber-subtle">
-                        <mat-icon>notifications_active</mat-icon>
-                    </div>
-                    <div>
-                        <h3>Due This Month</h3>
-                        <p class="header-sub">Customers awaiting payment</p>
-                    </div>
+    <!-- Two Simple Lists -->
+    <div class="two-columns">
+        <!-- Customers due rent -->
+        <div class="list-box">
+            <div class="list-head">
+                <div>
+                    <h3>Customers Who Need to Pay Rent</h3>
+                    <p class="list-sub">Click the green button to open WhatsApp and send reminder</p>
                 </div>
-                <a routerLink="/reminders" class="see-all-btn">
-                    <span>Manage Reminders</span>
-                    <mat-icon>arrow_forward</mat-icon>
-                </a>
+                <a routerLink="/reminders" class="view-link">Open All →</a>
             </div>
 
             @if (dueCustomers.length === 0) {
             <div class="empty-state">
-                <mat-icon>verified</mat-icon>
-                <h4>All Clear!</h4>
-                <p>No customers are pending payment this month.</p>
+                <mat-icon>check_circle</mat-icon>
+                <h4>All Clean!</h4>
+                <p>No customers have pending rent this month.</p>
             </div>
             }
 
             @if (dueCustomers.length > 0) {
-            <div class="due-list">
+            <div class="customer-rows">
                 @for (c of dueCustomers.slice(0, 6); track c.id) {
-                <div class="due-item">
-                    <div class="due-avatar">{{ c.name[0] }}</div>
-                    <div class="due-info">
-                        <strong class="item-name">{{ c.name }}</strong>
-                        <span class="item-sub">{{ c.area }} · <span class="price-highlight">₹{{ c.monthlyRent }}</span></span>
+                <div class="customer-row">
+                    <div class="row-avatar">{{ c.name[0] }}</div>
+                    <div class="row-details">
+                        <strong class="row-name">{{ c.name }}</strong>
+                        <span class="row-sub">{{ c.area }} · Monthly Rent: <b>₹{{ c.monthlyRent }}</b></span>
                     </div>
-                    <button class="wa-action-btn" (click)="sendReminder(c)" title="Send WhatsApp Reminder">
+                    <button class="whatsapp-btn" (click)="sendReminder(c)" title="Open WhatsApp and send message">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="16" height="16" alt="WA" />
-                        <span>Remind</span>
+                        <span>Send WhatsApp</span>
                     </button>
                 </div>
                 }
@@ -208,45 +174,36 @@
         </div>
 
         <!-- Recent Services -->
-        <div class="table-card activity-card">
-            <div class="card-header">
-                <div class="header-left">
-                    <div class="header-icon-wrap icon-cyan-subtle">
-                        <mat-icon>build_circle</mat-icon>
-                    </div>
-                    <div>
-                        <h3>Recent Services</h3>
-                        <p class="header-sub">Latest maintenance & repairs</p>
-                    </div>
+        <div class="list-box">
+            <div class="list-head">
+                <div>
+                    <h3>Recent Filter & Service Work</h3>
+                    <p class="list-sub">Purifiers that were recently checked or repaired</p>
                 </div>
-                <a routerLink="/services" class="see-all-btn">
-                    <span>View All</span>
-                    <mat-icon>arrow_forward</mat-icon>
-                </a>
+                <a routerLink="/services" class="view-link">Open All →</a>
             </div>
 
             @if (recentServices.length === 0) {
             <div class="empty-state">
-                <mat-icon>check_circle_outline</mat-icon>
-                <h4>No Services Logged Yet</h4>
-                <p>Scheduled and completed service visits will appear here.</p>
+                <mat-icon>build_circle</mat-icon>
+                <h4>No Services Yet</h4>
+                <p>New repairs or filter changes will show up here.</p>
             </div>
             }
 
             @if (recentServices.length > 0) {
-            <div class="service-list">
+            <div class="customer-rows">
                 @for (s of recentServices; track s.id) {
-                <div class="service-item">
-                    <div class="service-icon">
+                <div class="customer-row">
+                    <div class="service-type-icon">
                         <mat-icon>{{ getServiceIcon(s.serviceType) }}</mat-icon>
                     </div>
-                    <div class="service-info">
-                        <strong class="item-name">{{ s.customerName || 'Customer' }}</strong>
-                        <span class="item-sub">{{ s.serviceType | titlecase }} · {{ s.serviceDate | date:'dd MMM yyyy' }}</span>
+                    <div class="row-details">
+                        <strong class="row-name">{{ s.customerName || 'Customer' }}</strong>
+                        <span class="row-sub">{{ s.serviceType | titlecase }} · {{ s.serviceDate | date:'dd MMM yyyy' }}</span>
                     </div>
-                    <span class="chip chip-info technician-chip">
-                        <mat-icon class="tech-icon">engineering</mat-icon>
-                        {{ s.technicianName }}
+                    <span class="technician-badge">
+                        👷 {{ s.technicianName }}
                     </span>
                 </div>
                 }

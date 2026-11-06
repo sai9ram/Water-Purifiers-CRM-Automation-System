@@ -32,8 +32,8 @@ import { Technician } from '../../core/models/models';
     <div class="page-container fade-in">
       <div class="page-header">
         <div>
-          <h2>Technicians</h2>
-          <p class="subtitle">Manage service technicians and choose which one is the default.</p>
+          <h2>Technicians & Staff</h2>
+          <p class="subtitle">Staff members who visit customer homes to install purifiers and change filters</p>
         </div>
       </div>
 

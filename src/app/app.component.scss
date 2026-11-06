@@ -2,30 +2,29 @@
     display: flex;
     height: 100vh;
     overflow: hidden;
-    background: var(--bg-base);
+    background: var(--bg-page);
 }
 
-/* ── Modern Sidebar ─────────────────────────── */
+/* ── Minimalist Clean Sidebar ────────────────────────── */
 .sidebar {
-    width: var(--sidebar-width);
-    min-width: var(--sidebar-width);
-    background: linear-gradient(180deg, #09131f 0%, #060d16 100%);
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    background: #ffffff;
+    border-right: 1px solid var(--border-clean);
     display: flex;
     flex-direction: column;
-    transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1), min-width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: width 0.2s ease, min-width 0.2s ease;
     z-index: 200;
     overflow: hidden;
-    border-right: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
 }
 
 .app-shell.sidebar-collapsed .sidebar {
-    width: 72px;
-    min-width: 72px;
+    width: 68px;
+    min-width: 68px;
 
     .sidebar-brand {
-        padding: 16px 12px;
         justify-content: center;
+        padding: 16px 8px;
     }
 
     .collapse-btn {
@@ -34,153 +33,114 @@
 
     .nav-item {
         justify-content: center;
-        padding: 12px;
+        padding: 10px;
     }
 }
 
 .sidebar-brand {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 18px 18px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    min-height: var(--topbar-height);
+    gap: 10px;
+    padding: 18px 16px;
+    border-bottom: 1px solid var(--border-clean);
+    min-height: var(--topbar-h);
 }
 
-.brand-logo-gem {
-    width: 38px;
-    height: 38px;
-    border-radius: var(--radius-sm);
-    background: linear-gradient(135deg, rgba(8, 145, 178, 0.25), rgba(6, 182, 212, 0.1));
-    border: 1px solid rgba(6, 182, 212, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 16px rgba(8, 145, 178, 0.25);
+.brand-icon {
+    font-size: 22px;
+    line-height: 1;
     flex-shrink: 0;
-
-    .gem-symbol {
-        font-size: 20px;
-        line-height: 1;
-    }
 }
 
 .brand-text {
     display: flex;
     flex-direction: column;
-    flex: 1;
     overflow: hidden;
 }
 
-.brand-name {
+.brand-title {
     font-family: 'Sora', sans-serif;
     font-size: 0.95rem;
     font-weight: 700;
-    color: #ffffff;
-    letter-spacing: -0.01em;
+    color: var(--text-main);
     white-space: nowrap;
 }
 
-.brand-badge {
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: var(--brand-accent);
-    margin-top: 1px;
+.brand-sub {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
 .collapse-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: none;
+    border: none;
     cursor: pointer;
-    padding: 5px;
-    border-radius: var(--radius-xs);
-    color: rgba(255, 255, 255, 0.6);
-    transition: all 0.15s ease;
+    padding: 4px;
+    border-radius: 6px;
+    color: var(--text-muted);
+    margin-left: auto;
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin-left: auto;
 
     &:hover {
-        background: rgba(255, 255, 255, 0.12);
-        color: #ffffff;
-        transform: scale(1.04);
+        background: var(--bg-subtle);
+        color: var(--text-main);
     }
 
     mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
     }
 }
 
 .sidebar-nav {
     flex: 1;
-    padding: 16px 12px;
+    padding: 12px 10px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     overflow-y: auto;
-    overflow-x: hidden;
-}
-
-.nav-section-title {
-    padding: 6px 12px 10px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: rgba(255, 255, 255, 0.35);
-    text-transform: uppercase;
 }
 
 .nav-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 14px;
-    border-radius: var(--radius-sm);
-    color: rgba(255, 255, 255, 0.7);
+    padding: 10px 12px;
+    border-radius: var(--radius-box);
+    color: var(--text-body);
     font-size: 0.88rem;
-    font-weight: 500;
+    font-weight: 600;
     text-decoration: none;
-    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.15s ease;
     cursor: pointer;
     white-space: nowrap;
-    position: relative;
 
-    .nav-icon-wrap {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: rgba(255, 255, 255, 0.6);
-        transition: color 0.15s ease, transform 0.15s ease;
-
-        mat-icon {
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
-        }
+    .nav-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: var(--text-muted);
+        transition: color 0.15s ease;
     }
 
     &:hover {
-        background: rgba(255, 255, 255, 0.07);
-        color: #ffffff;
+        background: #f1f5f9;
+        color: var(--text-main);
 
-        .nav-icon-wrap {
-            color: var(--brand-accent);
-            transform: translateX(2px);
+        .nav-icon {
+            color: var(--brand-primary);
         }
     }
 
     &.active {
-        background: linear-gradient(90deg, rgba(8, 145, 178, 0.28) 0%, rgba(8, 145, 178, 0.1) 100%);
-        color: #ffffff;
-        font-weight: 600;
-        border-left: 3px solid var(--brand-accent);
+        background: var(--brand-light);
+        color: var(--brand-primary);
 
-        .nav-icon-wrap {
-            color: var(--brand-accent);
+        .nav-icon {
+            color: var(--brand-primary);
         }
     }
 }
@@ -190,53 +150,31 @@
 }
 
 .nav-badge {
-    background: var(--warning);
+    background: var(--status-amber);
     color: #ffffff;
-    border-radius: var(--radius-full);
-    padding: 2px 7px;
-    font-size: 0.68rem;
+    border-radius: var(--radius-pill);
+    padding: 1px 7px;
+    font-size: 0.7rem;
     font-weight: 700;
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
 }
 
 .sidebar-footer {
-    padding: 16px 14px;
-    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 14px 16px;
+    border-top: 1px solid var(--border-clean);
 
-    .footer-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: var(--radius-sm);
-        padding: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .footer-indicator {
+    .footer-simple {
         display: flex;
         align-items: center;
         gap: 8px;
+        font-size: 0.76rem;
+        color: var(--text-muted);
 
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
+        .footer-dot {
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
-            background: #10b981;
-            box-shadow: 0 0 8px #10b981;
-            display: inline-block;
+            background: #16a34a;
         }
-
-        .footer-status {
-            font-size: 0.76rem;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.85);
-        }
-    }
-
-    .footer-meta {
-        font-size: 0.68rem;
-        color: rgba(255, 255, 255, 0.4);
     }
 }
 
@@ -246,52 +184,41 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: var(--bg-base);
+    background: var(--bg-page);
 }
 
-/* ── Modern Topbar ─────────────────────── */
 .topbar {
-    height: var(--topbar-height);
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
+    height: var(--topbar-h);
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-clean);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 28px;
+    padding: 0 24px;
     gap: 16px;
     flex-shrink: 0;
-    z-index: 100;
 }
 
 .topbar-left {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
 }
 
-.app-tagline {
-    font-size: 0.84rem;
+.simple-tagline {
+    font-size: 0.85rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .mobile-menu-btn {
     display: none;
-    background: var(--bg-card-subtle);
-    border: 1px solid var(--border);
+    background: none;
+    border: none;
     cursor: pointer;
-    color: var(--text-secondary);
-    padding: 6px;
-    border-radius: var(--radius-xs);
-    align-items: center;
-    justify-content: center;
-
-    &:hover {
-        background: var(--border);
-        color: var(--text-primary);
-    }
+    color: var(--text-body);
+    padding: 4px;
+    border-radius: 6px;
 
     @media (max-width: 768px) {
         display: flex;
@@ -301,124 +228,35 @@
 .topbar-right {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
     margin-left: auto;
 }
 
-/* ── Backup Pill ─────────────────────── */
-.backup-status {
-    border: 1px solid var(--border);
-    background: #ffffff;
-    border-radius: var(--radius-full);
-    padding: 6px 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    color: var(--text-primary);
-    min-width: 210px;
-    text-align: left;
-    box-shadow: var(--shadow-xs);
-    transition: all 0.2s ease;
-
-    &:hover {
-        border-color: #cbd5e1;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .status-indicator-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #94a3b8;
-        flex-shrink: 0;
-    }
-
-    .status-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-        color: var(--text-secondary);
-    }
-
-    &.state-running {
-        .status-indicator-dot { background: var(--brand-primary); box-shadow: 0 0 8px var(--brand-primary); }
-        .status-icon { color: var(--brand-primary); animation: spin 1.2s linear infinite; }
-    }
-    &.state-synced {
-        .status-indicator-dot { background: var(--success); box-shadow: 0 0 6px var(--success); }
-        .status-icon { color: var(--success); }
-    }
-    &.state-queued {
-        .status-indicator-dot { background: var(--warning); }
-        .status-icon { color: var(--warning); }
-    }
-    &.state-error {
-        .status-indicator-dot { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
-        .status-icon { color: var(--danger); }
-    }
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.backup-copy {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-
-    .backup-title {
-        font-size: 0.74rem;
-        font-weight: 700;
-        line-height: 1.1;
-        color: var(--text-primary);
-    }
-
-    .backup-detail {
-        color: var(--text-muted);
-        font-size: 0.7rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-}
-
-/* ── Topbar Actions ──────────────────── */
-.topbar-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.topbar-btn {
-    border: 1px solid var(--border);
-    background: #ffffff;
-    border-radius: var(--radius-sm);
-    padding: 7px 12px;
+.simple-pill-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: var(--text-primary);
-    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: var(--radius-box);
+    border: 1px solid var(--border-clean);
+    background: #ffffff;
+    color: var(--text-body);
+    font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: var(--shadow-xs);
-    transition: all 0.18s ease;
+    transition: all 0.15s ease;
 
     mat-icon {
         font-size: 17px;
         width: 17px;
         height: 17px;
-        color: var(--text-secondary);
+        color: var(--text-muted);
     }
 
     &:hover {
         background: #f8fafc;
         border-color: #cbd5e1;
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-sm);
+        color: var(--text-main);
 
         mat-icon {
             color: var(--brand-primary);
@@ -428,55 +266,38 @@
     &:disabled {
         opacity: 0.5;
         cursor: not-allowed;
-        transform: none;
     }
 
-    &.btn-sync {
-        background: var(--brand-light);
-        border-color: var(--brand-light-border);
-        color: var(--brand-dark);
+    &.btn-green {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
 
         mat-icon {
-            color: var(--brand-primary);
+            color: #16a34a;
         }
 
         &:hover {
-            background: #dbeafe;
-        }
-    }
-
-    &.btn-export {
-        background: #ecfdf5;
-        border-color: #a7f3d0;
-        color: #065f46;
-
-        mat-icon {
-            color: #059669;
-        }
-
-        &:hover {
-            background: #d1fae5;
+            background: #dcfce7;
         }
     }
 }
 
-/* ── Date Pill ───────────────────────── */
-.topbar-date-pill {
+.date-badge {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: #f1f5f9;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: #f8fafc;
+    border: 1px solid var(--border-clean);
     padding: 6px 12px;
-    border-radius: var(--radius-full);
-    color: var(--text-secondary);
-    font-size: 0.78rem;
-    font-weight: 600;
+    border-radius: var(--radius-box);
 
     mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
-        color: var(--text-muted);
+        font-size: 15px;
+        width: 15px;
+        height: 15px;
     }
 }
 
@@ -489,8 +310,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.3);
     z-index: 150;
 
     @media (max-width: 768px) {
@@ -498,7 +318,6 @@
     }
 }
 
-/* ── Mobile Responsive ───────────────── */
 @media (max-width: 768px) {
     .sidebar {
         position: fixed;
@@ -506,25 +325,14 @@
         left: 0;
         bottom: 0;
         transform: translateX(-100%);
-        transition: transform 0.28s ease;
     }
 
     .app-shell:not(.sidebar-collapsed) .sidebar {
         transform: translateX(0);
     }
 
-    .topbar {
-        padding: 0 16px;
-    }
-
-    .app-tagline,
-    .topbar-date-pill,
-    .btn-text {
+    .simple-tagline,
+    .date-badge {
         display: none;
-    }
-
-    .backup-status {
-        min-width: 0;
-        flex: 1;
     }
 }

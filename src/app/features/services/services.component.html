@@ -1,17 +1,17 @@
 <div class="page-container fade-in">
     <div class="page-header">
         <div>
-            <h2>Service Records & Scheduling</h2>
-            <p class="subtitle">Track actual service visits, scheduled appointments, and upcoming maintenance</p>
+            <h2>Filter Changes & Repairs</h2>
+            <p class="subtitle">Keep track of water purifier service visits, filter replacements, and technician appointments</p>
         </div>
         <div class="header-actions">
             <button mat-raised-button color="primary" (click)="openForm('log')">
                 <mat-icon>build</mat-icon>
-                Log Service
+                Record Service Done
             </button>
-            <button mat-stroked-button color="accent" (click)="openForm('schedule')">
+            <button mat-stroked-button (click)="openForm('schedule')">
                 <mat-icon>event</mat-icon>
-                Schedule Service
+                Book Service Date
             </button>
         </div>
     </div>

@@ -1,15 +1,13 @@
 <div class="app-shell" [class.sidebar-collapsed]="sidebarCollapsed()">
 
-    <!-- Sidebar -->
+    <!-- Minimalist Clean Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-logo-gem">
-                <span class="gem-symbol">💧</span>
-            </div>
+            <div class="brand-icon">💧</div>
             @if (!sidebarCollapsed()) {
             <div class="brand-text">
-                <span class="brand-name">Pure Home Waters</span>
-                <span class="brand-badge">CRM SYSTEM</span>
+                <span class="brand-title">Pure Home Waters</span>
+                <span class="brand-sub">Water Purifiers</span>
             </div>
             }
             <button class="collapse-btn" (click)="toggleSidebar()" [attr.aria-label]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'">
@@ -18,16 +16,9 @@
         </div>
 
         <nav class="sidebar-nav">
-            <div class="nav-section-title">
-                @if (!sidebarCollapsed()) {
-                <span>MANAGEMENT</span>
-                }
-            </div>
             @for (item of navItems; track item.path) {
             <a [routerLink]="item.path" routerLinkActive="active" class="nav-item" [title]="item.label">
-                <div class="nav-icon-wrap">
-                    <mat-icon>{{ item.icon }}</mat-icon>
-                </div>
+                <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
                 @if (!sidebarCollapsed()) {
                 <span class="nav-label">{{ item.label }}</span>
                 }
@@ -40,79 +31,53 @@
 
         @if (!sidebarCollapsed()) {
         <div class="sidebar-footer">
-            <div class="footer-card">
-                <div class="footer-indicator">
-                    <span class="pulse-dot"></span>
-                    <span class="footer-status">System Online</span>
-                </div>
-                <div class="footer-meta">
-                    <span>v1.0.0 · Tirupati Hub</span>
-                </div>
+            <div class="footer-simple">
+                <span class="footer-dot"></span>
+                <span>Ready & Saved locally</span>
             </div>
         </div>
         }
     </aside>
 
-    <!-- Main Content -->
+    <!-- Main Content Area -->
     <div class="main-area">
         <header class="topbar">
             <div class="topbar-left">
-                <button class="mobile-menu-btn" (click)="toggleSidebar()" aria-label="Toggle menu">
+                <button class="mobile-menu-btn" (click)="toggleSidebar()" aria-label="Open menu">
                     <mat-icon>menu</mat-icon>
                 </button>
-                <div class="topbar-welcome">
-                    <span class="app-tagline">Water Purifier Operations Portal</span>
+                <div class="simple-tagline">
+                    <span>Pure Home Waters · Tirupati</span>
                 </div>
             </div>
 
             <div class="topbar-right">
-                <!-- Backup Sync Status Pill -->
-                <button class="backup-status" type="button" (click)="retryBackupSync()"
-                    [class.state-running]="backupStatus().state === 'running'"
-                    [class.state-synced]="backupStatus().state === 'synced'"
-                    [class.state-queued]="backupStatus().state === 'queued'"
-                    [class.state-error]="backupStatus().state === 'error'"
-                    [title]="backupStatus().message">
-                    <div class="status-indicator-dot"></div>
-                    <mat-icon class="status-icon">{{ getBackupIcon() }}</mat-icon>
-                    <span class="backup-copy">
-                        <span class="backup-title">Cloud Backup</span>
-                        <small class="backup-detail">
-                            @if (backupStatus().lastBackupAt) {
-                            {{ backupStatus().message }} · {{ backupStatus().lastBackupAt | date:'dd MMM, hh:mm a' }}
-                            } @else {
-                            {{ backupStatus().message }}
-                            }
-                        </small>
-                    </span>
+                <!-- Simple Backup Button -->
+                <button class="simple-pill-btn" type="button" (click)="saveBackupAndSync()"
+                    [disabled]="backupStatus().state === 'running'"
+                    title="Click to save and download a backup file">
+                    <mat-icon class="backup-icon">{{ getBackupIcon() }}</mat-icon>
+                    <span>Save Backup</span>
                 </button>
 
-                <!-- Actions -->
-                <div class="topbar-actions">
-                    <button class="topbar-btn btn-sync" type="button" (click)="saveBackupAndSync()"
-                        [disabled]="backupStatus().state === 'running'"
-                        title="Save backup file and sync immediately">
-                        <mat-icon>cloud_download</mat-icon>
-                        <span class="btn-text">Save & Sync</span>
-                    </button>
+                <!-- Simple Import File -->
+                <button class="simple-pill-btn" type="button" (click)="triggerBackupImport()"
+                    title="Open a previously saved backup file">
+                    <mat-icon>upload_file</mat-icon>
+                    <span>Open Backup</span>
+                </button>
+                <input #backupFileInput type="file" accept=".sql,.txt" hidden (change)="handleBackupImport($event)">
 
-                    <button class="topbar-btn" type="button" (click)="triggerBackupImport()"
-                        title="Import a previously saved backup file">
-                        <mat-icon>upload_file</mat-icon>
-                        <span class="btn-text">Import</span>
-                    </button>
-                    <input #backupFileInput type="file" accept=".sql,.txt" hidden (change)="handleBackupImport($event)">
+                <!-- Simple Export Report -->
+                <button class="simple-pill-btn btn-green" type="button" (click)="exportCustomerReport()"
+                    title="Download customer list and rent details into an Excel spreadsheet">
+                    <mat-icon>download</mat-icon>
+                    <span>Download Excel</span>
+                </button>
 
-                    <button class="topbar-btn btn-export" type="button" (click)="exportCustomerReport()"
-                        title="Download customer rent, payment, and service report">
-                        <mat-icon>table_chart</mat-icon>
-                        <span class="btn-text">Export Report</span>
-                    </button>
-                </div>
-
-                <!-- Date display -->
-                <div class="topbar-date-pill">
-                    <mat-icon>event</mat-icon>
+                <!-- Date -->
+                <div class="date-badge">
+                    <mat-icon>calendar_today</mat-icon>
                     <span>{{ today }}</span>
                 </div>
             </div>

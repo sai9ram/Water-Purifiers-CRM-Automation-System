@@ -30,14 +30,14 @@ export class AppComponent {
   today = new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
   navItems: NavItem[] = [
-    { path: '/dashboard',  icon: 'dashboard',       label: 'Dashboard'   },
-    { path: '/customers',  icon: 'people',           label: 'Customers'   },
-    { path: '/reminders',  icon: 'notifications',    label: 'Reminders'   },
-    { path: '/payments',   icon: 'payments',         label: 'Payments'    },
-    { path: '/services',   icon: 'build',            label: 'Services'    },
-    { path: '/complaints', icon: 'report_problem',   label: 'Complaints'  },
+    { path: '/dashboard',  icon: 'home',             label: 'Home' },
+    { path: '/customers',  icon: 'people',           label: 'Customers' },
+    { path: '/reminders',  icon: 'chat',             label: 'WhatsApp Reminders' },
+    { path: '/payments',   icon: 'payments',         label: 'Payments Collected' },
+    { path: '/services',   icon: 'build',            label: 'Filter & Repairs' },
+    { path: '/complaints', icon: 'report_problem',   label: 'Complaints' },
     { path: '/technicians', icon: 'engineering',      label: 'Technicians' },
-    { path: '/plans',      icon: 'card_membership',  label: 'Plans'       },
+    { path: '/plans',      icon: 'card_membership',  label: 'Rental Plans' },
   ];
 
   constructor(

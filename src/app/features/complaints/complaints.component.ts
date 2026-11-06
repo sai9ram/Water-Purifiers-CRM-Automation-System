@@ -45,11 +45,11 @@ import { ComplaintCommentsDialogComponent } from './complaint-comments-dialog.co
     <div class="page-container fade-in">
       <div class="page-header">
         <div>
-          <h2>Complaints</h2>
-          <p class="subtitle">Track customer complaints and schedule follow-up service visits.</p>
+          <h2>Customer Complaints & Issues</h2>
+          <p class="subtitle">See problems reported by customers (leakage, low flow, taste issues) and fix them</p>
         </div>
         <button mat-raised-button color="primary" (click)="openAddComplaintDialog()">
-          <mat-icon>report_problem</mat-icon> Log Complaint
+          <mat-icon>report_problem</mat-icon> Report New Issue
         </button>
       </div>
 

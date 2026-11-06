@@ -137,3 +137,4 @@ dist
 
 #angular cache
 .angular/cache
+.vercel
