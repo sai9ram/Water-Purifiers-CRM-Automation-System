@@ -1,14 +1,16 @@
 <div class="page-container fade-in">
+    <!-- Header -->
     <div class="page-header">
         <div>
-            <h2>Rent Reminders</h2>
-            <p class="subtitle">Send WhatsApp reminders to customers with pending dues</p>
+            <h2>Rent Reminders Center</h2>
+            <p class="subtitle">Broadcast and send pre-filled WhatsApp payment reminders directly to customers</p>
         </div>
     </div>
 
-    <div class="reminder-range-bar">
-        <mat-form-field appearance="outline">
-            <mat-label>Reminder Range</mat-label>
+    <!-- Date Range Bar -->
+    <div class="reminder-range-card">
+        <mat-form-field appearance="outline" class="range-select">
+            <mat-label>Reminder Period</mat-label>
             <mat-select [(ngModel)]="reminderFilter" (ngModelChange)="onReminderFilterChange($event)">
                 <mat-option value="this-month">This Month</mat-option>
                 <mat-option value="last-month">Last Month</mat-option>
@@ -22,7 +24,7 @@
             <mat-label>From Date</mat-label>
             <input matInput [matDatepicker]="fromPicker" [(ngModel)]="startDate"
                 [disabled]="reminderFilter !== 'custom'" (dateChange)="computeReminderLists()" />
-            <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+                <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
             <mat-datepicker #fromPicker></mat-datepicker>
         </mat-form-field>
 
@@ -34,94 +36,119 @@
             <mat-datepicker #toPicker></mat-datepicker>
         </mat-form-field>
 
-        <button mat-stroked-button type="button" (click)="clearDateFilter()"
+        <button mat-stroked-button class="reset-date-btn" type="button" (click)="clearDateFilter()"
             [disabled]="reminderFilter === 'all' && !startDate && !endDate">
-            <mat-icon>filter_alt_off</mat-icon> Clear Dates
+            <mat-icon>filter_alt_off</mat-icon> Reset Dates
         </button>
     </div>
 
     <!-- Stats Bar -->
-    <div class="reminder-stats">
-        <div class="rstat">
-            <mat-icon style="color:var(--warning)">notification_important</mat-icon>
-            <div>
-                <strong>{{ dueThisMonth.length }}</strong>
-                <span>Due This Month</span>
+    <div class="reminder-stats-grid">
+        <div class="rstat-card stat-amber">
+            <div class="rstat-icon">
+                <mat-icon>notification_important</mat-icon>
+            </div>
+            <div class="rstat-text">
+                <span class="rstat-num">{{ dueThisMonth.length }}</span>
+                <span class="rstat-title">Due This Month</span>
             </div>
         </div>
-        <div class="rstat">
-            <mat-icon style="color:var(--danger)">warning</mat-icon>
-            <div>
-                <strong>{{ overdueCustomers.length }}</strong>
-                <span>Overdue</span>
+        <div class="rstat-card stat-rose">
+            <div class="rstat-icon">
+                <mat-icon>warning</mat-icon>
+            </div>
+            <div class="rstat-text">
+                <span class="rstat-num">{{ overdueCustomers.length }}</span>
+                <span class="rstat-title">Overdue</span>
             </div>
         </div>
-        <div class="rstat">
-            <mat-icon style="color:var(--success)">check_circle</mat-icon>
-            <div>
-                <strong>{{ sentCount }}</strong>
-                <span>Sent This Session</span>
+        <div class="rstat-card stat-emerald">
+            <div class="rstat-icon">
+                <mat-icon>check_circle</mat-icon>
+            </div>
+            <div class="rstat-text">
+                <span class="rstat-num">{{ sentCount }}</span>
+                <span class="rstat-title">Sent This Session</span>
             </div>
         </div>
-        <div class="rstat">
-            <mat-icon style="color:var(--brand-primary)">currency_rupee</mat-icon>
-            <div>
-                <strong>₹{{ totalDue | number }}</strong>
-                <span>Total Due</span>
+        <div class="rstat-card stat-cyan">
+            <div class="rstat-icon">
+                <mat-icon>currency_rupee</mat-icon>
+            </div>
+            <div class="rstat-text">
+                <span class="rstat-num">₹{{ totalDue | number }}</span>
+                <span class="rstat-title">Total Outstanding</span>
             </div>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="reminder-filters">
+    <!-- Filters & Bulk Actions -->
+    <div class="reminder-toolbar">
         <div class="filter-tabs">
-            <button [class.active]="activeTab === 'month'" (click)="setTab('month')">
-                <mat-icon>calendar_month</mat-icon> Due This Month ({{ dueThisMonth.length }})
+            <button class="tab-btn" [class.active]="activeTab === 'month'" (click)="setTab('month')">
+                <mat-icon>calendar_month</mat-icon>
+                <span>Due This Month</span>
+                <span class="tab-count">{{ dueThisMonth.length }}</span>
             </button>
-            <button [class.active]="activeTab === 'overdue'" (click)="setTab('overdue')">
-                <mat-icon>warning</mat-icon> Overdue ({{ overdueCustomers.length }})
+            <button class="tab-btn" [class.active]="activeTab === 'overdue'" (click)="setTab('overdue')">
+                <mat-icon>warning</mat-icon>
+                <span>Overdue</span>
+                <span class="tab-count count-danger">{{ overdueCustomers.length }}</span>
             </button>
-            <button [class.active]="activeTab === 'all'" (click)="setTab('all')">
-                <mat-icon>people</mat-icon> All Active
+            <button class="tab-btn" [class.active]="activeTab === 'all'" (click)="setTab('all')">
+                <mat-icon>groups</mat-icon>
+                <span>All Active</span>
             </button>
         </div>
 
-        <div class="filter-actions">
-            <button mat-stroked-button (click)="selectAll()">Select All</button>
-            <button mat-stroked-button (click)="deselectAll()">Clear</button>
-            <button mat-raised-button color="primary" [disabled]="selectedIds.size === 0" (click)="sendBulkReminders()">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="16" alt="WA"
-                    style="margin-right:6px" />
-                Send to {{ selectedIds.size }} Selected
+        <div class="toolbar-actions">
+            <button mat-stroked-button class="action-outline-btn" (click)="selectAll()">Select All</button>
+            <button mat-stroked-button class="action-outline-btn" (click)="deselectAll()">Clear</button>
+            <button mat-raised-button color="primary" class="bulk-wa-btn" [disabled]="selectedIds.size === 0" (click)="sendBulkReminders()">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="16" height="16" alt="WA" />
+                <span>Send to {{ selectedIds.size }} Selected</span>
             </button>
         </div>
     </div>
 
     <!-- Progress bar during bulk send -->
     @if (bulkSending) {
-    <mat-progress-bar mode="determinate" [value]="bulkProgress" style="margin-bottom:16px"></mat-progress-bar>
+    <div class="bulk-progress-wrap">
+        <mat-progress-bar mode="determinate" [value]="bulkProgress"></mat-progress-bar>
+    </div>
     }
 
-    <!-- Message Preview -->
+    <!-- WhatsApp Message Preview -->
     @if (previewCustomer) {
-    <div class="message-preview">
+    <div class="message-preview-container">
         <div class="preview-header">
-            <span><mat-icon>preview</mat-icon> Message Preview</span>
-            <button mat-icon-button (click)="previewCustomer = null"><mat-icon>close</mat-icon></button>
+            <div class="preview-header-left">
+                <mat-icon>chat</mat-icon>
+                <span>WhatsApp Message Preview · {{ previewCustomer.name }}</span>
+            </div>
+            <button mat-icon-button (click)="previewCustomer = null" aria-label="Close preview">
+                <mat-icon>close</mat-icon>
+            </button>
         </div>
-        <div class="whatsapp-bubble">
-            <pre>{{ previewMessage }}</pre>
+        <div class="whatsapp-mock-screen">
+            <div class="whatsapp-bubble">
+                <pre>{{ previewMessage }}</pre>
+                <div class="bubble-meta">
+                    <span class="bubble-time">Now</span>
+                    <mat-icon class="check-double">done_all</mat-icon>
+                </div>
+            </div>
         </div>
     </div>
     }
 
-    <!-- Customer List -->
+    <!-- Customer Reminder List -->
     <div class="table-card">
         @if (displayedCustomers.length === 0) {
         <div class="empty-state">
             <mat-icon>notifications_off</mat-icon>
-            <h4>No customers in this category</h4>
-            <p>Switch tabs to view other customers.</p>
+            <h4>No Customers in this Category</h4>
+            <p>Switch categories or clear date range to view customers.</p>
         </div>
         }
 
@@ -136,30 +163,29 @@
                 <div class="customer-avatar">{{ c.name[0] }}</div>
 
                 <div class="customer-info">
-                    <strong>{{ c.name }}</strong>
-                    <span>{{ c.area }} · {{ c.phone }}</span>
+                    <strong class="cust-title">{{ c.name }}</strong>
+                    <span class="cust-meta">{{ c.area }} · {{ c.phone }}</span>
                     <span class="model-tag">{{ c.purifierModel }}</span>
                 </div>
 
                 <div class="due-info">
                     <div class="rent-amount">₹{{ c.monthlyRent }}/mo</div>
-                    <div [class]="getDueDateClass(c.nextDueDate)">
-                        Due: {{ c.nextDueDate | date:'dd MMM' }}
+                    <div [class]="getDueDateClass(c.nextDueDate)" class="due-date-text">
+                        Due: {{ c.nextDueDate | date:'dd MMM yyyy' }}
                     </div>
                 </div>
 
                 <span [class]="getStatusChip(c.status)">{{ c.status }}</span>
 
                 <div class="reminder-actions">
-                    <button mat-icon-button matTooltip="Preview Message" (click)="showPreview(c)">
+                    <button class="round-tool-btn" matTooltip="Preview Message" (click)="showPreview(c)">
                         <mat-icon>visibility</mat-icon>
                     </button>
-                    <button mat-icon-button matTooltip="Record Payment" (click)="recordPayment(c)">
+                    <button class="round-tool-btn" matTooltip="Record Payment" (click)="recordPayment(c)">
                         <mat-icon>currency_rupee</mat-icon>
                     </button>
                     <button class="wa-send-btn" (click)="sendSingle(c)" [class.sent]="sentIds.has(c.id!)">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="18"
-                            alt="WA" />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="16" height="16" alt="WA" />
                         <span>{{ sentIds.has(c.id!) ? 'Sent ✓' : 'Send' }}</span>
                     </button>
                 </div>
@@ -172,11 +198,10 @@
     <!-- Bulk Send Instructions -->
     @if (selectedIds.size > 0) {
     <div class="info-banner">
-        <mat-icon>info</mat-icon>
+        <mat-icon>tips_and_updates</mat-icon>
         <p>
-            <strong>Bulk Send:</strong> Each customer's WhatsApp will open one at a time with a pre-filled message.
-            Just press <strong>Send</strong> in WhatsApp for each one.
-            Allow pop-ups in your browser if needed.
+            <strong>Bulk Send Automation:</strong> Each customer's WhatsApp web/app link will trigger sequentially with the pre-filled message.
+            Just confirm <strong>Send</strong> in WhatsApp for each contact.
         </p>
     </div>
     }

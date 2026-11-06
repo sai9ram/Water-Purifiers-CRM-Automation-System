@@ -1,43 +1,54 @@
 <div class="page-container fade-in">
+    <!-- Header -->
     <div class="page-header">
         <div>
             <h2>Customers</h2>
-            <p class="subtitle">{{ dataSource.filteredData.length }} of {{ allCustomers.length }} customers</p>
+            <p class="subtitle">Manage water purifier rental contracts, due dates & customer profiles</p>
             <div class="page-totals">
-                <span>Total Deposits: ₹{{ totalDeposit | number }}</span>
-                <span>Total Rent: ₹{{ totalRent | number }}/mo</span>
+                <div class="metric-pill">
+                    <mat-icon>people_outline</mat-icon>
+                    <span><strong>{{ dataSource.filteredData.length }}</strong> of {{ allCustomers.length }} customers</span>
+                </div>
+                <div class="metric-pill pill-deposit">
+                    <mat-icon>lock</mat-icon>
+                    <span>Deposits: <strong>₹{{ totalDeposit | number }}</strong></span>
+                </div>
+                <div class="metric-pill pill-rent">
+                    <mat-icon>payments</mat-icon>
+                    <span>Recurring Rent: <strong>₹{{ totalRent | number }}</strong>/mo</span>
+                </div>
             </div>
         </div>
-        <button mat-raised-button color="primary" (click)="openAddDialog()">
+        <button mat-raised-button color="primary" class="add-customer-btn" (click)="openAddDialog()">
             <mat-icon>person_add</mat-icon> Add Customer
         </button>
     </div>
 
-    <!-- Filters -->
-    <div class="search-bar">
-        <mat-form-field appearance="outline">
+    <!-- Filters Card -->
+    <div class="filter-bar-card">
+        <mat-form-field appearance="outline" class="search-field">
             <mat-label>Search by name, phone, area...</mat-label>
             <mat-icon matPrefix>search</mat-icon>
             <input matInput [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()" />
             @if (searchQuery) {
-            <button matSuffix mat-icon-button (click)="searchQuery=''; applyFilter()">
+            <button matSuffix mat-icon-button (click)="searchQuery=''; applyFilter()" aria-label="Clear search">
                 <mat-icon>close</mat-icon>
             </button>
             }
         </mat-form-field>
 
-        <mat-form-field appearance="outline" style="max-width:160px">
+        <mat-form-field appearance="outline" class="status-select">
             <mat-label>Status</mat-label>
             <mat-select [(ngModel)]="statusFilter" (ngModelChange)="applyFilter()">
-                <mat-option value="">All</mat-option>
+                <mat-option value="">All Statuses</mat-option>
                 <mat-option value="active">Active</mat-option>
                 <mat-option value="overdue">Overdue</mat-option>
                 <mat-option value="inactive">Inactive</mat-option>
             </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" style="max-width:160px">
-            <mat-label>Plan</mat-label>
+        <mat-form-field appearance="outline" class="plan-select">
+            <mat-label>Rental Plan</mat-label>
             <mat-select [(ngModel)]="planFilter" (ngModelChange)="applyFilter()">
                 <mat-option value="">All Plans</mat-option>
                 @for (p of plans; track p.id) {
@@ -47,19 +58,19 @@
         </mat-form-field>
     </div>
 
-    <!-- Table -->
+    <!-- Table Card -->
     <div class="table-card">
         <table mat-table [dataSource]="dataSource" matSort>
 
-            <!-- Name -->
+            <!-- Name & Contact -->
             <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Customer</th>
                 <td mat-cell *matCellDef="let c">
                     <div class="customer-cell">
                         <div class="avatar">{{ c.name[0] }}</div>
-                        <div>
-                            <div class="cust-name">{{ c.name }}</div>
-                            <div class="cust-sub">{{ c.phone }}</div>
+                        <div class="customer-info">
+                            <span class="cust-name">{{ c.name }}</span>
+                            <span class="cust-sub">{{ c.phone }}</span>
                         </div>
                     </div>
                 </td>
@@ -68,47 +79,52 @@
             <!-- Area -->
             <ng-container matColumnDef="area">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Area</th>
-                <td mat-cell *matCellDef="let c">{{ c.area }}</td>
+                <td mat-cell *matCellDef="let c">
+                    <span class="area-text">{{ c.area }}</span>
+                </td>
             </ng-container>
 
             <!-- Model -->
             <ng-container matColumnDef="purifierModel">
-                <th mat-header-cell *matHeaderCellDef>Purifier Model</th>
+                <th mat-header-cell *matHeaderCellDef>Model</th>
                 <td mat-cell *matCellDef="let c">
-                    <span class="chip chip-info">{{ c.purifierModel }}</span>
+                    <span class="model-chip">{{ c.purifierModel }}</span>
                 </td>
             </ng-container>
 
-            <!-- Plan -->
+            <!-- Plan / Rent -->
             <ng-container matColumnDef="planName">
-                <th mat-header-cell *matHeaderCellDef>Plan / Rent</th>
+                <th mat-header-cell *matHeaderCellDef>Plan & Rent</th>
                 <td mat-cell *matCellDef="let c">
                     <div class="plan-cell">
-                        <span>{{ c.planName }}</span>
-                        <span class="rent">₹{{ c.monthlyRent }}/mo</span>
+                        <span class="plan-title">{{ c.planName }}</span>
+                        <span class="rent-amount">₹{{ c.monthlyRent }}/mo</span>
                     </div>
                 </td>
             </ng-container>
 
-            <!-- Next Due -->
+            <!-- Next Due Date -->
             <ng-container matColumnDef="nextDueDate">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Next Due</th>
                 <td mat-cell *matCellDef="let c">
-                    <span [class]="getDueDateClass(c.nextDueDate)">
+                    <span [class]="getDueDateClass(c.nextDueDate)" class="due-pill">
+                        <mat-icon class="due-icon">event</mat-icon>
                         {{ c.nextDueDate | date:'dd MMM yyyy' }}
                     </span>
                 </td>
             </ng-container>
 
+            <!-- Next Service -->
             <ng-container matColumnDef="nextServiceDate">
                 <th mat-header-cell *matHeaderCellDef>Next Service</th>
                 <td mat-cell *matCellDef="let c">
                     @if (c.nextServiceDate) {
-                    <span [class]="getNextServiceDateClass(c.nextServiceDate)">
+                    <span [class]="getNextServiceDateClass(c.nextServiceDate)" class="service-pill">
+                        <mat-icon class="service-icon">build</mat-icon>
                         {{ c.nextServiceDate | date:'dd MMM yyyy' }}
                     </span>
                     } @else {
-                    <span class="due-ok">-</span>
+                    <span class="service-dash">—</span>
                     }
                 </td>
             </ng-container>
@@ -123,22 +139,20 @@
 
             <!-- Actions -->
             <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
                 <td mat-cell *matCellDef="let c" (click)="$event.stopPropagation()">
                     <div class="actions-cell">
-                        <button mat-icon-button matTooltip="Log Complaint" (click)="openComplaintDialog(c)">
+                        <button class="action-btn complaint-btn" matTooltip="Log Complaint" (click)="openComplaintDialog(c)">
                             <mat-icon>report_problem</mat-icon>
                         </button>
-                        <button mat-icon-button matTooltip="WhatsApp Reminder" (click)="sendReminder(c)"
-                            class="wa-icon-btn">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="18"
-                                alt="WA" />
+                        <button class="action-btn wa-btn" matTooltip="WhatsApp Reminder" (click)="sendReminder(c)">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="16" height="16" alt="WA" />
                         </button>
-                        <button mat-icon-button matTooltip="Edit" (click)="openEditDialog(c)">
+                        <button class="action-btn edit-btn" matTooltip="Edit Customer" (click)="openEditDialog(c)">
                             <mat-icon>edit</mat-icon>
                         </button>
-                        <button mat-icon-button matTooltip="Delete" color="warn" (click)="deleteCustomer(c)">
-                            <mat-icon>delete</mat-icon>
+                        <button class="action-btn delete-btn" matTooltip="Delete Customer" (click)="deleteCustomer(c)">
+                            <mat-icon>delete_outline</mat-icon>
                         </button>
                     </div>
                 </td>
@@ -150,9 +164,9 @@
 
         @if (dataSource.filteredData.length === 0) {
         <div class="empty-state">
-            <mat-icon>person_off</mat-icon>
-            <h4>No customers found</h4>
-            <p>Try adjusting your filters or add a new customer.</p>
+            <mat-icon>person_search</mat-icon>
+            <h4>No Customers Found</h4>
+            <p>Try clearing filters or search query to see customer records.</p>
         </div>
         }
 

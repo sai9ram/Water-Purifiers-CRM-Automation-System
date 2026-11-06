@@ -3,23 +3,31 @@
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-icon">💧</div>
+            <div class="brand-logo-gem">
+                <span class="gem-symbol">💧</span>
+            </div>
             @if (!sidebarCollapsed()) {
             <div class="brand-text">
                 <span class="brand-name">Pure Home Waters</span>
+                <span class="brand-badge">CRM SYSTEM</span>
             </div>
             }
-            @if (!sidebarCollapsed()) {
-            <button class="collapse-btn" (click)="toggleSidebar()">
-                <mat-icon>{{ sidebarCollapsed() ? 'menu' : 'menu_open' }}</mat-icon>
+            <button class="collapse-btn" (click)="toggleSidebar()" [attr.aria-label]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'">
+                <mat-icon>{{ sidebarCollapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
             </button>
-            }
         </div>
 
         <nav class="sidebar-nav">
-            @for (item of navItems; track item) {
-            <a [routerLink]="item.path" routerLinkActive="active" class="nav-item">
-                <mat-icon>{{ item.icon }}</mat-icon>
+            <div class="nav-section-title">
+                @if (!sidebarCollapsed()) {
+                <span>MANAGEMENT</span>
+                }
+            </div>
+            @for (item of navItems; track item.path) {
+            <a [routerLink]="item.path" routerLinkActive="active" class="nav-item" [title]="item.label">
+                <div class="nav-icon-wrap">
+                    <mat-icon>{{ item.icon }}</mat-icon>
+                </div>
                 @if (!sidebarCollapsed()) {
                 <span class="nav-label">{{ item.label }}</span>
                 }
@@ -32,8 +40,15 @@
 
         @if (!sidebarCollapsed()) {
         <div class="sidebar-footer">
-            <p class="version">v1.0.0 · Local</p>
-            <p class="tagline">Pure Home Waters, Tirupati</p>
+            <div class="footer-card">
+                <div class="footer-indicator">
+                    <span class="pulse-dot"></span>
+                    <span class="footer-status">System Online</span>
+                </div>
+                <div class="footer-meta">
+                    <span>v1.0.0 · Tirupati Hub</span>
+                </div>
+            </div>
         </div>
         }
     </aside>
@@ -41,24 +56,28 @@
     <!-- Main Content -->
     <div class="main-area">
         <header class="topbar">
-            @if (sidebarCollapsed()) {
             <div class="topbar-left">
-                <button class="mobile-menu-btn" (click)="toggleSidebar()">
+                <button class="mobile-menu-btn" (click)="toggleSidebar()" aria-label="Toggle menu">
                     <mat-icon>menu</mat-icon>
                 </button>
+                <div class="topbar-welcome">
+                    <span class="app-tagline">Water Purifier Operations Portal</span>
+                </div>
             </div>
-            }
+
             <div class="topbar-right">
+                <!-- Backup Sync Status Pill -->
                 <button class="backup-status" type="button" (click)="retryBackupSync()"
                     [class.state-running]="backupStatus().state === 'running'"
                     [class.state-synced]="backupStatus().state === 'synced'"
                     [class.state-queued]="backupStatus().state === 'queued'"
                     [class.state-error]="backupStatus().state === 'error'"
                     [title]="backupStatus().message">
-                    <mat-icon>{{ getBackupIcon() }}</mat-icon>
+                    <div class="status-indicator-dot"></div>
+                    <mat-icon class="status-icon">{{ getBackupIcon() }}</mat-icon>
                     <span class="backup-copy">
-                        <strong>Backup</strong>
-                        <small>
+                        <span class="backup-title">Cloud Backup</span>
+                        <small class="backup-detail">
                             @if (backupStatus().lastBackupAt) {
                             {{ backupStatus().message }} · {{ backupStatus().lastBackupAt | date:'dd MMM, hh:mm a' }}
                             } @else {
@@ -67,29 +86,34 @@
                         </small>
                     </span>
                 </button>
-                <button class="backup-action" type="button" (click)="saveBackupAndSync()"
-                    [disabled]="backupStatus().state === 'running'"
-                    title="Save backup file and sync immediately">
-                    <mat-icon>download</mat-icon>
-                    <span>Save & Sync</span>
-                </button>
-                <button class="backup-action" type="button" (click)="triggerBackupImport()"
-                    title="Import a previously saved backup file">
-                    <mat-icon>upload</mat-icon>
-                    <span>Import Backup</span>
-                </button>
-                <input #backupFileInput type="file" accept=".sql,.txt" hidden (change)="handleBackupImport($event)">
-                <button class="report-action" type="button" (click)="exportCustomerReport()"
-                    title="Download customer rent, payment, and service report">
-                    <mat-icon>table_view</mat-icon>
-                    <span>Export Report</span>
-                </button>
-                <div class="topbar-date">
-                    <mat-icon>calendar_today</mat-icon>
-                    <span>{{ today }}</span>
+
+                <!-- Actions -->
+                <div class="topbar-actions">
+                    <button class="topbar-btn btn-sync" type="button" (click)="saveBackupAndSync()"
+                        [disabled]="backupStatus().state === 'running'"
+                        title="Save backup file and sync immediately">
+                        <mat-icon>cloud_download</mat-icon>
+                        <span class="btn-text">Save & Sync</span>
+                    </button>
+
+                    <button class="topbar-btn" type="button" (click)="triggerBackupImport()"
+                        title="Import a previously saved backup file">
+                        <mat-icon>upload_file</mat-icon>
+                        <span class="btn-text">Import</span>
+                    </button>
+                    <input #backupFileInput type="file" accept=".sql,.txt" hidden (change)="handleBackupImport($event)">
+
+                    <button class="topbar-btn btn-export" type="button" (click)="exportCustomerReport()"
+                        title="Download customer rent, payment, and service report">
+                        <mat-icon>table_chart</mat-icon>
+                        <span class="btn-text">Export Report</span>
+                    </button>
                 </div>
-                <div class="topbar-brand">
-                    <span>💧 PHW</span>
+
+                <!-- Date display -->
+                <div class="topbar-date-pill">
+                    <mat-icon>event</mat-icon>
+                    <span>{{ today }}</span>
                 </div>
             </div>
         </header>
