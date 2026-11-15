@@ -1,71 +1,38 @@
-import { Injectable } from '@angular/core';
-import { from, Observable } from 'rxjs';
-import { map, shareReplay, tap } from 'rxjs/operators';
-import { db, dbCacheVersion } from '../db/database';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Technician } from '../models/models';
-import { BackupSyncService } from './backup-sync.service';
+import { RealtimeCrmService } from './realtime-crm.service';
 
 @Injectable({ providedIn: 'root' })
 export class TechnicianService {
-  private allCache$: Observable<Technician[]> | null = null;
-  private cachedVersion = -1;
-
-  constructor(private backupSyncSvc: BackupSyncService) {}
+  private readonly crm = inject(RealtimeCrmService);
 
   invalidateCache(): void {
-    this.allCache$ = null;
+    this.crm.invalidateAndRefresh();
   }
 
   getAll(): Observable<Technician[]> {
-    if (!this.allCache$ || this.cachedVersion !== dbCacheVersion) {
-      this.cachedVersion = dbCacheVersion;
-      this.allCache$ = from(db.technicians.orderBy('name').toArray()).pipe(
-        shareReplay({ bufferSize: 1, refCount: false })
-      );
-    }
-    return this.allCache$.pipe(map(list => [...list]));
+    return this.crm.getCollection<Technician>('technicians').pipe(
+      map(list => [...list].sort((a, b) => (a.name || '').localeCompare(b.name || '')))
+    );
   }
 
   getDefault(): Observable<Technician | undefined> {
     return this.getAll().pipe(
-      map(list => list.find(t => Boolean(t.isDefault)))
+      map(list => list.find(t => Boolean(t.isDefault)) ?? list[0])
     );
   }
 
   add(technician: Omit<Technician, 'id' | 'createdAt'>): Observable<number> {
-    return from(db.transaction('rw', db.technicians, async () => {
-      if (technician.isDefault) {
-        await db.technicians.toCollection().modify({ isDefault: false });
-      }
-      return db.technicians.add({ ...technician, createdAt: new Date() } as Technician);
-    })).pipe(
-      tap(() => {
-        this.invalidateCache();
-        void this.backupSyncSvc.triggerBackup('technician create');
-      })
-    );
+    return this.crm.createItem<Technician>('technicians', technician);
   }
 
   update(id: number, technician: Partial<Omit<Technician, 'id' | 'createdAt'>>): Observable<void> {
-    return from(db.transaction('rw', db.technicians, async () => {
-      if (technician.isDefault) {
-        await db.technicians.toCollection().modify({ isDefault: false });
-      }
-      await db.technicians.update(id, technician);
-    })).pipe(
-      tap(() => {
-        this.invalidateCache();
-        void this.backupSyncSvc.triggerBackup('technician update');
-      })
-    );
+    return this.crm.updateItem<Technician>('technicians', id, technician).pipe(map(() => undefined));
   }
 
   delete(id: number): Observable<void> {
-    return from(db.technicians.delete(id)).pipe(
-      tap(() => {
-        this.invalidateCache();
-        void this.backupSyncSvc.triggerBackup('technician delete');
-      })
-    );
+    return this.crm.deleteItem('technicians', id);
   }
 }

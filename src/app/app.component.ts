@@ -11,6 +11,7 @@ import { ServiceRecordService } from './core/services/service-record.service';
 import { PlanService } from './core/services/plan.service';
 import { TechnicianService } from './core/services/technician.service';
 import { CustomerComplaintService } from './core/services/customer-complaint.service';
+import { RealtimeCrmService } from './core/services/realtime-crm.service';
 
 interface NavItem {
   path: string;
@@ -54,7 +55,8 @@ export class AppComponent {
     private serviceSvc: ServiceRecordService,
     private planSvc: PlanService,
     private technicianSvc: TechnicianService,
-    private complaintSvc: CustomerComplaintService
+    private complaintSvc: CustomerComplaintService,
+    public crm: RealtimeCrmService
   ) {
     this.backupStatus = this.backupSyncSvc.status;
     this.prewarmCaches();

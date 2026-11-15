@@ -1,64 +1,44 @@
-import { Injectable } from '@angular/core';
-import { from, Observable } from 'rxjs';
-import { map, shareReplay, tap } from 'rxjs/operators';
-import { db, dbCacheVersion } from '../db/database';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { PaymentRecord } from '../models/models';
-import { BackupSyncService } from './backup-sync.service';
+import { RealtimeCrmService } from './realtime-crm.service';
 
 @Injectable({ providedIn: 'root' })
 export class PaymentService {
-  private allCache$: Observable<PaymentRecord[]> | null = null;
-  private cachedVersion = -1;
-
-  constructor(private backupSyncSvc: BackupSyncService) {}
+  private readonly crm = inject(RealtimeCrmService);
 
   invalidateCache(): void {
-    this.allCache$ = null;
+    this.crm.invalidateAndRefresh();
   }
 
   getAll(): Observable<PaymentRecord[]> {
-    if (!this.allCache$ || this.cachedVersion !== dbCacheVersion) {
-      this.cachedVersion = dbCacheVersion;
-      this.allCache$ = from(db.payments.orderBy('paidDate').reverse().toArray()).pipe(
-        shareReplay({ bufferSize: 1, refCount: false })
-      );
-    }
-    return this.allCache$.pipe(map(list => [...list]));
+    return this.crm.getCollection<PaymentRecord>('payments').pipe(
+      map(list => [...list].sort((a, b) => new Date(b.paidDate).getTime() - new Date(a.paidDate).getTime()))
+    );
   }
 
   getByCustomer(customerId: number): Observable<PaymentRecord[]> {
     return this.getAll().pipe(
-      map(list => list.filter(p => p.customerId === customerId))
+      map(list => list.filter(p => Number(p.customerId) === Number(customerId)))
     );
   }
 
   add(payment: Omit<PaymentRecord, 'id' | 'createdAt'>): Observable<number> {
-    return from(db.payments.add({ ...payment, createdAt: new Date() } as PaymentRecord)).pipe(
-      tap(() => {
-        this.invalidateCache();
-        void this.backupSyncSvc.triggerBackup('payment create');
-      })
-    );
+    return this.crm.createItem<PaymentRecord>('payments', payment);
   }
 
   update(id: number, changes: Partial<PaymentRecord>): Observable<number> {
-    return from(db.payments.update(id, changes)).pipe(
-      tap(() => {
-        this.invalidateCache();
-        void this.backupSyncSvc.triggerBackup('payment update');
-      })
-    );
+    return this.crm.updateItem<PaymentRecord>('payments', id, changes);
   }
 
   delete(id: number): Observable<void> {
-    return from(db.payments.delete(id)).pipe(
-      tap(() => this.invalidateCache())
-    );
+    return this.crm.deleteItem('payments', id);
   }
 
   getTotalCollected(): Observable<number> {
     return this.getAll().pipe(
-      map(arr => arr.reduce((s, p) => s + p.amount, 0))
+      map(arr => arr.reduce((s, p) => s + Number(p.amount || 0), 0))
     );
   }
 }

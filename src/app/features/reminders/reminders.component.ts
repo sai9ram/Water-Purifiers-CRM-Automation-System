@@ -1,7 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { RouterLink } from '@angular/router';
+import { Subscription, forkJoin } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,28 +18,44 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { CustomerService } from '../../core/services/customer.service';
 import { PaymentService } from '../../core/services/payment.service';
 import { WhatsappService } from '../../core/services/whatsapp.service';
-import { Customer, PaymentRecord } from '../../core/models/models';
+import { PaymentLinkService } from '../../core/services/payment-link.service';
+import { RealtimeCrmService } from '../../core/services/realtime-crm.service';
+import { Customer, PaymentRecord, WhatsAppAutomationLog } from '../../core/models/models';
 import { PaymentRecordDialogComponent } from './payment-record-dialog.component';
 
 @Component({
   selector: 'app-reminders',
   standalone: true,
   imports: [
-    CommonModule, FormsModule,
-    MatIconModule, MatButtonModule, MatFormFieldModule,
-    MatInputModule, MatSelectModule, MatDatepickerModule, MatNativeDateModule,
-    MatCheckboxModule, MatDialogModule, MatSnackBarModule, MatTooltipModule, MatProgressBarModule
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    MatIconModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatCheckboxModule,
+    MatDialogModule,
+    MatSnackBarModule,
+    MatTooltipModule,
+    MatProgressBarModule
   ],
   templateUrl: './reminders.component.html',
   styleUrl: './reminders.component.scss'
 })
-export class RemindersComponent implements OnInit {
+export class RemindersComponent implements OnInit, OnDestroy {
   dueThisMonth: Customer[] = [];
+  dueIn5DaysCustomers: Customer[] = [];
   overdueCustomers: Customer[] = [];
+  paidThisCycleCustomers: Customer[] = [];
   allActive: Customer[] = [];
   displayedCustomers: Customer[] = [];
   allCustomers: Customer[] = [];
   allPayments: PaymentRecord[] = [];
+  automationLogs: WhatsAppAutomationLog[] = [];
 
   activeTab = 'month';
   reminderFilter: 'all' | 'this-month' | 'last-month' | 'next-month' | 'custom' = 'this-month';
@@ -54,16 +71,39 @@ export class RemindersComponent implements OnInit {
 
   bulkSending = false;
   bulkProgress = 0;
+  runningAutoCheck = false;
 
   private customerSvc = inject(CustomerService);
   private paymentSvc = inject(PaymentService);
   private waSvc = inject(WhatsappService);
+  private paymentLinkSvc = inject(PaymentLinkService);
+  public crm = inject(RealtimeCrmService);
   private dialog = inject(MatDialog);
   private snack = inject(MatSnackBar);
+
+  private subs = new Subscription();
 
   ngOnInit(): void {
     this.setReminderRange('this-month');
     this.loadData();
+
+    // Real-time refresh whenever a customer pays online via their payment link or automation triggers
+    this.subs.add(
+      this.crm.changes$.subscribe(() => {
+        this.loadData();
+      })
+    );
+
+    this.subs.add(
+      this.crm.whatsappLogs$.subscribe(logs => {
+        this.automationLogs = logs.slice(0, 25);
+        this.sentCount = logs.filter(l => l.direction === 'OUTBOUND').length;
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
   }
 
   loadData(): void {
@@ -74,6 +114,20 @@ export class RemindersComponent implements OnInit {
       this.allCustomers = customers;
       this.allPayments = payments;
       this.computeReminderLists();
+    });
+  }
+
+  triggerAutomationCheck(): void {
+    this.runningAutoCheck = true;
+    this.crm.runAutomationNow().subscribe({
+      next: res => {
+        this.runningAutoCheck = false;
+        this.loadData();
+        this.snack.open(res.message, 'OK', { duration: 3500 });
+      },
+      error: () => {
+        this.runningAutoCheck = false;
+      }
     });
   }
 
@@ -98,30 +152,43 @@ export class RemindersComponent implements OnInit {
       if (!payment.customerId) continue;
       const paidDate = new Date(payment.paidDate);
       if ((!start || paidDate >= start) && (!end || paidDate <= end)) {
-        paidCustomerIds.add(payment.customerId);
+        paidCustomerIds.add(Number(payment.customerId));
       }
     }
 
-    const referenceDate = this.startDate ? this.startDate : new Date();
-    const graceDate = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 5);
     const now = new Date();
-    const todayOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const pastGrace = todayOnly > graceDate;
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     const dueThisMonth: Customer[] = [];
+    const dueIn5DaysCustomers: Customer[] = [];
     const overdueCustomers: Customer[] = [];
+    const paidThisCycleCustomers: Customer[] = [];
     const allActive: Customer[] = [];
     let totalDue = 0;
 
     for (const customer of this.allCustomers) {
-      if (!customer.id || paidCustomerIds.has(customer.id)) continue;
+      if (!customer.id) continue;
+
+      if (paidCustomerIds.has(Number(customer.id))) {
+        paidThisCycleCustomers.push(customer);
+        continue;
+      }
+
+      const dueDate = new Date(customer.nextDueDate);
+      const dueMidnight = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+      const daysUntilDue = Math.round((dueMidnight.getTime() - todayMidnight.getTime()) / 86400000);
+      customer.daysUntilDue = daysUntilDue;
 
       if (customer.status === 'active' || customer.status === 'overdue') {
         dueThisMonth.push(customer);
         totalDue += customer.monthlyRent ?? 0;
       }
 
-      if (pastGrace && customer.status !== 'inactive') {
+      if (daysUntilDue >= 0 && daysUntilDue <= 5 && customer.status !== 'inactive') {
+        dueIn5DaysCustomers.push(customer);
+      }
+
+      if ((daysUntilDue < 0 || customer.status === 'overdue') && customer.status !== 'inactive') {
         overdueCustomers.push(customer);
       }
 
@@ -131,7 +198,9 @@ export class RemindersComponent implements OnInit {
     }
 
     this.dueThisMonth = dueThisMonth;
+    this.dueIn5DaysCustomers = dueIn5DaysCustomers;
     this.overdueCustomers = overdueCustomers;
+    this.paidThisCycleCustomers = paidThisCycleCustomers;
     this.allActive = allActive;
     this.totalDue = totalDue;
     this.setTab(this.activeTab);
@@ -175,13 +244,15 @@ export class RemindersComponent implements OnInit {
     this.activeTab = tab;
     this.selectedIds.clear();
     if (tab === 'month') this.displayedCustomers = this.dueThisMonth;
+    else if (tab === 'pre5') this.displayedCustomers = this.dueIn5DaysCustomers;
     else if (tab === 'overdue') this.displayedCustomers = this.overdueCustomers;
+    else if (tab === 'paid') this.displayedCustomers = this.paidThisCycleCustomers;
     else this.displayedCustomers = this.allActive;
   }
 
   toggleSelect(id: number, checked: boolean): void {
     if (checked) {
-      this.selectedIds.add(id)
+      this.selectedIds.add(id);
     } else {
       this.selectedIds.delete(id);
     }
@@ -193,6 +264,22 @@ export class RemindersComponent implements OnInit {
 
   deselectAll(): void {
     this.selectedIds.clear();
+  }
+
+  getUniquePaymentId(c: Customer): string {
+    return this.paymentLinkSvc.getUniquePaymentId(c);
+  }
+
+  getPaymentLinkUrl(c: Customer): string {
+    return this.paymentLinkSvc.getPaymentUrl(c, c.monthlyRent ?? 0);
+  }
+
+  copyPaymentLink(c: Customer): void {
+    const url = this.getPaymentLinkUrl(c);
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      void navigator.clipboard.writeText(url);
+      this.snack.open(`Copied unique payment link (${this.getUniquePaymentId(c)})`, 'OK', { duration: 2500 });
+    }
   }
 
   sendSingle(c: Customer): void {
@@ -216,7 +303,7 @@ export class RemindersComponent implements OnInit {
       this.bulkProgress = Math.round(((i + 1) / selected.length) * 100);
 
       if (i < selected.length - 1) {
-        await new Promise(r => setTimeout(r, 1200)); // small delay between tabs
+        await new Promise(r => setTimeout(r, 1200));
       }
     }
 
@@ -240,6 +327,35 @@ export class RemindersComponent implements OnInit {
         this.loadData();
       }
     });
+  }
+
+  getDueCountdownBadge(c: Customer): { label: string; css: string } {
+    const days = c.daysUntilDue ?? Math.ceil((new Date(c.nextDueDate).getTime() - Date.now()) / 86400000);
+    if (this.activeTab === 'paid') {
+      return { label: 'PAID ✓ (Moved to Paid List)', css: 'auto-badge paid' };
+    }
+    if (days < 0) {
+      return {
+        label: `Overdue by ${Math.abs(days)}d · Auto Reminder Sent ✓`,
+        css: 'auto-badge overdue'
+      };
+    }
+    if (days === 0) {
+      return {
+        label: 'Due Today · Auto Reminder Sent ✓',
+        css: 'auto-badge due-today'
+      };
+    }
+    if (days <= 5) {
+      return {
+        label: `Due in ${days}d (5-Day Pre-Due Auto-Sent ✓)`,
+        css: 'auto-badge pre-due'
+      };
+    }
+    return {
+      label: `Due in ${days}d (Auto-Scheduled 5d Before)`,
+      css: 'auto-badge scheduled'
+    };
   }
 
   getDueDateClass(date: Date): string {

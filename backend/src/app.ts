@@ -1,3 +1,4 @@
+import path from 'path';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -63,6 +64,11 @@ export function createApp() {
   // Versioned API routes (/api/v1)
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/customers', customerRoutes);
+
+  // Real-time CRM & Automation Engine routes (/api/v1/crm)
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const crmHandler = require(path.resolve(__dirname, '../../api/crm.js'));
+  app.use('/api/v1/crm', (req, res) => crmHandler(req, res));
 
   // 404 & centralized error handling
   app.use(notFoundHandler);

@@ -1,61 +1,41 @@
-import { Injectable } from '@angular/core';
-import { from, Observable } from 'rxjs';
-import { map, shareReplay, tap } from 'rxjs/operators';
-import { db, dbCacheVersion } from '../db/database';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { CustomerComplaint } from '../models/models';
-import { BackupSyncService } from './backup-sync.service';
+import { RealtimeCrmService } from './realtime-crm.service';
 
 @Injectable({ providedIn: 'root' })
 export class CustomerComplaintService {
-  private allCache$: Observable<CustomerComplaint[]> | null = null;
-  private cachedVersion = -1;
-
-  constructor(private backupSyncSvc: BackupSyncService) {}
+  private readonly crm = inject(RealtimeCrmService);
 
   invalidateCache(): void {
-    this.allCache$ = null;
+    this.crm.invalidateAndRefresh();
   }
 
   getAll(): Observable<CustomerComplaint[]> {
-    if (!this.allCache$ || this.cachedVersion !== dbCacheVersion) {
-      this.cachedVersion = dbCacheVersion;
-      this.allCache$ = from(db.customerComplaints.orderBy('createdAt').reverse().toArray()).pipe(
-        shareReplay({ bufferSize: 1, refCount: false })
-      );
-    }
-    return this.allCache$.pipe(map(list => [...list]));
+    return this.crm.getCollection<CustomerComplaint>('customerComplaints').pipe(
+      map(list => [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))
+    );
   }
 
   getByCustomer(customerId: number): Observable<CustomerComplaint[]> {
     return this.getAll().pipe(
-      map(list => list.filter(c => c.customerId === customerId))
+      map(list => list.filter(c => Number(c.customerId) === Number(customerId)))
     );
   }
 
   add(complaint: Omit<CustomerComplaint, 'id' | 'createdAt'>): Observable<number> {
-    return from(db.customerComplaints.add({ ...complaint, resolved: false, createdAt: new Date() } as CustomerComplaint)).pipe(
-      tap(() => {
-        this.invalidateCache();
-        void this.backupSyncSvc.triggerBackup('customer complaint create');
-      })
-    );
+    return this.crm.createItem<CustomerComplaint>('customerComplaints', {
+      ...complaint,
+      resolved: false
+    });
   }
 
   update(id: number, updates: Partial<CustomerComplaint>): Observable<number> {
-    return from(db.customerComplaints.update(id, updates)).pipe(
-      tap(() => {
-        this.invalidateCache();
-        void this.backupSyncSvc.triggerBackup('customer complaint update');
-      })
-    );
+    return this.crm.updateItem<CustomerComplaint>('customerComplaints', id, updates);
   }
 
   delete(id: number): Observable<void> {
-    return from(db.customerComplaints.delete(id)).pipe(
-      tap(() => {
-        this.invalidateCache();
-        void this.backupSyncSvc.triggerBackup('customer complaint delete');
-      })
-    );
+    return this.crm.deleteItem('customerComplaints', id);
   }
 }

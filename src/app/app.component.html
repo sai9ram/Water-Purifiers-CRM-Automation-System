@@ -22,8 +22,8 @@
                 @if (!sidebarCollapsed()) {
                 <span class="nav-label">{{ item.label }}</span>
                 }
-                @if (item.badge && !sidebarCollapsed()) {
-                <span class="nav-badge">{{ item.badge }}</span>
+                @if (item.path === '/complaints' && crm.newWhatsAppComplaintsCount() > 0 && !sidebarCollapsed()) {
+                <span class="nav-badge">{{ crm.newWhatsAppComplaintsCount() }}</span>
                 }
             </a>
             }
@@ -33,7 +33,7 @@
         <div class="sidebar-footer">
             <div class="footer-simple">
                 <span class="footer-dot"></span>
-                <span>Ready & Saved locally</span>
+                <span>Live Cloud · Auto-Pilot ON</span>
             </div>
         </div>
         }

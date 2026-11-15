@@ -1,34 +1,26 @@
-import { Injectable } from '@angular/core';
-import { from, Observable } from 'rxjs';
-import { map, shareReplay, tap } from 'rxjs/operators';
-import { db, dbCacheVersion } from '../db/database';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ServiceRecord } from '../models/models';
-import { BackupSyncService } from './backup-sync.service';
+import { RealtimeCrmService } from './realtime-crm.service';
 
 @Injectable({ providedIn: 'root' })
 export class ServiceRecordService {
-  private allCache$: Observable<ServiceRecord[]> | null = null;
-  private cachedVersion = -1;
-
-  constructor(private backupSyncSvc: BackupSyncService) {}
+  private readonly crm = inject(RealtimeCrmService);
 
   invalidateCache(): void {
-    this.allCache$ = null;
+    this.crm.invalidateAndRefresh();
   }
 
   getAll(): Observable<ServiceRecord[]> {
-    if (!this.allCache$ || this.cachedVersion !== dbCacheVersion) {
-      this.cachedVersion = dbCacheVersion;
-      this.allCache$ = from(db.serviceRecords.orderBy('serviceDate').reverse().toArray()).pipe(
-        shareReplay({ bufferSize: 1, refCount: false })
-      );
-    }
-    return this.allCache$.pipe(map(list => [...list]));
+    return this.crm.getCollection<ServiceRecord>('serviceRecords').pipe(
+      map(list => [...list].sort((a, b) => new Date(b.serviceDate).getTime() - new Date(a.serviceDate).getTime()))
+    );
   }
 
   getByCustomer(customerId: number): Observable<ServiceRecord[]> {
     return this.getAll().pipe(
-      map(list => list.filter(s => s.customerId === customerId))
+      map(list => list.filter(s => Number(s.customerId) === Number(customerId)))
     );
   }
 
@@ -52,33 +44,21 @@ export class ServiceRecordService {
   }
 
   add(record: Omit<ServiceRecord, 'id' | 'createdAt'>): Observable<number> {
-    return from(db.serviceRecords.add({ ...record, createdAt: new Date() } as ServiceRecord)).pipe(
-      tap(() => {
-        this.invalidateCache();
-        void this.backupSyncSvc.triggerBackup('service create');
-      })
-    );
+    return this.crm.createItem<ServiceRecord>('serviceRecords', record);
   }
 
   update(id: number, changes: Partial<ServiceRecord>): Observable<number> {
-    return from(db.serviceRecords.update(id, changes)).pipe(
-      tap(() => {
-        this.invalidateCache();
-        void this.backupSyncSvc.triggerBackup('service update');
-      })
-    );
+    return this.crm.updateItem<ServiceRecord>('serviceRecords', id, changes);
   }
 
   delete(id: number): Observable<void> {
-    return from(db.serviceRecords.delete(id)).pipe(
-      tap(() => this.invalidateCache())
-    );
+    return this.crm.deleteItem('serviceRecords', id);
   }
 
   getStats(): Observable<{ total: number; thisMonth: number; upcoming: number }> {
-    const now   = new Date();
+    const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    const end   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
     return this.getAll().pipe(
       map(list => {

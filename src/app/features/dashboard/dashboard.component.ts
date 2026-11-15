@@ -1,7 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { Subscription, forkJoin } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -18,6 +18,7 @@ import { Customer, ServiceRecord, PaymentRecord, RentalPlan } from '../../core/m
 import { WhatsappService } from '../../core/services/whatsapp.service';
 import { PaymentService } from '../../core/services/payment.service';
 import { CustomerReportExportService } from '../../core/services/customer-report-export.service';
+import { RealtimeCrmService } from '../../core/services/realtime-crm.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,7 +28,7 @@ import { CustomerReportExportService } from '../../core/services/customer-report
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   stats = { total: 0, active: 0, inactive: 0, overdue: 0, totalRevenue: 0, monthlyRevenue: 0 };
   serviceStats = { total: 0, thisMonth: 0, upcoming: 0 };
   thisMonthMaintenanceCount = 0;
@@ -49,10 +50,25 @@ export class DashboardComponent implements OnInit {
   private waSvc = inject(WhatsappService);
   private paymentSvc = inject(PaymentService);
   private exportSvc = inject(CustomerReportExportService);
+  private crm = inject(RealtimeCrmService);
   private router = inject(Router);
+  private subs = new Subscription();
 
   ngOnInit(): void {
     this.setDashboardRange('this-month');
+    this.loadDashboardData();
+    this.subs.add(
+      this.crm.changes$.subscribe(() => {
+        this.loadDashboardData();
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+  }
+
+  loadDashboardData(): void {
     forkJoin({
       customers: this.customerSvc.getAll(),
       services: this.serviceSvc.getAll(),

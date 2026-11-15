@@ -1,0 +1,6 @@
+backend/.pgdata
+backend/node_modules
+backend/dist
+node_modules
+.angular
+.git

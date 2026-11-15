@@ -1,6 +1,8 @@
 import { Injectable, NgZone, computed, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { db, bumpDbCacheVersion } from '../db/database';
 import { Customer, RentalPlan, ServiceRecord, PaymentRecord, CustomerComment, CustomerComplaint, Technician } from '../models/models';
+import { RealtimeCrmService } from './realtime-crm.service';
 
 type BackupState = 'idle' | 'running' | 'synced' | 'queued' | 'error';
 
@@ -33,6 +35,7 @@ export class BackupSyncService {
   private readonly lastSyncAt = signal<Date | null>(null);
   private syncing = false;
   private readonly ngZone = inject(NgZone);
+  private readonly crm = inject(RealtimeCrmService);
 
   readonly status = computed(() => ({
     state: this.state(),
@@ -106,25 +109,17 @@ export class BackupSyncService {
   }
 
   private async replaceDatabase(snapshot: BackupSnapshot): Promise<void> {
-    await Promise.all([
-      db.rentalPlans.clear(),
-      db.customers.clear(),
-      db.serviceRecords.clear(),
-      db.payments.clear(),
-      db.customerComments.clear(),
-      db.customerComplaints.clear(),
-      db.technicians.clear()
-    ]);
-
-    await Promise.all([
-      snapshot.rentalPlans.length ? db.rentalPlans.bulkPut(snapshot.rentalPlans as RentalPlan[]) : Promise.resolve(),
-      snapshot.customers.length ? db.customers.bulkPut(snapshot.customers as Customer[]) : Promise.resolve(),
-      snapshot.serviceRecords.length ? db.serviceRecords.bulkPut(snapshot.serviceRecords as ServiceRecord[]) : Promise.resolve(),
-      snapshot.payments.length ? db.payments.bulkPut(snapshot.payments as PaymentRecord[]) : Promise.resolve(),
-      snapshot.customerComments.length ? db.customerComments.bulkPut(snapshot.customerComments as CustomerComment[]) : Promise.resolve(),
-      snapshot.customerComplaints.length ? db.customerComplaints.bulkPut(snapshot.customerComplaints as CustomerComplaint[]) : Promise.resolve(),
-      snapshot.technicians.length ? db.technicians.bulkPut(snapshot.technicians as Technician[]) : Promise.resolve()
-    ]);
+    await firstValueFrom(
+      this.crm.replaceCloudDatabase({
+        rentalPlans: snapshot.rentalPlans,
+        customers: snapshot.customers,
+        serviceRecords: snapshot.serviceRecords,
+        payments: snapshot.payments,
+        customerComments: snapshot.customerComments,
+        customerComplaints: snapshot.customerComplaints,
+        technicians: snapshot.technicians
+      })
+    );
   }
 
   private parseSqlBackup(sql: string): BackupSnapshot {
@@ -477,17 +472,16 @@ export class BackupSyncService {
   }
 
   private async readSnapshot(): Promise<BackupSnapshot> {
-    const [customers, rentalPlans, serviceRecords, payments, customerComments, customerComplaints, technicians] = await Promise.all([
-      db.customers.toArray(),
-      db.rentalPlans.toArray(),
-      db.serviceRecords.toArray(),
-      db.payments.toArray(),
-      db.customerComments.toArray(),
-      db.customerComplaints.toArray(),
-      db.technicians.toArray()
-    ]);
-
-    return { customers, rentalPlans, serviceRecords, payments, customerComments, customerComplaints, technicians };
+    const state = await firstValueFrom(this.crm.fetchState(true));
+    return {
+      customers: state.customers || [],
+      rentalPlans: state.rentalPlans || [],
+      serviceRecords: state.serviceRecords || [],
+      payments: state.payments || [],
+      customerComments: state.customerComments || [],
+      customerComplaints: state.customerComplaints || [],
+      technicians: state.technicians || []
+    };
   }
 
   private buildMysqlDump(snapshot: BackupSnapshot, createdAt: Date): string {

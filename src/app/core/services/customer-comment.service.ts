@@ -1,37 +1,36 @@
-import { Injectable } from '@angular/core';
-import { from, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { db } from '../db/database';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { CustomerComment } from '../models/models';
-import { BackupSyncService } from './backup-sync.service';
+import { RealtimeCrmService } from './realtime-crm.service';
 
 @Injectable({ providedIn: 'root' })
 export class CustomerCommentService {
-  constructor(private backupSyncSvc: BackupSyncService) {}
+  private readonly crm = inject(RealtimeCrmService);
 
   getAll(): Observable<CustomerComment[]> {
-    return from(db.customerComments.orderBy('createdAt').reverse().toArray());
+    return this.crm.getCollection<CustomerComment>('customerComments').pipe(
+      map(list => [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))
+    );
   }
 
   getByCustomer(customerId: number): Observable<CustomerComment[]> {
-    return from(
-      db.customerComments.where('customerId').equals(customerId).reverse().sortBy('createdAt')
+    return this.getAll().pipe(
+      map(list => list.filter(c => Number(c.customerId) === Number(customerId)))
     );
   }
 
   getByComplaint(complaintId: number): Observable<CustomerComment[]> {
-    return from(
-      db.customerComments.where('complaintId').equals(complaintId).reverse().sortBy('createdAt')
+    return this.getAll().pipe(
+      map(list => list.filter(c => Number(c.complaintId) === Number(complaintId)))
     );
   }
 
   add(comment: Omit<CustomerComment, 'id' | 'createdAt'>): Observable<number> {
-    return from(db.customerComments.add({ ...comment, createdAt: new Date() } as CustomerComment))
-      .pipe(tap(() => void this.backupSyncSvc.triggerBackup('customer comment create')));
+    return this.crm.createItem<CustomerComment>('customerComments', comment);
   }
 
   delete(id: number): Observable<void> {
-    return from(db.customerComments.delete(id))
-      .pipe(tap(() => void this.backupSyncSvc.triggerBackup('customer comment delete')));
+    return this.crm.deleteItem('customerComments', id);
   }
 }

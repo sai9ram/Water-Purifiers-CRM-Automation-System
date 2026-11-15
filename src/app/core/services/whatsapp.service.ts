@@ -7,26 +7,34 @@ export class WhatsappService {
   constructor(private paymentLinkSvc: PaymentLinkService) {}
 
   generateRentReminderMessage(customer: Customer): string {
-    const month = new Date().toLocaleString('en-IN', { month: 'long', year: 'numeric' });
-    const dueDate = new Date(customer.nextDueDate).toLocaleDateString('en-IN');
+    const dueObj = new Date(customer.nextDueDate);
+    const validDue = Number.isNaN(dueObj.getTime()) ? new Date() : dueObj;
+    const month = validDue.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+    const dueDate = validDue.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const onboardDate = customer.joinDate
+      ? new Date(customer.joinDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+      : dueDate;
     const rent = customer.monthlyRent ?? 0;
+    const paymentId = this.paymentLinkSvc.getUniquePaymentId(customer);
     const paymentLink = this.paymentLinkSvc.getPaymentUrl(customer, rent);
     const rupee = 'Rs.';
 
     return [
-      `Hello ${customer.name},`,
+      `Hello *${customer.name}*,`,
       '',
-      'This is a friendly reminder from *Pure Home Waters*.',
+      'Automated Reminder from *Pure Home Waters* 💧',
       '',
-      `Your monthly water purifier rental payment of *${rupee}${rent}* is due for *${month}*.`,
+      `Your monthly water purifier (*${customer.purifierModel}*) rental payment of *${rupee}${rent}* is due for *${month}*.`,
       '',
-      `Rent: ${rupee}${rent}/-`,
-      `Due Date: ${dueDate}`,
+      `• *Unique Payment ID:* ${paymentId}`,
+      `• *Monthly Rent:* ${rupee}${rent}/-`,
+      `• *Onboarded Date:* ${onboardDate}`,
+      `• *Next Due Date:* ${dueDate}`,
       '',
-      'Please make the payment using this secure payment link:',
+      'Pay securely using your unique payment link below:',
       paymentLink,
       '',
-      'For any queries, feel free to reach us anytime.',
+      '_Once paid using this link, your payment immediately reflects in our CRM and marks your account as PAID._',
       '',
       'Thank you for choosing Pure Home Waters!',
       '- Pure Home Waters, Tirupati'

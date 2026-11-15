@@ -1,11 +1,28 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist/pure-home-waters/browser",
+  "crons": [
+    {
+      "path": "/api/crm?route=automation/cron",
+      "schedule": "0 4 * * *"
+    }
+  ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/v1/crm/(.*)",
+      "destination": "/api/crm?route=$1"
+    },
+    {
+      "source": "/api/v1/crm",
+      "destination": "/api/crm"
+    },
+    {
+      "source": "/api/crm/(.*)",
+      "destination": "/api/crm?route=$1"
+    },
+    {
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]
 }
-

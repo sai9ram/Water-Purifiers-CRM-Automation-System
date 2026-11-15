@@ -1,7 +1,7 @@
-import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { Subscription, forkJoin } from 'rxjs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RouterLink } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -16,6 +16,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { PaymentService } from '../../core/services/payment.service';
 import { CustomerService } from '../../core/services/customer.service';
+import { RealtimeCrmService } from '../../core/services/realtime-crm.service';
 import { Customer, PaymentRecord } from '../../core/models/models';
 import { EditReceiverDialogComponent } from './edit-receiver-dialog.component';
 
@@ -47,7 +48,7 @@ interface PaymentView extends PaymentRecord {
   templateUrl: './payments.component.html',
   styleUrl: './payments.component.scss'
 })
-export class PaymentsComponent implements OnInit, AfterViewInit {
+export class PaymentsComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -70,11 +71,22 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
 
   private paymentSvc = inject(PaymentService);
   private customerSvc = inject(CustomerService);
+  private crm = inject(RealtimeCrmService);
   private dialog = inject(MatDialog);
+  private subs = new Subscription();
 
   ngOnInit(): void {
     this.setPaymentRange('this-month');
     this.loadData();
+    this.subs.add(
+      this.crm.changes$.subscribe(() => {
+        this.loadData();
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
   }
 
   ngAfterViewInit(): void {

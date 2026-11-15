@@ -1,21 +1,25 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import type * as XLSXType from 'xlsx';
-import { db } from '../db/database';
+import { RealtimeCrmService } from './realtime-crm.service';
 
 @Injectable({ providedIn: 'root' })
 export class CustomerReportExportService {
+  private readonly crm = inject(RealtimeCrmService);
+
   async exportCustomerReport(options: {
     startDate?: Date | null;
     endDate?: Date | null;
     fileName?: string;
   } = {}): Promise<void> {
-    const [XLSX, customers, payments, services, plans] = await Promise.all([
+    const [XLSX, state] = await Promise.all([
       import('xlsx'),
-      db.customers.toArray(),
-      db.payments.toArray(),
-      db.serviceRecords.toArray(),
-      db.rentalPlans.toArray()
+      firstValueFrom(this.crm.fetchState(true))
     ]);
+    const customers = state.customers || [];
+    const payments = state.payments || [];
+    const services = state.serviceRecords || [];
+    const plans = state.rentalPlans || [];
 
     const planMap = new Map(plans.map(plan => [plan.id!, plan.monthlyRent]));
 

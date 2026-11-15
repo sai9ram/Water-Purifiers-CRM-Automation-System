@@ -1,58 +1,38 @@
-import { Injectable } from '@angular/core';
-import { from, Observable } from 'rxjs';
-import { map, shareReplay, tap } from 'rxjs/operators';
-import { db, dbCacheVersion } from '../db/database';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { RentalPlan } from '../models/models';
-import { BackupSyncService } from './backup-sync.service';
+import { RealtimeCrmService } from './realtime-crm.service';
 
 @Injectable({ providedIn: 'root' })
 export class PlanService {
-  private allCache$: Observable<RentalPlan[]> | null = null;
-  private cachedVersion = -1;
-
-  constructor(private backupSyncSvc: BackupSyncService) {}
+  private readonly crm = inject(RealtimeCrmService);
 
   invalidateCache(): void {
-    this.allCache$ = null;
+    this.crm.invalidateAndRefresh();
   }
 
   getAll(): Observable<RentalPlan[]> {
-    if (!this.allCache$ || this.cachedVersion !== dbCacheVersion) {
-      this.cachedVersion = dbCacheVersion;
-      this.allCache$ = from(db.rentalPlans.orderBy('monthlyRent').toArray()).pipe(
-        shareReplay({ bufferSize: 1, refCount: false })
-      );
-    }
-    return this.allCache$.pipe(map(list => [...list]));
+    return this.crm.getCollection<RentalPlan>('rentalPlans').pipe(
+      map(list => [...list].sort((a, b) => Number(a.monthlyRent) - Number(b.monthlyRent)))
+    );
   }
 
   getById(id: number): Observable<RentalPlan | undefined> {
     return this.getAll().pipe(
-      map(list => list.find(p => p.id === id))
+      map(list => list.find(p => Number(p.id) === Number(id)))
     );
   }
 
   add(plan: Omit<RentalPlan, 'id' | 'createdAt'>): Observable<number> {
-    return from(db.rentalPlans.add({ ...plan, createdAt: new Date() } as RentalPlan)).pipe(
-      tap(() => {
-        this.invalidateCache();
-        void this.backupSyncSvc.triggerBackup('plan create');
-      })
-    );
+    return this.crm.createItem<RentalPlan>('rentalPlans', plan);
   }
 
   update(id: number, changes: Partial<RentalPlan>): Observable<number> {
-    return from(db.rentalPlans.update(id, changes)).pipe(
-      tap(() => {
-        this.invalidateCache();
-        void this.backupSyncSvc.triggerBackup('plan update');
-      })
-    );
+    return this.crm.updateItem<RentalPlan>('rentalPlans', id, changes);
   }
 
   delete(id: number): Observable<void> {
-    return from(db.rentalPlans.delete(id)).pipe(
-      tap(() => this.invalidateCache())
-    );
+    return this.crm.deleteItem('rentalPlans', id);
   }
 }
