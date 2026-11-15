@@ -138,3 +138,8 @@ dist
 #angular cache
 .angular/cache
 .vercel
+.pgdata/
+backend/.pgdata/
+backend/dist/
+backend/node_modules/
+backend/.env

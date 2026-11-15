@@ -1,0 +1,844 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum RoleCode {
+  OWNER_ADMIN
+  ACCOUNTANT
+  SUPPORT_EXECUTIVE
+  TECHNICIAN
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+  OVERDUE
+}
+
+enum AssetStatus {
+  AVAILABLE
+  DEPLOYED
+  MAINTENANCE
+  RETIRED
+}
+
+enum RentalContractStatus {
+  ACTIVE
+  PAUSED
+  TERMINATED
+  COMPLETED
+}
+
+enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
+enum BillingScheduleStatus {
+  PENDING
+  INVOICED
+  PAID
+  OVERDUE
+  SKIPPED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  PARTIALLY_PAID
+  OVERDUE
+  VOID
+}
+
+enum PaymentMethod {
+  UPI
+  CASH
+  BANK_TRANSFER
+  RAZORPAY
+  CARD
+  OTHER
+}
+
+enum PaymentRecordStatus {
+  COMPLETED
+  PENDING
+  FAILED
+  REFUNDED
+}
+
+enum ServiceType {
+  FILTER_CHANGE
+  REPAIR
+  INSTALLATION
+  GENERAL_SERVICE
+  DEMO
+}
+
+enum ServiceJobStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum ComplaintPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum NotificationChannel {
+  WHATSAPP
+  SMS
+  EMAIL
+  IN_APP
+}
+
+enum NotificationStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+}
+
+enum AutomationJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  PAUSED
+}
+
+// ============================================================================
+// 1. AUTHENTICATION & RBAC
+// ============================================================================
+
+model User {
+  id            String         @id @default(uuid()) @db.Uuid
+  email         String         @unique @db.VarChar(255)
+  phone         String?        @unique @db.VarChar(20)
+  fullName      String         @map("full_name") @db.VarChar(150)
+  passwordHash  String         @map("password_hash") @db.VarChar(255)
+  isActive      Boolean        @default(true) @map("is_active")
+  lastLoginAt   DateTime?      @map("last_login_at") @db.Timestamptz(6)
+  deletedAt     DateTime?      @map("deleted_at") @db.Timestamptz(6)
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  userRoles     UserRole[]
+  refreshTokens RefreshToken[]
+  technician    Technician?
+  comments      CustomerComment[]
+  serviceNotes  ServiceNote[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
+
+  @@index([email])
+  @@index([isActive])
+  @@map("users")
+}
+
+model Role {
+  id              String           @id @default(uuid()) @db.Uuid
+  code            RoleCode         @unique
+  name            String           @unique @db.VarChar(100)
+  description     String?          @db.Text
+  isSystem        Boolean          @default(true) @map("is_system")
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id              String           @id @default(uuid()) @db.Uuid
+  code            String           @unique @db.VarChar(100)
+  module          String           @db.VarChar(60)
+  description     String?          @db.Text
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  rolePermissions RolePermission[]
+
+  @@index([module])
+  @@map("permissions")
+}
+
+model UserRole {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  roleId     String   @map("role_id") @db.Uuid
+  assignedAt DateTime @default(now()) @map("assigned_at") @db.Timestamptz(6)
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  id           String     @id @default(uuid()) @db.Uuid
+  roleId       String     @map("role_id") @db.Uuid
+  permissionId String     @map("permission_id") @db.Uuid
+  grantedAt    DateTime   @default(now()) @map("granted_at") @db.Timestamptz(6)
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+model RefreshToken {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  tokenHash       String    @unique @map("token_hash") @db.VarChar(255)
+  replacedByToken String?   @map("replaced_by_token") @db.VarChar(255)
+  ipAddress       String?   @map("ip_address") @db.VarChar(64)
+  userAgent       String?   @map("user_agent") @db.VarChar(512)
+  expiresAt       DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt       DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+// ============================================================================
+// 2. CUSTOMERS
+// ============================================================================
+
+model Customer {
+  id                String              @id @default(uuid()) @db.Uuid
+  legacyId          Int?                @unique @map("legacy_id")
+  customerCode      String              @unique @map("customer_code") @db.VarChar(40)
+  name              String              @db.VarChar(200)
+  phone             String              @unique @db.VarChar(20)
+  alternatePhone    String?             @map("alternate_phone") @db.VarChar(20)
+  email             String?             @db.VarChar(255)
+  address           String              @db.Text
+  area              String              @db.VarChar(150)
+  purifierModel     String?             @map("purifier_model") @db.VarChar(150)
+  planId            String?             @map("plan_id") @db.Uuid
+  planName          String?             @map("plan_name") @db.VarChar(150)
+  monthlyRent       Decimal             @default(0) @map("monthly_rent") @db.Decimal(12, 2)
+  depositPaid       Decimal             @default(0) @map("deposit_paid") @db.Decimal(12, 2)
+  initialInvestment Decimal?            @map("initial_investment") @db.Decimal(12, 2)
+  joinDate          DateTime            @default(now()) @map("join_date") @db.Timestamptz(6)
+  nextDueDate       DateTime            @map("next_due_date") @db.Timestamptz(6)
+  lastPaymentDate   DateTime?           @map("last_payment_date") @db.Timestamptz(6)
+  lastServiceDate   DateTime?           @map("last_service_date") @db.Timestamptz(6)
+  nextServiceDate   DateTime?           @map("next_service_date") @db.Timestamptz(6)
+  status            CustomerStatus      @default(ACTIVE)
+  notes             String?             @db.Text
+  isArchived        Boolean             @default(false) @map("is_archived")
+  deletedAt         DateTime?           @map("deleted_at") @db.Timestamptz(6)
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  rentalPlan        RentalPlan?         @relation(fields: [planId], references: [id], onDelete: SetNull)
+  addresses         CustomerAddress[]
+  comments          CustomerComment[]
+  complaints        CustomerComplaint[]
+  assets            CustomerAsset[]
+  rentalContracts   RentalContract[]
+  billingSchedules  BillingSchedule[]
+  invoices          Invoice[]
+  payments          Payment[]
+  paymentLinks      PaymentLink[]
+  serviceSchedules  ServiceSchedule[]
+  serviceJobs       ServiceJob[]
+  whatsappLogs      WhatsAppLog[]
+
+  @@index([name])
+  @@index([phone])
+  @@index([area])
+  @@index([status])
+  @@index([nextDueDate])
+  @@index([deletedAt])
+  @@map("customers")
+}
+
+model CustomerAddress {
+  id           String    @id @default(uuid()) @db.Uuid
+  customerId   String    @map("customer_id") @db.Uuid
+  label        String    @default("Primary") @db.VarChar(60)
+  addressLine1 String    @map("address_line_1") @db.Text
+  addressLine2 String?   @map("address_line_2") @db.Text
+  area         String    @db.VarChar(150)
+  city         String    @default("Tirupati") @db.VarChar(100)
+  state        String    @default("Andhra Pradesh") @db.VarChar(100)
+  postalCode   String?   @map("postal_code") @db.VarChar(20)
+  landmark     String?   @db.VarChar(255)
+  isPrimary    Boolean   @default(true) @map("is_primary")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customer     Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([area])
+  @@map("customer_addresses")
+}
+
+model CustomerComplaint {
+  id          String            @id @default(uuid()) @db.Uuid
+  legacyId    Int?              @unique @map("legacy_id")
+  customerId  String            @map("customer_id") @db.Uuid
+  complaint   String            @db.Text
+  status      ComplaintStatus   @default(OPEN)
+  priority    ComplaintPriority @default(MEDIUM)
+  resolved    Boolean           @default(false)
+  resolvedAt  DateTime?         @map("resolved_at") @db.Timestamptz(6)
+  deletedAt   DateTime?         @map("deleted_at") @db.Timestamptz(6)
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customer    Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  comments    CustomerComment[]
+  serviceJobs ServiceJob[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([resolved])
+  @@map("customer_complaints")
+}
+
+model CustomerComment {
+  id          String             @id @default(uuid()) @db.Uuid
+  legacyId    Int?               @unique @map("legacy_id")
+  customerId  String             @map("customer_id") @db.Uuid
+  complaintId String?            @map("complaint_id") @db.Uuid
+  authorId    String?            @map("author_id") @db.Uuid
+  comment     String             @db.Text
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customer    Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  complaint   CustomerComplaint? @relation(fields: [complaintId], references: [id], onDelete: SetNull)
+  author      User?              @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([complaintId])
+  @@map("customer_comments")
+}
+
+// ============================================================================
+// 3. PRODUCTS AND RENTALS
+// ============================================================================
+
+model Product {
+  id                      String          @id @default(uuid()) @db.Uuid
+  sku                     String          @unique @db.VarChar(80)
+  name                    String          @unique @db.VarChar(150)
+  brand                   String?         @db.VarChar(100)
+  modelName               String          @map("model_name") @db.VarChar(150)
+  description             String?         @db.Text
+  defaultUnitCost         Decimal         @default(0) @map("default_unit_cost") @db.Decimal(12, 2)
+  maintenanceIntervalDays Int             @default(90) @map("maintenance_interval_days")
+  isActive                Boolean         @default(true) @map("is_active")
+  createdAt               DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  assets                  CustomerAsset[]
+
+  @@index([modelName])
+  @@map("products")
+}
+
+model CustomerAsset {
+  id                String            @id @default(uuid()) @db.Uuid
+  customerId        String?           @map("customer_id") @db.Uuid
+  productId         String            @map("product_id") @db.Uuid
+  serialNumber      String            @unique @map("serial_number") @db.VarChar(100)
+  installedAt       DateTime?         @map("installed_at") @db.Timestamptz(6)
+  initialInvestment Decimal           @default(0) @map("initial_investment") @db.Decimal(12, 2)
+  status            AssetStatus       @default(DEPLOYED)
+  notes             String?           @db.Text
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customer          Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  product           Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+  rentalContracts   RentalContract[]
+  serviceSchedules  ServiceSchedule[]
+  serviceJobs       ServiceJob[]
+
+  @@index([customerId])
+  @@index([productId])
+  @@index([status])
+  @@map("customer_assets")
+}
+
+model RentalPlan {
+  id              String           @id @default(uuid()) @db.Uuid
+  legacyId        Int?             @unique @map("legacy_id")
+  name            String           @unique @db.VarChar(150)
+  monthlyRent     Decimal          @map("monthly_rent") @db.Decimal(12, 2)
+  depositAmount   Decimal          @map("deposit_amount") @db.Decimal(12, 2)
+  description     String?          @db.Text
+  features        Json             @default("[]")
+  billingCycle    BillingCycle     @default(MONTHLY) @map("billing_cycle")
+  isActive        Boolean          @default(true) @map("is_active")
+  deletedAt       DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customers       Customer[]
+  rentalContracts RentalContract[]
+
+  @@index([monthlyRent])
+  @@index([isActive])
+  @@map("rental_plans")
+}
+
+model RentalContract {
+  id               String               @id @default(uuid()) @db.Uuid
+  contractNumber   String               @unique @map("contract_number") @db.VarChar(60)
+  customerId       String               @map("customer_id") @db.Uuid
+  planId           String               @map("plan_id") @db.Uuid
+  assetId          String?              @map("asset_id") @db.Uuid
+  monthlyRent      Decimal              @map("monthly_rent") @db.Decimal(12, 2)
+  securityDeposit  Decimal              @map("security_deposit") @db.Decimal(12, 2)
+  billingDay       Int                  @default(1) @map("billing_day")
+  gracePeriodDays  Int                  @default(5) @map("grace_period_days")
+  startDate        DateTime             @map("start_date") @db.Timestamptz(6)
+  endDate          DateTime?            @map("end_date") @db.Timestamptz(6)
+  nextBillingDate  DateTime             @map("next_billing_date") @db.Timestamptz(6)
+  status           RentalContractStatus @default(ACTIVE)
+  notes            String?              @db.Text
+  createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customer         Customer             @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  plan             RentalPlan           @relation(fields: [planId], references: [id], onDelete: Restrict)
+  asset            CustomerAsset?       @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  billingSchedules BillingSchedule[]
+  invoices         Invoice[]
+
+  @@index([customerId])
+  @@index([planId])
+  @@index([status])
+  @@index([nextBillingDate])
+  @@map("rental_contracts")
+}
+
+model BillingSchedule {
+  id               String                @id @default(uuid()) @db.Uuid
+  customerId       String                @map("customer_id") @db.Uuid
+  rentalContractId String                @map("rental_contract_id") @db.Uuid
+  periodLabel      String                @map("period_label") @db.VarChar(60)
+  periodStart      DateTime              @map("period_start") @db.Timestamptz(6)
+  periodEnd        DateTime              @map("period_end") @db.Timestamptz(6)
+  dueDate          DateTime              @map("due_date") @db.Timestamptz(6)
+  amountDue        Decimal               @map("amount_due") @db.Decimal(12, 2)
+  status           BillingScheduleStatus @default(PENDING)
+  createdAt        DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customer         Customer              @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  rentalContract   RentalContract        @relation(fields: [rentalContractId], references: [id], onDelete: Restrict)
+  invoices         Invoice[]
+
+  @@unique([rentalContractId, periodLabel])
+  @@index([customerId])
+  @@index([dueDate])
+  @@index([status])
+  @@map("billing_schedules")
+}
+
+// ============================================================================
+// 4. FINANCE
+// ============================================================================
+
+model Invoice {
+  id                String           @id @default(uuid()) @db.Uuid
+  invoiceNumber     String           @unique @map("invoice_number") @db.VarChar(60)
+  customerId        String           @map("customer_id") @db.Uuid
+  rentalContractId  String?          @map("rental_contract_id") @db.Uuid
+  billingScheduleId String?          @map("billing_schedule_id") @db.Uuid
+  forMonth          String           @map("for_month") @db.VarChar(60)
+  subtotalAmount    Decimal          @map("subtotal_amount") @db.Decimal(12, 2)
+  taxAmount         Decimal          @default(0) @map("tax_amount") @db.Decimal(12, 2)
+  discountAmount    Decimal          @default(0) @map("discount_amount") @db.Decimal(12, 2)
+  totalAmount       Decimal          @map("total_amount") @db.Decimal(12, 2)
+  paidAmount        Decimal          @default(0) @map("paid_amount") @db.Decimal(12, 2)
+  balanceAmount     Decimal          @map("balance_amount") @db.Decimal(12, 2)
+  issuedAt          DateTime         @default(now()) @map("issued_at") @db.Timestamptz(6)
+  dueDate           DateTime         @map("due_date") @db.Timestamptz(6)
+  paidAt            DateTime?        @map("paid_at") @db.Timestamptz(6)
+  status            InvoiceStatus    @default(ISSUED)
+  notes             String?          @db.Text
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customer          Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  rentalContract    RentalContract?  @relation(fields: [rentalContractId], references: [id], onDelete: SetNull)
+  billingSchedule   BillingSchedule? @relation(fields: [billingScheduleId], references: [id], onDelete: SetNull)
+  items             InvoiceItem[]
+  payments          Payment[]
+  paymentLinks      PaymentLink[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  invoiceId   String   @map("invoice_id") @db.Uuid
+  description String   @db.VarChar(255)
+  quantity    Int      @default(1)
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(12, 2)
+  lineTotal   Decimal  @map("line_total") @db.Decimal(12, 2)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_items")
+}
+
+model Payment {
+  id                   String              @id @default(uuid()) @db.Uuid
+  legacyId             Int?                @unique @map("legacy_id")
+  customerId           String              @map("customer_id") @db.Uuid
+  invoiceId            String?             @map("invoice_id") @db.Uuid
+  amount               Decimal             @db.Decimal(12, 2)
+  paidDate             DateTime            @map("paid_date") @db.Timestamptz(6)
+  forMonth             String              @map("for_month") @db.VarChar(60)
+  receiver             String              @default("Charan") @db.VarChar(100)
+  paymentMethod        PaymentMethod       @default(UPI) @map("payment_method")
+  transactionReference String?             @unique @map("transaction_reference") @db.VarChar(150)
+  status               PaymentRecordStatus @default(COMPLETED)
+  notes                String?             @db.Text
+  isHistoricalImport   Boolean             @default(false) @map("is_historical_import")
+  deletedAt            DateTime?           @map("deleted_at") @db.Timestamptz(6)
+  createdAt            DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customer             Customer            @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  invoice              Invoice?            @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([paidDate])
+  @@index([forMonth])
+  @@index([receiver])
+  @@map("payments")
+}
+
+model PaymentLink {
+  id              String    @id @default(uuid()) @db.Uuid
+  customerId      String    @map("customer_id") @db.Uuid
+  invoiceId       String?   @map("invoice_id") @db.Uuid
+  provider        String    @default("RAZORPAY") @db.VarChar(50)
+  externalLinkId  String?   @unique @map("external_link_id") @db.VarChar(120)
+  shortUrl        String    @map("short_url") @db.Text
+  amount          Decimal   @db.Decimal(12, 2)
+  currency        String    @default("INR") @db.VarChar(10)
+  status          String    @default("CREATED") @db.VarChar(40)
+  expiresAt       DateTime? @map("expires_at") @db.Timestamptz(6)
+  paidAt          DateTime? @map("paid_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customer        Customer  @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  invoice         Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([status])
+  @@map("payment_links")
+}
+
+model PaymentWebhookEvent {
+  id            String    @id @default(uuid()) @db.Uuid
+  provider      String    @default("RAZORPAY") @db.VarChar(50)
+  eventId       String    @unique @map("event_id") @db.VarChar(150)
+  eventType     String    @map("event_type") @db.VarChar(100)
+  signature     String    @db.VarChar(255)
+  payload       Json
+  processed     Boolean   @default(false)
+  processedAt   DateTime? @map("processed_at") @db.Timestamptz(6)
+  errorMessage  String?   @map("error_message") @db.Text
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([eventType])
+  @@index([processed])
+  @@map("payment_webhook_events")
+}
+
+// ============================================================================
+// 5. SERVICES & TECHNICIANS
+// ============================================================================
+
+model Technician {
+  id          String                 @id @default(uuid()) @db.Uuid
+  legacyId    Int?                   @unique @map("legacy_id")
+  userId      String?                @unique @map("user_id") @db.Uuid
+  name        String                 @db.VarChar(150)
+  phone       String?                @db.VarChar(20)
+  isDefault   Boolean                @default(false) @map("is_default")
+  isActive    Boolean                @default(true) @map("is_active")
+  deletedAt   DateTime?              @map("deleted_at") @db.Timestamptz(6)
+  createdAt   DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user        User?                  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  serviceJobs ServiceJob[]
+  assignments TechnicianAssignment[]
+
+  @@index([name])
+  @@index([isDefault])
+  @@map("technicians")
+}
+
+model ServiceSchedule {
+  id                String        @id @default(uuid()) @db.Uuid
+  customerId        String        @map("customer_id") @db.Uuid
+  assetId           String?       @map("asset_id") @db.Uuid
+  scheduledDate     DateTime      @map("scheduled_date") @db.Timestamptz(6)
+  serviceType       ServiceType   @default(FILTER_CHANGE) @map("service_type")
+  intervalMonths    Int           @default(3) @map("interval_months")
+  isCompleted       Boolean       @default(false) @map("is_completed")
+  completedAt       DateTime?     @map("completed_at") @db.Timestamptz(6)
+  notes             String?       @db.Text
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customer          Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  asset             CustomerAsset? @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  serviceJobs       ServiceJob[]
+
+  @@index([customerId])
+  @@index([scheduledDate])
+  @@index([isCompleted])
+  @@map("service_schedules")
+}
+
+model ServiceJob {
+  id                String                 @id @default(uuid()) @db.Uuid
+  legacyId          Int?                   @unique @map("legacy_id")
+  customerId        String                 @map("customer_id") @db.Uuid
+  assetId           String?                @map("asset_id") @db.Uuid
+  scheduleId        String?                @map("schedule_id") @db.Uuid
+  complaintId       String?                @map("complaint_id") @db.Uuid
+  technicianId      String?                @map("technician_id") @db.Uuid
+  technicianName    String                 @map("technician_name") @db.VarChar(150)
+  serviceType       ServiceType            @default(FILTER_CHANGE) @map("service_type")
+  serviceDate       DateTime               @map("service_date") @db.Timestamptz(6)
+  nextServiceDate   DateTime?              @map("next_service_date") @db.Timestamptz(6)
+  status            ServiceJobStatus       @default(COMPLETED)
+  partsReplacedRaw  String?                @map("parts_replaced_raw") @db.Text
+  totalCost         Decimal                @default(0) @map("total_cost") @db.Decimal(12, 2)
+  notes             String?                @db.Text
+  deletedAt         DateTime?              @map("deleted_at") @db.Timestamptz(6)
+  createdAt         DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customer          Customer               @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  asset             CustomerAsset?         @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  schedule          ServiceSchedule?       @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  complaint         CustomerComplaint?     @relation(fields: [complaintId], references: [id], onDelete: SetNull)
+  technician        Technician?            @relation(fields: [technicianId], references: [id], onDelete: SetNull)
+  assignments       TechnicianAssignment[]
+  parts             ServicePart[]
+  serviceNotes      ServiceNote[]
+
+  @@index([customerId])
+  @@index([serviceDate])
+  @@index([nextServiceDate])
+  @@index([serviceType])
+  @@index([status])
+  @@map("service_jobs")
+}
+
+model TechnicianAssignment {
+  id           String     @id @default(uuid()) @db.Uuid
+  serviceJobId String     @map("service_job_id") @db.Uuid
+  technicianId String     @map("technician_id") @db.Uuid
+  assignedAt   DateTime   @default(now()) @map("assigned_at") @db.Timestamptz(6)
+  completedAt  DateTime?  @map("completed_at") @db.Timestamptz(6)
+  status       String     @default("ASSIGNED") @db.VarChar(40)
+
+  serviceJob   ServiceJob @relation(fields: [serviceJobId], references: [id], onDelete: Cascade)
+  technician   Technician @relation(fields: [technicianId], references: [id], onDelete: Restrict)
+
+  @@unique([serviceJobId, technicianId])
+  @@index([technicianId])
+  @@map("technician_assignments")
+}
+
+model ServicePart {
+  id           String     @id @default(uuid()) @db.Uuid
+  serviceJobId String     @map("service_job_id") @db.Uuid
+  partName     String     @map("part_name") @db.VarChar(150)
+  quantity     Int        @default(1)
+  unitCost     Decimal    @default(0) @map("unit_cost") @db.Decimal(12, 2)
+  totalCost    Decimal    @default(0) @map("total_cost") @db.Decimal(12, 2)
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  serviceJob   ServiceJob @relation(fields: [serviceJobId], references: [id], onDelete: Cascade)
+
+  @@index([serviceJobId])
+  @@map("service_parts")
+}
+
+model ServiceNote {
+  id           String     @id @default(uuid()) @db.Uuid
+  serviceJobId String     @map("service_job_id") @db.Uuid
+  authorId     String?    @map("author_id") @db.Uuid
+  note         String     @db.Text
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  serviceJob   ServiceJob @relation(fields: [serviceJobId], references: [id], onDelete: Cascade)
+  author       User?      @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([serviceJobId])
+  @@map("service_notes")
+}
+
+// ============================================================================
+// 6. OPERATIONS, NOTIFICATIONS & AUDIT
+// ============================================================================
+
+model Notification {
+  id          String              @id @default(uuid()) @db.Uuid
+  userId      String?             @map("user_id") @db.Uuid
+  channel     NotificationChannel @default(IN_APP)
+  title       String              @db.VarChar(200)
+  message     String              @db.Text
+  status      NotificationStatus  @default(QUEUED)
+  sentAt      DateTime?           @map("sent_at") @db.Timestamptz(6)
+  readAt      DateTime?           @map("read_at") @db.Timestamptz(6)
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user        User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@map("notifications")
+}
+
+model WhatsAppLog {
+  id                String             @id @default(uuid()) @db.Uuid
+  customerId        String             @map("customer_id") @db.Uuid
+  phone             String             @db.VarChar(20)
+  templateName      String             @map("template_name") @db.VarChar(100)
+  messageBody       String             @map("message_body") @db.Text
+  externalMessageId String?            @map("external_message_id") @db.VarChar(150)
+  status            NotificationStatus @default(QUEUED)
+  errorMessage      String?            @map("error_message") @db.Text
+  sentAt            DateTime?          @map("sent_at") @db.Timestamptz(6)
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  customer          Customer           @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  @@index([customerId])
+  @@index([status])
+  @@map("whatsapp_logs")
+}
+
+model AutomationJob {
+  id             String              @id @default(uuid()) @db.Uuid
+  jobKey         String              @unique @map("job_key") @db.VarChar(150)
+  jobType        String              @map("job_type") @db.VarChar(100)
+  queueName      String              @map("queue_name") @db.VarChar(100)
+  cronExpression String?             @map("cron_expression") @db.VarChar(60)
+  isEnabled      Boolean             @default(false) @map("is_enabled")
+  status         AutomationJobStatus @default(PAUSED)
+  payload        Json?
+  lastRunAt      DateTime?           @map("last_run_at") @db.Timestamptz(6)
+  nextRunAt      DateTime?           @map("next_run_at") @db.Timestamptz(6)
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  logs           AutomationLog[]
+
+  @@index([jobType])
+  @@index([status])
+  @@map("automation_jobs")
+}
+
+model AutomationLog {
+  id              String        @id @default(uuid()) @db.Uuid
+  automationJobId String        @map("automation_job_id") @db.Uuid
+  idempotencyKey  String        @unique @map("idempotency_key") @db.VarChar(180)
+  attemptNumber   Int           @default(1) @map("attempt_number")
+  status          String        @db.VarChar(40)
+  details         Json?
+  errorMessage    String?       @map("error_message") @db.Text
+  startedAt       DateTime      @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt      DateTime?     @map("finished_at") @db.Timestamptz(6)
+
+  automationJob   AutomationJob @relation(fields: [automationJobId], references: [id], onDelete: Cascade)
+
+  @@index([automationJobId])
+  @@index([status])
+  @@map("automation_logs")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  action      String   @db.VarChar(120)
+  entityType  String   @map("entity_type") @db.VarChar(80)
+  entityId    String?  @map("entity_id") @db.VarChar(100)
+  beforeState Json?    @map("before_state")
+  afterState  Json?    @map("after_state")
+  ipAddress   String?  @map("ip_address") @db.VarChar(64)
+  userAgent   String?  @map("user_agent") @db.VarChar(512)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  actor       User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model BackupLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  fileName    String   @map("file_name") @db.VarChar(255)
+  backupType  String   @default("SQL_SNAPSHOT") @map("backup_type") @db.VarChar(50)
+  sizeBytes   Int      @default(0) @map("size_bytes")
+  recordCount Int      @default(0) @map("record_count")
+  status      String   @default("COMPLETED") @db.VarChar(40)
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([createdAt])
+  @@map("backup_logs")
+}
