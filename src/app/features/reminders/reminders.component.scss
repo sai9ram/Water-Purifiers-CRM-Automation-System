@@ -151,24 +151,31 @@
     flex-wrap: wrap;
 
     .select-btn {
-        border-radius: var(--radius-box);
-        border-color: var(--border-clean);
-        height: 30px;
-        font-size: 0.74rem;
-        font-weight: 600;
-        color: var(--text-body);
-        padding: 0 10px;
+        border-radius: var(--radius-box) !important;
+        border-color: var(--border-clean) !important;
+        height: 32px !important;
+        font-size: 0.74rem !important;
+        font-weight: 600 !important;
+        color: var(--text-body) !important;
+        padding: 0 12px !important;
     }
 
     .bulk-send-btn {
-        border-radius: var(--radius-box);
-        height: 30px;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        font-weight: 700;
-        font-size: 0.74rem;
-        padding: 0 12px;
+        border-radius: var(--radius-box) !important;
+        height: 32px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-weight: 700 !important;
+        font-size: 0.74rem !important;
+        padding: 0 14px !important;
+
+        img {
+            display: block;
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+        }
     }
 }
 
@@ -343,16 +350,26 @@
     .whatsapp-action-btn {
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        justify-content: center;
+        gap: 6px;
         background: #f0fdf4;
         border: 1px solid #bbf7d0;
         color: #166534;
         font-size: 0.72rem;
         font-weight: 700;
-        padding: 4px 10px;
+        line-height: 1;
+        height: 28px;
+        padding: 0 10px;
         border-radius: var(--radius-pill);
         cursor: pointer;
         transition: background 0.1s ease;
+
+        img {
+            display: block;
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+        }
 
         &:hover {
             background: #dcfce7;

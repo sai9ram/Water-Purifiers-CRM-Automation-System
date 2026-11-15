@@ -312,16 +312,26 @@
 .whatsapp-btn {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    gap: 6px;
     background: #f0fdf4;
     border: 1px solid #bbf7d0;
     color: #166534;
     font-size: 0.72rem;
     font-weight: 700;
-    padding: 4px 10px;
+    line-height: 1;
+    height: 28px;
+    padding: 0 10px;
     border-radius: var(--radius-pill);
     cursor: pointer;
     transition: background 0.1s ease;
+
+    img {
+        display: block;
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+    }
 
     &:hover {
         background: #dcfce7;
