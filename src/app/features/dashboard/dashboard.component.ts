@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -12,7 +13,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { CustomerService } from '../../core/services/customer.service';
 import { ServiceRecordService } from '../../core/services/service-record.service';
-import { Customer, ServiceRecord, PaymentRecord } from '../../core/models/models';
+import { PlanService } from '../../core/services/plan.service';
+import { Customer, ServiceRecord, PaymentRecord, RentalPlan } from '../../core/models/models';
 import { WhatsappService } from '../../core/services/whatsapp.service';
 import { PaymentService } from '../../core/services/payment.service';
 import { CustomerReportExportService } from '../../core/services/customer-report-export.service';
@@ -37,33 +39,60 @@ export class DashboardComponent implements OnInit {
   allCustomers: Customer[] = [];
   allServices: ServiceRecord[] = [];
   allPayments: PaymentRecord[] = [];
+  allPlans: RentalPlan[] = [];
   filteredCollected = 0;
   filteredServiceCost = 0;
 
   private customerSvc = inject(CustomerService);
   private serviceSvc = inject(ServiceRecordService);
+  private planSvc = inject(PlanService);
   private waSvc = inject(WhatsappService);
   private paymentSvc = inject(PaymentService);
   private exportSvc = inject(CustomerReportExportService);
   private router = inject(Router);
 
   ngOnInit(): void {
-    this.customerSvc.getStats().subscribe(s => this.stats = s);
-    this.customerSvc.getAll().subscribe(customers => {
-      this.allCustomers = customers;
-      this.computeDashboardStats();
-    });
-    this.serviceSvc.getStats().subscribe(s => this.serviceStats = s);
-    this.serviceSvc.getAll().subscribe(services => {
-      this.allServices = services;
-      this.computeDashboardStats();
-    });
-    this.serviceSvc.getRecent(6).subscribe(s => this.recentServices = s);
-    this.paymentSvc.getAll().subscribe(payments => {
-      this.allPayments = payments;
-      this.computeDashboardStats();
-    });
     this.setDashboardRange('this-month');
+    forkJoin({
+      customers: this.customerSvc.getAll(),
+      services: this.serviceSvc.getAll(),
+      payments: this.paymentSvc.getAll(),
+      plans: this.planSvc.getAll()
+    }).subscribe(({ customers, services, payments, plans }) => {
+      this.allCustomers = customers;
+      this.allServices = services;
+      this.allPayments = payments;
+      this.allPlans = plans;
+
+      const planMap = new Map(plans.map(p => [p.id!, p.monthlyRent]));
+      let active = 0;
+      let inactive = 0;
+      let overdue = 0;
+      let monthlyRevenue = 0;
+
+      for (const c of customers) {
+        if (c.status === 'active') {
+          active++;
+          monthlyRevenue += planMap.get(c.planId) ?? c.monthlyRent ?? 0;
+        } else if (c.status === 'inactive') {
+          inactive++;
+        } else if (c.status === 'overdue') {
+          overdue++;
+        }
+      }
+
+      const totalRevenue = payments.reduce((s, p) => s + p.amount, 0);
+      this.stats = {
+        total: customers.length,
+        active,
+        inactive,
+        overdue,
+        totalRevenue,
+        monthlyRevenue
+      };
+
+      this.computeDashboardStats();
+    });
   }
 
   sendReminder(c: Customer): void {
@@ -122,59 +151,49 @@ export class DashboardComponent implements OnInit {
   computeDashboardStats(): void {
     const start = this.startDate ? this.normalizeStart(this.startDate) : null;
     const end = this.endDate ? this.normalizeEnd(this.endDate) : null;
+    const paidCustomerIds = new Set<number>();
+    let collected = 0;
 
-    this.filteredCollected = this.allPayments
-      .filter(p => {
-        const paid = new Date(p.paidDate);
-        const matchesStart = !start || paid >= start;
-        const matchesEnd = !end || paid <= end;
-        return matchesStart && matchesEnd;
-      })
-      .reduce((s, p) => s + p.amount, 0);
-
-    const hasPaymentForRange = (customerId: number | undefined): boolean => {
-      if (!customerId) return false;
-      return this.allPayments.some(payment => {
-        if (payment.customerId !== customerId) return false;
-        const paid = new Date(payment.paidDate);
-        const matchesStart = !start || paid >= start;
-        const matchesEnd = !end || paid <= end;
-        return matchesStart && matchesEnd;
-      });
-    };
+    for (const p of this.allPayments) {
+      const paid = new Date(p.paidDate);
+      if ((!start || paid >= start) && (!end || paid <= end)) {
+        collected += p.amount;
+        if (p.customerId) {
+          paidCustomerIds.add(p.customerId);
+        }
+      }
+    }
+    this.filteredCollected = collected;
 
     this.dueCustomers = this.allCustomers.filter(customer => {
       if (!customer.id) return false;
-      const unpaidForRange = !hasPaymentForRange(customer.id);
-      return unpaidForRange && (customer.status === 'active' || customer.status === 'overdue');
+      return !paidCustomerIds.has(customer.id) && (customer.status === 'active' || customer.status === 'overdue');
     });
 
-    this.thisMonthMaintenanceCount = this.allServices.filter(record => {
-      if (!record.nextServiceDate) return false;
-      const nextService = new Date(record.nextServiceDate);
-      const matchesStart = !start || nextService >= start;
-      const matchesEnd = !end || nextService <= end;
-      return matchesStart && matchesEnd;
-    }).length;
+    let maintenanceCount = 0;
+    let serviceCost = 0;
+    const matchingServices: ServiceRecord[] = [];
 
-    this.filteredServiceCost = this.allServices
-      .filter(record => {
-        const serviceDate = new Date(record.serviceDate);
-        const matchesStart = !start || serviceDate >= start;
-        const matchesEnd = !end || serviceDate <= end;
-        return matchesStart && matchesEnd;
-      })
-      .reduce((sum, record) => sum + (record.cost || 0), 0);
+    for (const record of this.allServices) {
+      if (record.nextServiceDate) {
+        const nextService = new Date(record.nextServiceDate);
+        if ((!start || nextService >= start) && (!end || nextService <= end)) {
+          maintenanceCount++;
+        }
+      }
 
-    this.recentServices = this.allServices
-      .filter(record => {
-        const service = new Date(record.serviceDate);
-        const matchesStart = !start || service >= start;
-        const matchesEnd = !end || service <= end;
-        return matchesStart && matchesEnd;
-      })
-      .sort((a, b) => new Date(b.serviceDate).getTime() - new Date(a.serviceDate).getTime())
-      .slice(0, 6);
+      const serviceDate = new Date(record.serviceDate);
+      if ((!start || serviceDate >= start) && (!end || serviceDate <= end)) {
+        serviceCost += record.cost || 0;
+        if (matchingServices.length < 6) {
+          matchingServices.push(record);
+        }
+      }
+    }
+
+    this.thisMonthMaintenanceCount = maintenanceCount;
+    this.filteredServiceCost = serviceCost;
+    this.recentServices = matchingServices;
   }
 
   private setDashboardRange(filter: 'all' | 'this-month' | 'last-month' | 'next-month' | 'custom'): void {

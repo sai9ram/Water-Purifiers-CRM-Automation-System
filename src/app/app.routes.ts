@@ -1,42 +1,24 @@
 import { Routes } from '@angular/router';
+import { DashboardComponent } from './features/dashboard/dashboard.component';
+import { CustomerListComponent } from './features/customers/customer-list/customer-list.component';
+import { CustomerDetailComponent } from './features/customers/customer-detail/customer-detail.component';
+import { PlansComponent } from './features/plans/plans.component';
+import { ServicesComponent } from './features/services/services.component';
+import { ComplaintsComponent } from './features/complaints/complaints.component';
+import { TechniciansComponent } from './features/technicians/technicians.component';
+import { PaymentsComponent } from './features/payments/payments.component';
+import { RemindersComponent } from './features/reminders/reminders.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-  {
-    path: 'dashboard',
-    loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
-  },
-  {
-    path: 'customers',
-    loadComponent: () => import('./features/customers/customer-list/customer-list.component').then(m => m.CustomerListComponent)
-  },
-  {
-    path: 'customers/:id',
-    loadComponent: () => import('./features/customers/customer-detail/customer-detail.component').then(m => m.CustomerDetailComponent)
-  },
-  {
-    path: 'plans',
-    loadComponent: () => import('./features/plans/plans.component').then(m => m.PlansComponent)
-  },
-  {
-    path: 'services',
-    loadComponent: () => import('./features/services/services.component').then(m => m.ServicesComponent)
-  },
-  {
-    path: 'complaints',
-    loadComponent: () => import('./features/complaints/complaints.component').then(m => m.ComplaintsComponent)
-  },
-  {
-    path: 'technicians',
-    loadComponent: () => import('./features/technicians/technicians.component').then(m => m.TechniciansComponent)
-  },
-  {
-    path: 'payments',
-    loadComponent: () => import('./features/payments/payments.component').then(m => m.PaymentsComponent)
-  },
-  {
-    path: 'reminders',
-    loadComponent: () => import('./features/reminders/reminders.component').then(m => m.RemindersComponent)
-  },
+  { path: 'dashboard', component: DashboardComponent },
+  { path: 'customers', component: CustomerListComponent },
+  { path: 'customers/:id', component: CustomerDetailComponent },
+  { path: 'plans', component: PlansComponent },
+  { path: 'services', component: ServicesComponent },
+  { path: 'complaints', component: ComplaintsComponent },
+  { path: 'technicians', component: TechniciansComponent },
+  { path: 'payments', component: PaymentsComponent },
+  { path: 'reminders', component: RemindersComponent },
   { path: '**', redirectTo: 'dashboard' }
 ];

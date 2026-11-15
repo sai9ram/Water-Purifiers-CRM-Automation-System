@@ -49,18 +49,8 @@ export class CustomerListComponent implements OnInit, AfterViewInit {
   searchQuery = '';
   statusFilter = 'active';
   planFilter: number | '' = '';
-
-  get totalDeposit(): number {
-    return this.allCustomers
-      .filter(customer => customer.status === 'active')
-      .reduce((sum, customer) => sum + (customer.depositPaid || 0), 0);
-  }
-
-  get totalRent(): number {
-    return this.allCustomers
-      .filter(customer => customer.status === 'active')
-      .reduce((sum, customer) => sum + (customer.monthlyRent || 0), 0);
-  }
+  totalDeposit = 0;
+  totalRent = 0;
 
   private customerSvc = inject(CustomerService);
   private planSvc = inject(PlanService);
@@ -82,6 +72,16 @@ export class CustomerListComponent implements OnInit, AfterViewInit {
   loadCustomers(): void {
     this.customerSvc.getAll().subscribe(customers => {
       this.allCustomers = customers;
+      let deposit = 0;
+      let rent = 0;
+      for (const customer of customers) {
+        if (customer.status === 'active') {
+          deposit += customer.depositPaid || 0;
+          rent += customer.monthlyRent || 0;
+        }
+      }
+      this.totalDeposit = deposit;
+      this.totalRent = rent;
       this.dataSource.data = customers;
       this.applyFilter();
     });

@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -66,12 +67,13 @@ export class RemindersComponent implements OnInit {
   }
 
   loadData(): void {
-    this.customerSvc.getAll().subscribe(customers => {
+    forkJoin({
+      customers: this.customerSvc.getAll(),
+      payments: this.paymentSvc.getAll()
+    }).subscribe(({ customers, payments }) => {
       this.allCustomers = customers;
-      this.paymentSvc.getAll().subscribe(payments => {
-        this.allPayments = payments;
-        this.computeReminderLists();
-      });
+      this.allPayments = payments;
+      this.computeReminderLists();
     });
   }
 
@@ -90,54 +92,48 @@ export class RemindersComponent implements OnInit {
   computeReminderLists(): void {
     const start = this.startDate ? this.normalizeStart(this.startDate) : null;
     const end = this.endDate ? this.normalizeEnd(this.endDate) : null;
-    const today = this.normalizeStart(new Date());
 
-    const matchesRange = (value?: Date | string | null): boolean => {
-      if (!value) return false;
-      const date = new Date(value);
-      const matchesStart = !start || date >= start;
-      const matchesEnd = !end || date <= end;
-      return matchesStart && matchesEnd;
-    };
+    const paidCustomerIds = new Set<number>();
+    for (const payment of this.allPayments) {
+      if (!payment.customerId) continue;
+      const paidDate = new Date(payment.paidDate);
+      if ((!start || paidDate >= start) && (!end || paidDate <= end)) {
+        paidCustomerIds.add(payment.customerId);
+      }
+    }
 
-    const hasPaymentForRange = (customerId: number | undefined): boolean => {
-      if (!customerId) return false;
-      return this.allPayments.some(payment => {
-        if (payment.customerId !== customerId) return false;
-        const paidDate = new Date(payment.paidDate);
-        const matchesStart = !start || paidDate >= start;
-        const matchesEnd = !end || paidDate <= end;
-        return matchesStart && matchesEnd;
-      });
-    };
+    const referenceDate = this.startDate ? this.startDate : new Date();
+    const graceDate = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 5);
+    const now = new Date();
+    const todayOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const pastGrace = todayOnly > graceDate;
 
-    const isPastGracePeriod = (): boolean => {
-      const referenceDate = this.startDate ? this.startDate : new Date();
-      const graceDate = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 5);
-      const today = new Date();
-      const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      return todayOnly > graceDate;
-    };
+    const dueThisMonth: Customer[] = [];
+    const overdueCustomers: Customer[] = [];
+    const allActive: Customer[] = [];
+    let totalDue = 0;
 
-    this.dueThisMonth = this.allCustomers.filter(customer => {
-      if (!customer.id) return false;
-      const unpaidForRange = !hasPaymentForRange(customer.id);
-      return unpaidForRange && (customer.status === 'active' || customer.status === 'overdue');
-    });
+    for (const customer of this.allCustomers) {
+      if (!customer.id || paidCustomerIds.has(customer.id)) continue;
 
-    this.overdueCustomers = this.allCustomers.filter(customer => {
-      if (!customer.id) return false;
-      const unpaidForRange = !hasPaymentForRange(customer.id);
-      return unpaidForRange && isPastGracePeriod() && customer.status !== 'inactive';
-    });
+      if (customer.status === 'active' || customer.status === 'overdue') {
+        dueThisMonth.push(customer);
+        totalDue += customer.monthlyRent ?? 0;
+      }
 
-    this.allActive = this.allCustomers.filter(customer => {
-      if (!customer.id || customer.status !== 'active') return false;
-      const unpaidForRange = !hasPaymentForRange(customer.id);
-      return unpaidForRange;
-    });
+      if (pastGrace && customer.status !== 'inactive') {
+        overdueCustomers.push(customer);
+      }
 
-    this.totalDue = this.dueThisMonth.reduce((sum, customer) => sum + (customer.monthlyRent ?? 0), 0);
+      if (customer.status === 'active') {
+        allActive.push(customer);
+      }
+    }
+
+    this.dueThisMonth = dueThisMonth;
+    this.overdueCustomers = overdueCustomers;
+    this.allActive = allActive;
+    this.totalDue = totalDue;
     this.setTab(this.activeTab);
   }
 

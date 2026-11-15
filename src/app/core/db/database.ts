@@ -77,6 +77,11 @@ export class AppDatabase extends Dexie {
 
 export const db = new AppDatabase();
 
+export let dbCacheVersion = 0;
+export function bumpDbCacheVersion(): void {
+  dbCacheVersion++;
+}
+
 // Seed default plans on first run
 db.rentalPlans.count().then(count => {
   if (count === 0) {

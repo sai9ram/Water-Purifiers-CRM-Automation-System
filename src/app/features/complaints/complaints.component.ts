@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
@@ -151,19 +152,21 @@ export class ComplaintsComponent implements OnInit, AfterViewInit {
   }
 
   loadData(): void {
-    this.customerSvc.getAll().subscribe(customers => {
+    forkJoin({
+      customers: this.customerSvc.getAll(),
+      complaints: this.complaintSvc.getAll()
+    }).subscribe(({ customers, complaints }) => {
       this.customers = customers;
-      this.complaintSvc.getAll().subscribe(complaints => {
-        this.allComplaints = complaints.map(complaint => {
-          const customer = customers.find(c => c.id === complaint.customerId);
-          return {
-            ...complaint,
-            customerName: customer?.name ?? 'Unknown',
-            customerArea: customer?.area ?? ''
-          };
-        });
-        this.applyFilter();
+      const customerMap = new Map<number, Customer>(customers.map(c => [c.id!, c]));
+      this.allComplaints = complaints.map(complaint => {
+        const customer = customerMap.get(complaint.customerId);
+        return {
+          ...complaint,
+          customerName: customer?.name ?? 'Unknown',
+          customerArea: customer?.area ?? ''
+        };
       });
+      this.applyFilter();
     });
   }
 

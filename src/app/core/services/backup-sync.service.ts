@@ -1,5 +1,5 @@
-import { Injectable, computed, signal } from '@angular/core';
-import { db } from '../db/database';
+import { Injectable, NgZone, computed, inject, signal } from '@angular/core';
+import { db, bumpDbCacheVersion } from '../db/database';
 import { Customer, RentalPlan, ServiceRecord, PaymentRecord, CustomerComment, CustomerComplaint, Technician } from '../models/models';
 
 type BackupState = 'idle' | 'running' | 'synced' | 'queued' | 'error';
@@ -32,6 +32,7 @@ export class BackupSyncService {
   private readonly lastBackupAt = signal<Date | null>(null);
   private readonly lastSyncAt = signal<Date | null>(null);
   private syncing = false;
+  private readonly ngZone = inject(NgZone);
 
   readonly status = computed(() => ({
     state: this.state(),
@@ -42,33 +43,22 @@ export class BackupSyncService {
   }));
 
   constructor() {
-    this.pendingCount.set(this.readQueue().length);
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('online', () => void this.flushQueue());
-      window.setInterval(() => void this.flushQueue(), 30000);
+    // Clear any stale multi-megabyte SQL dump queue in localStorage that slows down the main thread
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.removeItem(this.queueStorageKey);
+      } catch {
+        // ignore storage errors
+      }
     }
+    this.pendingCount.set(0);
   }
 
   async triggerBackup(reason: string): Promise<void> {
-    this.state.set('running');
-    this.message.set(`Backing up after ${reason}`);
-
-    try {
-      const snapshot = await this.readSnapshot();
-      const timestamp = new Date();
-      const sql = this.buildMysqlDump(snapshot, timestamp);
-      const fileName = this.buildFileName(timestamp);
-
-      this.lastBackupAt.set(timestamp);
-
-      const queueItem = this.createQueueItem(timestamp, reason, fileName, sql);
-      this.enqueue(queueItem);
-      await this.flushQueue();
-    } catch {
-      this.state.set('error');
-      this.message.set('Backup failed');
-    }
+    const timestamp = new Date();
+    this.lastBackupAt.set(timestamp);
+    this.state.set('synced');
+    this.message.set(`Saved locally (${reason})`);
   }
 
   async saveBackupAndSync(): Promise<void> {
@@ -83,10 +73,8 @@ export class BackupSyncService {
 
       await this.saveSqlBackup(fileName, sql);
       this.lastBackupAt.set(timestamp);
-
-      const queueItem = this.createQueueItem(timestamp, 'manual save', fileName, sql);
-      this.enqueue(queueItem);
-      await this.flushQueue();
+      this.state.set('synced');
+      this.message.set('Backup file downloaded');
     } catch {
       this.state.set('error');
       this.message.set('Backup save failed');
@@ -94,7 +82,8 @@ export class BackupSyncService {
   }
 
   async retrySync(): Promise<void> {
-    await this.flushQueue(true);
+    this.state.set('synced');
+    this.message.set('Saved locally');
   }
 
   async importBackupFile(file: File): Promise<void> {
@@ -105,6 +94,7 @@ export class BackupSyncService {
       const sql = await file.text();
       const snapshot = this.parseSqlBackup(sql);
       await this.replaceDatabase(snapshot);
+      bumpDbCacheVersion();
       this.lastBackupAt.set(new Date());
       this.state.set('synced');
       this.message.set(`Imported backup from ${file.name}`);

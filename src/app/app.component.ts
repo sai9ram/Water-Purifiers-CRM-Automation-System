@@ -5,6 +5,12 @@ import { MatRippleModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
 import { BackupSyncService } from './core/services/backup-sync.service';
 import { CustomerReportExportService } from './core/services/customer-report-export.service';
+import { CustomerService } from './core/services/customer.service';
+import { PaymentService } from './core/services/payment.service';
+import { ServiceRecordService } from './core/services/service-record.service';
+import { PlanService } from './core/services/plan.service';
+import { TechnicianService } from './core/services/technician.service';
+import { CustomerComplaintService } from './core/services/customer-complaint.service';
 
 interface NavItem {
   path: string;
@@ -42,9 +48,25 @@ export class AppComponent {
 
   constructor(
     private backupSyncSvc: BackupSyncService,
-    private exportSvc: CustomerReportExportService
+    private exportSvc: CustomerReportExportService,
+    private customerSvc: CustomerService,
+    private paymentSvc: PaymentService,
+    private serviceSvc: ServiceRecordService,
+    private planSvc: PlanService,
+    private technicianSvc: TechnicianService,
+    private complaintSvc: CustomerComplaintService
   ) {
     this.backupStatus = this.backupSyncSvc.status;
+    this.prewarmCaches();
+  }
+
+  private prewarmCaches(): void {
+    this.customerSvc.getAll().subscribe();
+    this.paymentSvc.getAll().subscribe();
+    this.serviceSvc.getAll().subscribe();
+    this.planSvc.getAll().subscribe();
+    this.technicianSvc.getAll().subscribe();
+    this.complaintSvc.getAll().subscribe();
   }
 
   toggleSidebar(): void {
@@ -82,7 +104,10 @@ export class AppComponent {
     const file = input.files?.[0];
 
     if (file) {
-      void this.backupSyncSvc.importBackupFile(file);
+      void this.backupSyncSvc.importBackupFile(file).then(() => {
+        this.prewarmCaches();
+        window.location.reload();
+      });
     }
 
     input.value = '';

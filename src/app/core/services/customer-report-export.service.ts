@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import * as XLSX from 'xlsx';
+import type * as XLSXType from 'xlsx';
 import { db } from '../db/database';
-import { Customer, PaymentRecord, ServiceRecord } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class CustomerReportExportService {
@@ -10,7 +9,8 @@ export class CustomerReportExportService {
     endDate?: Date | null;
     fileName?: string;
   } = {}): Promise<void> {
-    const [customers, payments, services, plans] = await Promise.all([
+    const [XLSX, customers, payments, services, plans] = await Promise.all([
+      import('xlsx'),
       db.customers.toArray(),
       db.payments.toArray(),
       db.serviceRecords.toArray(),
@@ -78,42 +78,37 @@ export class CustomerReportExportService {
     XLSX.utils.book_append_sheet(wb, wsRentHistory, 'Rent History');
 
     // Sheet 3: Payment History
-    const paymentHistoryData = payments.map(payment => {
-      const customer = customers.find(c => c.id === payment.customerId);
-      return {
-        'Customer Name': customer?.name || 'Unknown',
-        'Payment Date': this.formatDate(payment.paidDate),
-        'Amount': payment.amount,
-        'For Month': payment.forMonth,
-        'Receiver': payment.receiver ?? '',
-        'Notes': payment.notes ?? ''
-      };
-    }).sort((a, b) => {
+    const customerNameMap = new Map(customers.map(c => [c.id!, c.name]));
+    const paymentHistoryData = payments.map(payment => ({
+      'Customer Name': customerNameMap.get(payment.customerId) || 'Unknown',
+      'Payment Date': this.formatDate(payment.paidDate),
+      'Amount': payment.amount,
+      'For Month': payment.forMonth,
+      'Receiver': payment.receiver ?? '',
+      'Notes': payment.notes ?? ''
+    })).sort((a, b) => {
       const dateA = new Date(a['Payment Date']).getTime();
       const dateB = new Date(b['Payment Date']).getTime();
-      return dateB - dateA; // Most recent first
+      return dateB - dateA;
     });
     const wsPaymentHistory = XLSX.utils.json_to_sheet(paymentHistoryData);
     this.autoFitColumns(wsPaymentHistory, paymentHistoryData);
     XLSX.utils.book_append_sheet(wb, wsPaymentHistory, 'Payment History');
 
     // Sheet 4: Service History
-    const serviceHistoryData = services.map(service => {
-      const customer = customers.find(c => c.id === service.customerId);
-      return {
-        'Customer Name': customer?.name || 'Unknown',
-        'Service Date': this.formatDate(service.serviceDate),
-        'Service Type': service.serviceType,
-        'Technician': service.technicianName,
-        'Cost': service.cost ?? '',
-        'Next Service Date': service.nextServiceDate ? this.formatDate(service.nextServiceDate) : '',
-        'Parts Replaced': service.partsReplaced ?? '',
-        'Notes': service.notes ?? ''
-      };
-    }).sort((a, b) => {
+    const serviceHistoryData = services.map(service => ({
+      'Customer Name': customerNameMap.get(service.customerId) || 'Unknown',
+      'Service Date': this.formatDate(service.serviceDate),
+      'Service Type': service.serviceType,
+      'Technician': service.technicianName,
+      'Cost': service.cost ?? '',
+      'Next Service Date': service.nextServiceDate ? this.formatDate(service.nextServiceDate) : '',
+      'Parts Replaced': service.partsReplaced ?? '',
+      'Notes': service.notes ?? ''
+    })).sort((a, b) => {
       const dateA = new Date(a['Service Date']).getTime();
       const dateB = new Date(b['Service Date']).getTime();
-      return dateB - dateA; // Most recent first
+      return dateB - dateA;
     });
     const wsServiceHistory = XLSX.utils.json_to_sheet(serviceHistoryData);
     this.autoFitColumns(wsServiceHistory, serviceHistoryData);
@@ -127,7 +122,7 @@ export class CustomerReportExportService {
     XLSX.writeFile(wb, fileName.replace(/\.csv$/i, '.xlsx'));
   }
 
-  private autoFitColumns(ws: XLSX.WorkSheet, data: any[]): void {
+  private autoFitColumns(ws: XLSXType.WorkSheet, data: any[]): void {
     if (data.length === 0) return;
 
     const colWidths: { [key: string]: number } = {};
@@ -172,14 +167,6 @@ export class CustomerReportExportService {
     return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed;
   }
 
-  private escapeCsv(value: unknown): string {
-    const stringValue = String(value ?? '');
-    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-      return `"${stringValue.replace(/"/g, '""')}"`;
-    }
-    return stringValue;
-  }
-
   private buildFileName(start: Date | null, end: Date | null): string {
     const prefix = 'customer-report';
     if (!start && !end) {
@@ -191,4 +178,3 @@ export class CustomerReportExportService {
     return `${prefix}-${startLabel}-to-${endLabel}.xlsx`;
   }
 }
-

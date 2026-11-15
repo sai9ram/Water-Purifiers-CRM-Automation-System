@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RouterLink } from '@angular/router';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -82,21 +83,22 @@ export class PaymentsComponent implements OnInit, AfterViewInit {
   }
 
   loadData(): void {
-    this.customerSvc.getAll().subscribe(customers => {
+    forkJoin({
+      customers: this.customerSvc.getAll(),
+      payments: this.paymentSvc.getAll()
+    }).subscribe(({ customers, payments }) => {
       this.customers = customers;
-      this.paymentSvc.getAll().subscribe(payments => {
-        const customerMap = new Map<number, Customer>(customers.map(customer => [customer.id!, customer]));
-        this.allPayments = payments.map(payment => {
-          const customer = customerMap.get(payment.customerId);
-          return {
-            ...payment,
-            customerName: customer?.name ?? 'Unknown Customer',
-            customerPhone: customer?.phone ?? '',
-            customerArea: customer?.area ?? ''
-          };
-        });
-        this.applyFilter();
+      const customerMap = new Map<number, Customer>(customers.map(customer => [customer.id!, customer]));
+      this.allPayments = payments.map(payment => {
+        const customer = customerMap.get(payment.customerId);
+        return {
+          ...payment,
+          customerName: customer?.name ?? 'Unknown Customer',
+          customerPhone: customer?.phone ?? '',
+          customerArea: customer?.area ?? ''
+        };
       });
+      this.applyFilter();
     });
   }
 

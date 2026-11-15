@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
@@ -121,14 +122,14 @@ export class ServicesComponent implements OnInit, AfterViewInit {
 
   loadData(): void {
     this.loadTechnicians();
-    this.serviceSvc.getAll().subscribe(r => {
-      this.allRecords = r;
-      this.applyFilter();
-    });
-    this.customerSvc.getAll().subscribe(c => {
-      this.customers = c;
+    forkJoin({
+      records: this.serviceSvc.getAll(),
+      customers: this.customerSvc.getAll()
+    }).subscribe(({ records, customers }) => {
+      this.allRecords = records;
+      this.customers = customers;
       this.setMaintenanceRange(this.maintenanceFilter);
-      this.upcomingCustomers = this.getFilteredUpcomingCustomers(c);
+      this.upcomingCustomers = this.getFilteredUpcomingCustomers(customers);
       this.patchRequestedService();
       this.applyFilter();
     });

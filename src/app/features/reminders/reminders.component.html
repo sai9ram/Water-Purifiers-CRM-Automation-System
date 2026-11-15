@@ -128,7 +128,7 @@
 
         @if (displayedCustomers.length > 0) {
         <div class="reminder-table-list">
-            @for (c of displayedCustomers; track $index) {
+            @for (c of displayedCustomers; track c.id) {
             <div class="reminder-row" [class.row-selected]="selectedIds.has(c.id!)">
                 <mat-checkbox [checked]="selectedIds.has(c.id!)" (change)="toggleSelect(c.id!, $event.checked)"
                     color="primary">
