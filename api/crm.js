@@ -2,36 +2,61 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const TMP_DB_PATH = path.join(process.env.TEMP || process.env.TMP || '/tmp', 'phw-realtime-cloud-db-v2.json');
+const TMP_DB_PATH = path.join(process.env.TEMP || process.env.TMP || '/tmp', 'phw-production-crm-v4.json');
 
-// In-memory singleton for warm serverless invocations
 let memoryStore = null;
+let pgPool = null;
+let pgTableInitialized = false;
 
-function getDefaultSeedState() {
-  const now = new Date();
-  const nowIso = now.toISOString();
+function getPgPool() {
+  const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  if (!dbUrl) return null;
+  if (pgPool) return pgPool;
+  try {
+    const { Pool } = require('pg');
+    pgPool = new Pool({
+      connectionString: dbUrl,
+      ssl: dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1') ? false : { rejectUnauthorized: false },
+      max: 5,
+      idleTimeoutMillis: 15000
+    });
+    return pgPool;
+  } catch (err) {
+    console.error('PostgreSQL driver initialization error:', err.message);
+    return null;
+  }
+}
 
-  // Sample dates to demonstrate 5-day pre-due automation immediately
-  const joinDate1 = new Date(now.getFullYear(), now.getMonth() - 2, now.getDate() + 4);
-  const dueIn4Days = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 4);
+async function ensurePgTable(pool) {
+  if (pgTableInitialized) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS phw_crm_state (
+      id INT PRIMARY KEY,
+      state JSONB NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  pgTableInitialized = true;
+}
 
-  const joinDate2 = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-  const dueToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  const joinDate3 = new Date(now.getFullYear(), now.getMonth() - 4, now.getDate() - 4);
-  const overdue4Days = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 4);
+/**
+ * Clean Production Initial State — ZERO dummy customers, payments, services, or complaints.
+ * Only baseline Rental Plans and Default Technician are initialized for dropdowns.
+ */
+function getDefaultProductionState() {
+  const nowIso = new Date().toISOString();
 
   return {
     version: 1,
     updatedAt: nowIso,
     counters: {
-      customers: 3,
+      customers: 0,
       rentalPlans: 3,
-      serviceRecords: 1,
-      payments: 1,
-      customerComments: 1,
-      customerComplaints: 1,
-      technicians: 2,
+      serviceRecords: 0,
+      payments: 0,
+      customerComments: 0,
+      customerComplaints: 0,
+      technicians: 1,
       whatsappLogs: 0
     },
     rentalPlans: [
@@ -56,9 +81,9 @@ function getDefaultSeedState() {
       {
         id: 3,
         name: 'Premium',
-        monthlyRent: 599,
+        monthlyRent: 499,
         depositAmount: 3500,
-        description: 'Complete protection with stainless steel tank & mineral enhancement',
+        description: 'Complete protection with mineral enhancement',
         features: ['Steel Tank', 'RO + UV + Alkaline + TDS Control', 'Quarterly Service', '24/7 Support'],
         createdAt: nowIso
       }
@@ -66,114 +91,15 @@ function getDefaultSeedState() {
     technicians: [
       {
         id: 1,
-        name: 'Ravi Kumar (Senior Tech)',
+        name: 'Default Technician',
         isDefault: true,
         createdAt: nowIso
-      },
-      {
-        id: 2,
-        name: 'Suresh Babu',
-        isDefault: false,
-        createdAt: nowIso
       }
     ],
-    customers: [
-      {
-        id: 1,
-        name: 'Ramesh Naidu',
-        phone: '9876543210',
-        alternatePhone: '',
-        address: 'Flat 204, Sri Sai Residency, AIR Bypass Road',
-        area: 'AIR Bypass Road, Tirupati',
-        purifierModel: 'Purosis Plus',
-        planId: 2,
-        planName: 'Standard',
-        monthlyRent: 499,
-        depositPaid: 3000,
-        initialInvestment: 8500,
-        joinDate: joinDate1.toISOString(),
-        nextDueDate: dueIn4Days.toISOString(),
-        lastServiceDate: joinDate1.toISOString(),
-        nextServiceDate: new Date(now.getFullYear(), now.getMonth() + 1, 15).toISOString(),
-        status: 'active',
-        notes: 'Onboarded with Standard RO plan',
-        createdAt: joinDate1.toISOString()
-      },
-      {
-        id: 2,
-        name: 'Lakshmi Devi',
-        phone: '9848011223',
-        alternatePhone: '',
-        address: 'Door 12-4-88, Bhavani Nagar',
-        area: 'Bhavani Nagar, Tirupati',
-        purifierModel: 'Dolphin',
-        planId: 1,
-        planName: 'Basic',
-        monthlyRent: 399,
-        depositPaid: 2000,
-        initialInvestment: 7200,
-        joinDate: joinDate2.toISOString(),
-        nextDueDate: dueToday.toISOString(),
-        lastServiceDate: joinDate2.toISOString(),
-        nextServiceDate: new Date(now.getFullYear(), now.getMonth() + 1, 20).toISOString(),
-        status: 'active',
-        notes: 'Prefers morning technician visits',
-        createdAt: joinDate2.toISOString()
-      },
-      {
-        id: 3,
-        name: 'Kiran Kumar Reddy',
-        phone: '9701234567',
-        alternatePhone: '',
-        address: 'Plot 45, Padmavathi Puram',
-        area: 'Padmavathi Puram, Tirupati',
-        purifierModel: 'Priya Aqua Steel Guard',
-        planId: 3,
-        planName: 'Premium',
-        monthlyRent: 599,
-        depositPaid: 3500,
-        initialInvestment: 10500,
-        joinDate: joinDate3.toISOString(),
-        nextDueDate: overdue4Days.toISOString(),
-        lastServiceDate: joinDate3.toISOString(),
-        nextServiceDate: new Date(now.getFullYear(), now.getMonth() + 1, 10).toISOString(),
-        status: 'overdue',
-        notes: 'Steel Guard model installed',
-        createdAt: joinDate3.toISOString()
-      }
-    ],
+    customers: [],
     payments: [],
-    serviceRecords: [
-      {
-        id: 1,
-        customerId: 1,
-        customerName: 'Ramesh Naidu',
-        serviceType: 'installation',
-        serviceDate: joinDate1.toISOString(),
-        nextServiceDate: new Date(now.getFullYear(), now.getMonth() + 1, 15).toISOString(),
-        technicianName: 'Ravi Kumar (Senior Tech)',
-        partsReplaced: 'New Installation Kit',
-        notes: 'Initial RO purifier onboarding installation',
-        cost: 0,
-        createdAt: joinDate1.toISOString()
-      }
-    ],
-    customerComplaints: [
-      {
-        id: 1,
-        ticketId: 'CMP-1001',
-        customerId: 2,
-        customerName: 'Lakshmi Devi',
-        customerPhone: '9848011223',
-        customerArea: 'Bhavani Nagar, Tirupati',
-        complaint: 'Water flow from the purifier tap is slow since morning, please send technician.',
-        source: 'whatsapp',
-        admissionStatus: 'NEW_WHATSAPP',
-        resolved: false,
-        autoReplyMessage: 'Hello Lakshmi Devi, we received your WhatsApp complaint. Your Ticket ID is CMP-1001. Our admin team is reviewing it and will assign a technician shortly.',
-        createdAt: nowIso
-      }
-    ],
+    serviceRecords: [],
+    customerComplaints: [],
     customerComments: [],
     paymentLinks: {},
     whatsappLogs: [],
@@ -188,10 +114,30 @@ function getDefaultSeedState() {
   };
 }
 
-function loadStore(origin) {
+async function loadStore(origin) {
+  const pool = getPgPool();
+  if (pool) {
+    try {
+      await ensurePgTable(pool);
+      const res = await pool.query('SELECT state FROM phw_crm_state WHERE id = 1');
+      if (res.rows.length > 0 && res.rows[0].state && Array.isArray(res.rows[0].state.customers)) {
+        memoryStore = res.rows[0].state;
+        runAutomationEngine(memoryStore, origin);
+        return memoryStore;
+      } else {
+        memoryStore = getDefaultProductionState();
+        await saveStore(memoryStore);
+        return memoryStore;
+      }
+    } catch (err) {
+      console.error('PostgreSQL loadStore error, using fallback store:', err.message);
+    }
+  }
+
   if (memoryStore) {
     return memoryStore;
   }
+
   try {
     if (fs.existsSync(TMP_DB_PATH)) {
       const raw = fs.readFileSync(TMP_DB_PATH, 'utf8');
@@ -203,23 +149,38 @@ function loadStore(origin) {
       }
     }
   } catch (err) {
-    console.error('Failed to read TMP_DB_PATH, initializing seed store:', err.message);
+    console.error('Failed to read TMP_DB_PATH:', err.message);
   }
 
-  memoryStore = getDefaultSeedState();
-  runAutomationEngine(memoryStore, origin);
-  saveStore(memoryStore);
+  memoryStore = getDefaultProductionState();
+  await saveStore(memoryStore);
   return memoryStore;
 }
 
-function saveStore(store) {
+async function saveStore(store) {
   store.version = (store.version || 1) + 1;
   store.updatedAt = new Date().toISOString();
   memoryStore = store;
+
+  const pool = getPgPool();
+  if (pool) {
+    try {
+      await ensurePgTable(pool);
+      await pool.query(
+        `INSERT INTO phw_crm_state (id, state, updated_at)
+         VALUES (1, $1::jsonb, NOW())
+         ON CONFLICT (id) DO UPDATE SET state = EXCLUDED.state, updated_at = NOW()`,
+        [JSON.stringify(store)]
+      );
+    } catch (err) {
+      console.error('PostgreSQL saveStore error:', err.message);
+    }
+  }
+
   try {
     fs.writeFileSync(TMP_DB_PATH, JSON.stringify(store), 'utf8');
-  } catch (err) {
-    console.error('Warning: could not write TMP_DB_PATH:', err.message);
+  } catch {
+    // Ignore file write errors on read-only fs
   }
 }
 
@@ -315,6 +276,44 @@ function ensureUniquePaymentLink(store, customer, origin) {
       shortUrl,
       createdAt: new Date().toISOString()
     };
+
+    // Optional live Razorpay Payment Link creation when RAZORPAY_KEY_ID & RAZORPAY_KEY_SECRET are configured
+    if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET && customer.phone) {
+      const authHeader = Buffer.from(`${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`).toString('base64');
+      const cleanPhone = String(customer.phone).replace(/\D/g, '').slice(-10);
+      fetch('https://api.razorpay.com/v1/payment_links', {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${authHeader}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          amount: Math.round(amount * 100),
+          currency: 'INR',
+          reference_id: paymentId,
+          description: `Pure Home Waters Rent - ${forMonth} (${customer.purifierModel})`,
+          customer: {
+            name: customer.name,
+            contact: `+91${cleanPhone}`
+          },
+          notify: { sms: false, email: false },
+          reminder_enable: false,
+          notes: {
+            paymentId,
+            customerId: String(customer.id),
+            forMonth
+          }
+        })
+      })
+        .then(r => r.json())
+        .then(rzp => {
+          if (rzp && rzp.short_url && store.paymentLinks[paymentId]) {
+            store.paymentLinks[paymentId].razorpayLinkId = rzp.id;
+            store.paymentLinks[paymentId].razorpayShortUrl = rzp.short_url;
+          }
+        })
+        .catch(() => undefined);
+    }
   } else {
     existing.customerName = customer.name;
     existing.customerPhone = customer.phone;
@@ -322,11 +321,11 @@ function ensureUniquePaymentLink(store, customer, origin) {
     existing.purifierModel = customer.purifierModel || existing.purifierModel;
     existing.amount = amount;
     existing.dueDate = customer.nextDueDate;
-    existing.shortUrl = shortUrl;
+    existing.shortUrl = existing.razorpayShortUrl || shortUrl;
   }
 
   customer.uniquePaymentId = paymentId;
-  customer.paymentLinkUrl = shortUrl;
+  customer.paymentLinkUrl = store.paymentLinks[paymentId].shortUrl;
   return store.paymentLinks[paymentId];
 }
 
@@ -354,7 +353,7 @@ function logWhatsAppMessage(store, entry) {
     store.whatsappLogs.length = 250;
   }
 
-  // Optional live Meta WhatsApp Cloud API dispatch when WHATSAPP_ACCESS_TOKEN is configured
+  // Live Meta WhatsApp Cloud API dispatch when WHATSAPP_ACCESS_TOKEN & WHATSAPP_PHONE_NUMBER_ID are set
   if (process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID && record.direction === 'OUTBOUND' && record.phone) {
     const cleanPhone = String(record.phone).replace(/\D/g, '');
     const toPhone = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`;
@@ -382,28 +381,22 @@ function buildAutomatedReminderText(customer, link, stage, daysUntilDue) {
     month: 'short',
     year: 'numeric'
   });
-  const onboardStr = new Date(customer.joinDate).toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
 
   if (stage === 'PRE_DUE_5D') {
     return [
       `Hello *${customer.name}*,`,
       '',
-      `Automated Reminder from *Pure Home Waters* 💧`,
-      `Your water purifier (*${customer.purifierModel}*) monthly rent for *${link.forMonth}* is due in *${daysUntilDue} day(s)* on *${dueStr}*.`,
+      `This is a friendly reminder from *Pure Home Waters*.`,
+      `Your monthly water purifier (*${customer.purifierModel}*) rental payment of *Rs.${link.amount}* for *${link.forMonth}* is due in *${daysUntilDue} day(s)* on *${dueStr}*.`,
       '',
-      `• *Unique Payment ID:* ${link.paymentId}`,
-      `• *Monthly Rent:* Rs.${link.amount}/-`,
-      `• *Onboarded Date:* ${onboardStr}`,
-      `• *Next Due Date:* ${dueStr}`,
+      `Payment ID: ${link.paymentId}`,
+      `Rent Amount: Rs.${link.amount}/-`,
+      `Due Date: ${dueStr}`,
       '',
-      `Click your unique payment link below to pay securely (UPI / GPay / PhonePe / Card):`,
+      `Please make the payment using this secure payment link:`,
       `${link.shortUrl}`,
       '',
-      `_Once paid via this link, your account is automatically marked as PAID in real time._`,
+      `Thank you for choosing Pure Home Waters!`,
       `- Pure Home Waters, Tirupati`
     ].join('\n');
   }
@@ -414,10 +407,10 @@ function buildAutomatedReminderText(customer, link, stage, daysUntilDue) {
       '',
       `Your *Pure Home Waters* monthly purifier rent of *Rs.${link.amount}* for *${link.forMonth}* is *Due Today (${dueStr})*.`,
       '',
-      `• *Unique Payment ID:* ${link.paymentId}`,
-      `• *Amount Due:* Rs.${link.amount}/-`,
+      `Payment ID: ${link.paymentId}`,
+      `Amount Due: Rs.${link.amount}/-`,
       '',
-      `Pay instantly using your unique link:`,
+      `Pay securely using your link:`,
       `${link.shortUrl}`,
       '',
       `- Pure Home Waters, Tirupati`
@@ -427,25 +420,18 @@ function buildAutomatedReminderText(customer, link, stage, daysUntilDue) {
   return [
     `Hello *${customer.name}*,`,
     '',
-    `URGENT: Your *Pure Home Waters* rental payment of *Rs.${link.amount}* for *${link.forMonth}* was due on *${dueStr}* and is currently *Overdue*.`,
+    `Your *Pure Home Waters* rental payment of *Rs.${link.amount}* for *${link.forMonth}* was due on *${dueStr}* and is currently *Overdue*.`,
     '',
-    `• *Unique Payment ID:* ${link.paymentId}`,
-    `• *Overdue Amount:* Rs.${link.amount}/-`,
+    `Payment ID: ${link.paymentId}`,
+    `Amount Due: Rs.${link.amount}/-`,
     '',
-    `Please complete payment immediately using your unique link to avoid service interruption:`,
+    `Please complete payment using your link:`,
     `${link.shortUrl}`,
     '',
     `- Pure Home Waters, Tirupati`
   ].join('\n');
 }
 
-/**
- * Core Real-Time Automation Engine:
- * 1. Analyzes every customer's onboarding date (joinDate) and nextDueDate
- * 2. Generates unique Payment ID & Payment Link (PAY-PHW-<ID>-<YYYYMM>)
- * 3. Sends automated WhatsApp reminders 5 days before due date, on due date, and when overdue
- * 4. Syncs customer status ('active' vs 'overdue') automatically
- */
 function runAutomationEngine(store, origin) {
   if (!store || !Array.isArray(store.customers)) return { triggered: 0, evaluated: 0 };
 
@@ -466,7 +452,6 @@ function runAutomationEngine(store, origin) {
     const paidForCycle = isCustomerPaidForCycle(store, customer.id, forMonth, dueDate);
 
     if (paidForCycle) {
-      // Customer already paid for this due cycle — advance their nextDueDate automatically!
       const nextCycleDate = calculateNextCycleDueDate(customer.joinDate, dueDate);
       customer.nextDueDate = nextCycleDate.toISOString();
       customer.status = 'active';
@@ -535,16 +520,10 @@ function runAutomationEngine(store, origin) {
   };
 }
 
-/**
- * Completes a payment via Unique Payment Link (or Razorpay Webhook),
- * immediately records the PaymentRecord, advances nextDueDate by +1 month,
- * moves customer out of Unpaid into Paid, and sends automated WhatsApp receipt.
- */
-function completePaymentByLink(store, paymentId, payload, origin) {
+async function completePaymentByLink(store, paymentId, payload, origin) {
   if (!store.paymentLinks) store.paymentLinks = {};
   let link = store.paymentLinks[paymentId];
 
-  // If paymentId encodes customerId (e.g. PAY-PHW-001-202611), resolve customer even if link wasn't cached
   if (!link) {
     const match = /^PAY-PHW-(\d+)-(\d{6})/i.exec(String(paymentId));
     if (match) {
@@ -576,29 +555,27 @@ function completePaymentByLink(store, paymentId, payload, origin) {
   const now = new Date();
   const nowIso = now.toISOString();
   const txRef = payload?.transactionRef || payload?.razorpayPaymentId || `TXN-${Date.now().toString(36).toUpperCase()}`;
-  const method = payload?.paymentMethod || 'UPI / Online Payment Link';
+  const method = payload?.paymentMethod || 'Online Payment Link';
 
   link.status = 'PAID';
   link.paidAt = nowIso;
   link.transactionRef = txRef;
   link.paymentMethod = method;
 
-  // 1. Record payment in CRM payments list
   const newPayment = {
     id: nextId(store, 'payments'),
     customerId: Number(customer.id),
     amount: Number(link.amount),
     paidDate: nowIso,
     forMonth: link.forMonth,
-    receiver: 'Auto Payment Link (Online)',
-    notes: `Paid via Unique Link ${link.paymentId} · Ref: ${txRef} (${method})`,
+    receiver: 'Online Payment',
+    notes: `Payment ID: ${link.paymentId} · Ref: ${txRef}`,
     paymentId: link.paymentId,
     transactionRef: txRef,
     createdAt: nowIso
   };
   store.payments.unshift(newPayment);
 
-  // 2. Advance customer's nextDueDate by +1 month & set status = 'active'
   const nextDue = calculateNextCycleDueDate(customer.joinDate, customer.nextDueDate);
   customer.lastPaymentDate = nowIso;
   customer.nextDueDate = nextDue.toISOString();
@@ -607,11 +584,9 @@ function completePaymentByLink(store, paymentId, payload, origin) {
   customer.lastReminderStage = 'RECEIPT_SENT';
   customer.lastReminderSentAt = nowIso;
 
-  // 3. Pre-generate next month's unique payment link
   const nextMonthLink = ensureUniquePaymentLink(store, customer, origin);
   customer.daysUntilDue = Math.round((nextDue.getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()) / 86400000);
 
-  // 4. Send automated WhatsApp Payment Receipt
   const nextDueFormatted = nextDue.toLocaleDateString('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -620,17 +595,14 @@ function completePaymentByLink(store, paymentId, payload, origin) {
   const receiptMessage = [
     `Hello *${customer.name}*,`,
     '',
-    `✅ *Payment Received Successfully!*`,
-    `Thank you for paying your *Pure Home Waters* purifier rent.`,
+    `Payment Received! Thank you for paying your *Pure Home Waters* purifier rent.`,
     '',
-    `• *Payment ID:* ${link.paymentId}`,
-    `• *Transaction Ref:* ${txRef}`,
-    `• *Amount Paid:* Rs.${link.amount}/-`,
-    `• *Billing Month:* ${link.forMonth}`,
-    `• *Account Status:* PAID & ACTIVE`,
-    `• *Next Due Date:* ${nextDueFormatted}`,
+    `Payment ID: ${link.paymentId}`,
+    `Transaction Ref: ${txRef}`,
+    `Amount Paid: Rs.${link.amount}/-`,
+    `Month: ${link.forMonth}`,
+    `Next Due Date: ${nextDueFormatted}`,
     '',
-    `Thank you for choosing Pure Home Waters!`,
     `- Pure Home Waters, Tirupati`
   ].join('\n');
 
@@ -645,7 +617,7 @@ function completePaymentByLink(store, paymentId, payload, origin) {
     idempotencyKey: `receipt:${link.paymentId}`
   });
 
-  saveStore(store);
+  await saveStore(store);
 
   return {
     alreadyPaid: false,
@@ -657,17 +629,11 @@ function completePaymentByLink(store, paymentId, payload, origin) {
   };
 }
 
-/**
- * Processes an incoming customer WhatsApp message (Meta Cloud API or Direct Webhook),
- * logs the complaint in real time with a Ticket ID (e.g. CMP-1002),
- * and sends an automated WhatsApp acknowledgement back to the customer.
- */
-function handleIncomingWhatsAppComplaint(store, payload) {
+async function handleIncomingWhatsAppComplaint(store, payload) {
   let rawPhone = '';
   let messageText = '';
   let senderName = '';
 
-  // Support official Meta WhatsApp Cloud API payload format
   if (payload?.entry?.[0]?.changes?.[0]?.value?.messages?.[0]) {
     const val = payload.entry[0].changes[0].value;
     const msg = val.messages[0];
@@ -701,13 +667,12 @@ function handleIncomingWhatsAppComplaint(store, payload) {
 
   const nowIso = new Date().toISOString();
 
-  // If phone is from an unknown customer, create a profile so complaint is never lost
   if (!customer) {
     const newCustId = nextId(store, 'customers');
     customer = {
       id: newCustId,
-      name: senderName || `WhatsApp Customer (${last10 || 'New'})`,
-      phone: last10 || '9000000000',
+      name: senderName || `Customer (${last10 || 'WhatsApp'})`,
+      phone: last10 || '',
       address: 'Reported via WhatsApp',
       area: 'Tirupati',
       purifierModel: 'Purosis',
@@ -718,7 +683,7 @@ function handleIncomingWhatsAppComplaint(store, payload) {
       joinDate: nowIso,
       nextDueDate: calculateNextCycleDueDate(nowIso, nowIso).toISOString(),
       status: 'active',
-      notes: 'Auto-created from incoming WhatsApp complaint',
+      notes: 'Created from incoming WhatsApp complaint',
       createdAt: nowIso
     };
     store.customers.push(customer);
@@ -727,7 +692,6 @@ function handleIncomingWhatsAppComplaint(store, payload) {
   const complaintId = nextId(store, 'customerComplaints');
   const ticketId = `CMP-${1000 + complaintId}`;
 
-  // 1. Log inbound WhatsApp message
   logWhatsAppMessage(store, {
     customerId: customer.id,
     customerName: customer.name,
@@ -738,18 +702,11 @@ function handleIncomingWhatsAppComplaint(store, payload) {
     message: String(messageText).trim()
   });
 
-  // 2. Build auto-reply message with Ticket ID
   const autoReply = [
     `Hello *${customer.name}*,`,
     '',
-    `We have received your service complaint on WhatsApp:`,
-    `"${String(messageText).trim()}"`,
-    '',
-    `• *Complaint Ticket ID:* ${ticketId}`,
-    `• *Purifier Model:* ${customer.purifierModel}`,
-    `• *Status:* Logged in CRM (Awaiting Admin Admission)`,
-    '',
-    `Our admin team has been notified in real time and will assign a technician shortly.`,
+    `We have received your complaint on WhatsApp. Your Ticket ID is *${ticketId}*.`,
+    `Our team will assign a technician shortly.`,
     `- Pure Home Waters, Tirupati`
   ].join('\n');
 
@@ -770,7 +727,6 @@ function handleIncomingWhatsAppComplaint(store, payload) {
 
   store.customerComplaints.unshift(newComplaint);
 
-  // 3. Log outbound auto-reply
   logWhatsAppMessage(store, {
     customerId: customer.id,
     customerName: customer.name,
@@ -782,7 +738,7 @@ function handleIncomingWhatsAppComplaint(store, payload) {
     idempotencyKey: `complaint-autoreply:${ticketId}`
   });
 
-  saveStore(store);
+  await saveStore(store);
 
   return {
     complaint: newComplaint,
@@ -792,14 +748,7 @@ function handleIncomingWhatsAppComplaint(store, payload) {
   };
 }
 
-/**
- * Admin 1-Click "Admit & Assign Fix" on an incoming complaint:
- * 1. Marks complaint as ADMITTED
- * 2. Assigns default (or selected) technician
- * 3. Creates a scheduled repair ServiceRecord
- * 4. Sends WhatsApp notification to customer that their fix is admitted & technician assigned
- */
-function admitComplaintAndScheduleFix(store, complaintId, body) {
+async function admitComplaintAndScheduleFix(store, complaintId, body) {
   const complaint = (store.customerComplaints || []).find(c => Number(c.id) === Number(complaintId));
   if (!complaint) {
     return { error: 'Complaint not found', status: 404 };
@@ -807,7 +756,7 @@ function admitComplaintAndScheduleFix(store, complaintId, body) {
 
   const customer = (store.customers || []).find(c => Number(c.id) === Number(complaint.customerId));
   const defaultTech = (store.technicians || []).find(t => t.isDefault) || (store.technicians || [])[0];
-  const technicianName = body?.technicianName || defaultTech?.name || 'Ravi Kumar (Senior Tech)';
+  const technicianName = body?.technicianName || defaultTech?.name || 'Default Technician';
 
   const now = new Date();
   const visitDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
@@ -829,7 +778,7 @@ function admitComplaintAndScheduleFix(store, complaintId, body) {
     complaintId: Number(complaint.id),
     technicianName,
     partsReplaced: '',
-    notes: `Admitted from WhatsApp Complaint ${ticketId}: ${complaint.complaint}`,
+    notes: `Complaint ${ticketId}: ${complaint.complaint}`,
     cost: 0,
     createdAt: nowIso
   };
@@ -849,15 +798,8 @@ function admitComplaintAndScheduleFix(store, complaintId, body) {
   const admitWhatsAppMsg = [
     `Hello *${customer?.name || complaint.customerName || 'Customer'}*,`,
     '',
-    `🛠 *Your Complaint ${ticketId} Has Been Admitted!*`,
-    `Admin has approved your service request and assigned a technician.`,
-    '',
-    `• *Ticket ID:* ${ticketId}`,
-    `• *Issue:* ${complaint.complaint}`,
-    `• *Assigned Technician:* ${technicianName}`,
-    `• *Scheduled Visit:* ${visitStr}`,
-    '',
-    `Our technician will visit and resolve the issue promptly.`,
+    `Your service request *${ticketId}* has been approved.`,
+    `Technician *${technicianName}* is scheduled to visit on *${visitStr}*.`,
     `- Pure Home Waters, Tirupati`
   ].join('\n');
 
@@ -872,7 +814,7 @@ function admitComplaintAndScheduleFix(store, complaintId, body) {
     idempotencyKey: `complaint-admit:${ticketId}`
   });
 
-  saveStore(store);
+  await saveStore(store);
 
   return {
     complaint,
@@ -918,7 +860,7 @@ function parseRequestBody(req) {
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Razorpay-Signature');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 
   if (req.method === 'OPTIONS') {
@@ -939,7 +881,7 @@ module.exports = async function handler(req, res) {
   ).replace(/^\/+|\/+$/g, '');
   const method = (req.method || 'GET').toUpperCase();
 
-  const store = loadStore(origin);
+  const store = await loadStore(origin);
 
   const sendJson = (statusCode, payload) => {
     res.statusCode = statusCode;
@@ -948,16 +890,17 @@ module.exports = async function handler(req, res) {
   };
 
   try {
-    // 1. GET full real-time state (or check version)
+    // 1. GET full real-time state
     if ((pathname === '' || pathname === 'state') && method === 'GET') {
       const autoSummary = runAutomationEngine(store, origin);
       if (autoSummary.triggered > 0) {
-        saveStore(store);
+        await saveStore(store);
       }
       return sendJson(200, {
         success: true,
         version: store.version,
         updatedAt: store.updatedAt,
+        databaseMode: (process.env.DATABASE_URL || process.env.POSTGRES_URL) ? 'postgresql' : 'cloud-realtime',
         automation: {
           ...store.automationConfig,
           lastSummary: autoSummary
@@ -967,7 +910,7 @@ module.exports = async function handler(req, res) {
           rentalPlans: store.rentalPlans,
           payments: store.payments,
           serviceRecords: store.serviceRecords,
-          technicians: store.technicians,
+          technicians: store.serviceRecords ? store.technicians : [],
           customerComplaints: store.customerComplaints,
           customerComments: store.customerComments,
           paymentLinks: Object.values(store.paymentLinks || {}),
@@ -979,10 +922,10 @@ module.exports = async function handler(req, res) {
     // 2. Trigger Automation Cycle manually or via Vercel Cron
     if ((pathname === 'automation/run' || pathname === 'automation/cron') && (method === 'POST' || method === 'GET')) {
       const summary = runAutomationEngine(store, origin);
-      saveStore(store);
+      await saveStore(store);
       return sendJson(200, {
         success: true,
-        message: `Automation evaluated ${summary.evaluated} customers and sent ${summary.triggered} new WhatsApp reminder(s).`,
+        message: `Evaluated ${summary.evaluated} customers.`,
         data: summary,
         version: store.version
       });
@@ -1000,7 +943,7 @@ module.exports = async function handler(req, res) {
           const customer = store.customers.find(c => Number(c.id) === Number(m[1]));
           if (customer) {
             link = ensureUniquePaymentLink(store, customer, origin);
-            saveStore(store);
+            await saveStore(store);
           }
         }
       }
@@ -1022,13 +965,13 @@ module.exports = async function handler(req, res) {
     if (paymentPayMatch && method === 'POST') {
       const paymentId = decodeURIComponent(paymentPayMatch[1]);
       const body = await parseRequestBody(req);
-      const result = completePaymentByLink(store, paymentId, body, origin);
+      const result = await completePaymentByLink(store, paymentId, body, origin);
       if (result.error) {
         return sendJson(result.status || 400, { success: false, message: result.error });
       }
       return sendJson(200, {
         success: true,
-        message: result.alreadyPaid ? 'Payment already recorded' : 'Payment completed and reflected in CRM in real time!',
+        message: result.alreadyPaid ? 'Payment already recorded' : 'Payment completed successfully',
         data: result,
         version: store.version
       });
@@ -1037,6 +980,18 @@ module.exports = async function handler(req, res) {
     // 5. Razorpay Webhook: POST /api/v1/crm/webhooks/razorpay
     if (pathname === 'webhooks/razorpay' && method === 'POST') {
       const body = await parseRequestBody(req);
+
+      // Verify HMAC signature if RAZORPAY_WEBHOOK_SECRET is configured
+      if (process.env.RAZORPAY_WEBHOOK_SECRET && req.headers['x-razorpay-signature']) {
+        const expected = crypto
+          .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
+          .update(JSON.stringify(body))
+          .digest('hex');
+        if (expected !== req.headers['x-razorpay-signature']) {
+          return sendJson(401, { success: false, message: 'Invalid Razorpay webhook signature' });
+        }
+      }
+
       const refId =
         body?.payload?.payment_link?.entity?.reference_id ||
         body?.payload?.payment?.entity?.notes?.paymentId ||
@@ -1047,10 +1002,10 @@ module.exports = async function handler(req, res) {
         return sendJson(400, { success: false, message: 'Missing reference_id / paymentId in webhook payload' });
       }
 
-      const result = completePaymentByLink(
+      const result = await completePaymentByLink(
         store,
         refId,
-        { transactionRef: rzpPaymentId, paymentMethod: 'Razorpay Webhook' },
+        { transactionRef: rzpPaymentId, paymentMethod: 'Razorpay' },
         origin
       );
       if (result.error) {
@@ -1058,7 +1013,7 @@ module.exports = async function handler(req, res) {
       }
       return sendJson(200, {
         success: true,
-        message: 'Razorpay webhook processed and customer marked as PAID',
+        message: 'Razorpay webhook processed',
         data: result
       });
     }
@@ -1067,52 +1022,56 @@ module.exports = async function handler(req, res) {
     if (pathname === 'webhooks/whatsapp') {
       if (method === 'GET') {
         const mode = urlObj.searchParams.get('hub.mode');
+        const verifyToken = urlObj.searchParams.get('hub.verify_token');
         const challenge = urlObj.searchParams.get('hub.challenge');
         if (mode === 'subscribe' && challenge) {
+          if (process.env.WHATSAPP_VERIFY_TOKEN && verifyToken !== process.env.WHATSAPP_VERIFY_TOKEN) {
+            return sendJson(403, { success: false, message: 'Invalid verify token' });
+          }
           res.statusCode = 200;
           res.setHeader('Content-Type', 'text/plain');
           res.end(challenge);
           return;
         }
-        return sendJson(200, { success: true, message: 'WhatsApp Webhook Endpoint Active' });
+        return sendJson(200, { success: true, message: 'WhatsApp Webhook Active' });
       }
 
       if (method === 'POST') {
         const body = await parseRequestBody(req);
-        const result = handleIncomingWhatsAppComplaint(store, body);
+        const result = await handleIncomingWhatsAppComplaint(store, body);
         if (result.error) {
           return sendJson(result.status || 400, { success: false, message: result.error });
         }
         return sendJson(201, {
           success: true,
-          message: `WhatsApp complaint logged as ${result.ticketId} and auto-reply sent!`,
+          message: `Complaint ${result.ticketId} logged`,
           data: result,
           version: store.version
         });
       }
     }
 
-    // 7. One-Click Admin "Admit & Assign Fix" for Complaint: POST /api/v1/crm/complaints/:id/admit
+    // 7. Admin "Admit & Assign Fix" for Complaint: POST /api/v1/crm/complaints/:id/admit
     const admitMatch = /^complaints\/(\d+)\/admit$/.exec(pathname);
     if (admitMatch && method === 'POST') {
       const complaintId = Number(admitMatch[1]);
       const body = await parseRequestBody(req);
-      const result = admitComplaintAndScheduleFix(store, complaintId, body);
+      const result = await admitComplaintAndScheduleFix(store, complaintId, body);
       if (result.error) {
         return sendJson(result.status || 404, { success: false, message: result.error });
       }
       return sendJson(200, {
         success: true,
-        message: `Complaint ${result.complaint.ticketId} admitted and technician ${result.complaint.assignedTechnician} assigned!`,
+        message: `Complaint ${result.complaint.ticketId} admitted`,
         data: result,
         version: store.version
       });
     }
 
-    // 8. Sync / Bulk Import (for migrating any existing IndexedDB or SQL backup into Cloud Store)
+    // 8. Sync / Bulk Import (for migrating existing IndexedDB or SQL backup into Cloud Store)
     if (pathname === 'sync/import' && method === 'POST') {
       const body = await parseRequestBody(req);
-      const mode = body?.mode || 'merge'; // 'merge' or 'replace'
+      const mode = body?.mode || 'merge';
 
       if (mode === 'replace') {
         if (Array.isArray(body.rentalPlans)) store.rentalPlans = body.rentalPlans;
@@ -1124,7 +1083,6 @@ module.exports = async function handler(req, res) {
         if (Array.isArray(body.customerComments)) store.customerComments = body.customerComments;
         store.paymentLinks = {};
       } else {
-        // Non-destructive merge of existing browser records by phone/id
         if (Array.isArray(body.customers)) {
           for (const incoming of body.customers) {
             const exists = store.customers.some(
@@ -1136,13 +1094,25 @@ module.exports = async function handler(req, res) {
             }
           }
         }
+        if (Array.isArray(body.payments) && store.payments.length === 0) {
+          store.payments = body.payments;
+        }
+        if (Array.isArray(body.serviceRecords) && store.serviceRecords.length === 0) {
+          store.serviceRecords = body.serviceRecords;
+        }
+        if (Array.isArray(body.customerComplaints) && store.customerComplaints.length === 0) {
+          store.customerComplaints = body.customerComplaints;
+        }
+        if (Array.isArray(body.customerComments) && store.customerComments.length === 0) {
+          store.customerComments = body.customerComments;
+        }
       }
 
       runAutomationEngine(store, origin);
-      saveStore(store);
+      await saveStore(store);
       return sendJson(200, {
         success: true,
-        message: 'Cloud database synchronized and automation updated.',
+        message: 'Database synchronized.',
         version: store.version
       });
     }
@@ -1203,7 +1173,6 @@ module.exports = async function handler(req, res) {
 
         list.push(newItem);
 
-        // If a payment was manually recorded, also mark any active payment link as PAID and advance due date
         if (collectionKey === 'payments' && newItem.customerId) {
           const customer = store.customers.find(c => Number(c.id) === Number(newItem.customerId));
           if (customer) {
@@ -1217,7 +1186,7 @@ module.exports = async function handler(req, res) {
         }
 
         runAutomationEngine(store, origin);
-        saveStore(store);
+        await saveStore(store);
         return sendJson(201, { success: true, data: newItem, id, version: store.version });
       }
 
@@ -1240,7 +1209,7 @@ module.exports = async function handler(req, res) {
         }
 
         runAutomationEngine(store, origin);
-        saveStore(store);
+        await saveStore(store);
         return sendJson(200, { success: true, data: list[idx], version: store.version });
       }
 
@@ -1248,7 +1217,7 @@ module.exports = async function handler(req, res) {
         const idx = list.findIndex(x => Number(x.id) === itemId);
         if (idx !== -1) {
           list.splice(idx, 1);
-          saveStore(store);
+          await saveStore(store);
         }
         return sendJson(200, { success: true, version: store.version });
       }
@@ -1259,7 +1228,7 @@ module.exports = async function handler(req, res) {
     console.error('CRM API Error:', err);
     return sendJson(500, {
       success: false,
-      message: 'Internal server error in real-time CRM engine'
+      message: 'Internal server error'
     });
   }
 };

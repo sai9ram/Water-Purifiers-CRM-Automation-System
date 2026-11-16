@@ -2,21 +2,9 @@
     <!-- Header -->
     <div class="page-header">
         <div>
-            <h2>Automated WhatsApp & Payment Links</h2>
-            <p class="subtitle">Zero-touch billing: analyzes customer onboarding date, generates unique Payment IDs, and auto-sends reminders 5 days before due date.</p>
+            <h2>WhatsApp Rent Reminders</h2>
+            <p class="subtitle">Track rent dues, payment links, and WhatsApp reminders</p>
         </div>
-        <button mat-raised-button color="primary" (click)="triggerAutomationCheck()" [disabled]="runningAutoCheck">
-            <mat-icon>bolt</mat-icon>
-            {{ runningAutoCheck ? 'Running Engine...' : 'Run 5-Day Auto-Check Now' }}
-        </button>
-    </div>
-
-    <!-- Real-Time Automation Engine Status Banner -->
-    <div class="simple-tip-banner">
-        <mat-icon>verified</mat-icon>
-        <p>
-            <b>100% Automated Engine Active:</b> For every onboarded customer, the system calculates their next due date, assigns a unique Payment ID (e.g. <b>PAY-PHW-001-202611</b>), and automatically sends WhatsApp payment links <b>5 days before due date</b>, <b>on due date</b>, and <b>when overdue</b>. The moment a customer pays via their link, they automatically move from <b>Unpaid</b> to <b>Paid</b> in real time!
-        </p>
     </div>
 
     <!-- Simple Time Filter -->
@@ -58,19 +46,19 @@
     <div class="simple-stats-row">
         <div class="stat-pill-box">
             <span class="pill-number">{{ dueThisMonth.length }}</span>
-            <span class="pill-title">Unpaid Customers</span>
-        </div>
-        <div class="stat-pill-box stat-blue">
-            <span class="pill-number">{{ dueIn5DaysCustomers.length }}</span>
-            <span class="pill-title">Due Within 5 Days (Auto-Reminded)</span>
+            <span class="pill-title">Due This Month</span>
         </div>
         <div class="stat-pill-box stat-red">
             <span class="pill-number">{{ overdueCustomers.length }}</span>
-            <span class="pill-title">Overdue Customers</span>
+            <span class="pill-title">Late on Rent</span>
         </div>
         <div class="stat-pill-box stat-green">
             <span class="pill-number">{{ paidThisCycleCustomers.length }}</span>
-            <span class="pill-title">Auto-Moved to Paid</span>
+            <span class="pill-title">Paid This Month</span>
+        </div>
+        <div class="stat-pill-box stat-blue">
+            <span class="pill-number">₹{{ totalDue | number }}</span>
+            <span class="pill-title">Total Unpaid Rent</span>
         </div>
     </div>
 
@@ -78,16 +66,16 @@
     <div class="tab-control-bar">
         <div class="simple-tabs">
             <button class="simple-tab-btn" [class.active]="activeTab === 'month'" (click)="setTab('month')">
-                Unpaid This Cycle ({{ dueThisMonth.length }})
+                Due This Month ({{ dueThisMonth.length }})
             </button>
             <button class="simple-tab-btn" [class.active]="activeTab === 'pre5'" (click)="setTab('pre5')">
-                5-Day Pre-Due Window ({{ dueIn5DaysCustomers.length }})
+                Due in 5 Days ({{ dueIn5DaysCustomers.length }})
             </button>
             <button class="simple-tab-btn" [class.active]="activeTab === 'overdue'" (click)="setTab('overdue')">
-                Late / Overdue ({{ overdueCustomers.length }})
+                Late on Rent ({{ overdueCustomers.length }})
             </button>
             <button class="simple-tab-btn" [class.active]="activeTab === 'paid'" (click)="setTab('paid')">
-                Paid Customers ({{ paidThisCycleCustomers.length }})
+                Paid ({{ paidThisCycleCustomers.length }})
             </button>
         </div>
 
@@ -112,7 +100,7 @@
     @if (previewCustomer) {
     <div class="message-preview-card">
         <div class="preview-title-bar">
-            <span>Automated WhatsApp Message & Unique Payment Link for {{ previewCustomer.name }}</span>
+            <span>Message Preview for {{ previewCustomer.name }}</span>
             <button mat-icon-button (click)="previewCustomer = null" aria-label="Close preview">
                 <mat-icon>close</mat-icon>
             </button>
@@ -128,8 +116,8 @@
         @if (displayedCustomers.length === 0) {
         <div class="empty-state">
             <mat-icon>check_circle</mat-icon>
-            <h4>No Customers in This List</h4>
-            <p>All customers in this view have completed their payment or no records match.</p>
+            <h4>No Customers Here</h4>
+            <p>All customers are paid up, or no records match this category.</p>
         </div>
         }
 
@@ -146,91 +134,41 @@
                 <div class="row-cust-info">
                     <div class="cust-name-line">
                         <strong class="cust-title">{{ c.name }}</strong>
-                        <span class="unique-pay-id" (click)="copyPaymentLink(c)" matTooltip="Click to copy unique payment link">
-                            ID: {{ getUniquePaymentId(c) }}
+                        <span class="unique-pay-id" (click)="copyPaymentLink(c)" matTooltip="Copy Payment Link">
+                            {{ getUniquePaymentId(c) }}
                         </span>
                     </div>
-                    <span class="cust-phone-area">{{ c.area }} · {{ c.phone }} · Purifier: {{ c.purifierModel }}</span>
-                    <span class="cust-dates">
-                        Onboarded: {{ c.joinDate | date:'dd MMM yyyy' }} ·
-                        <b [class]="getDueDateClass(c.nextDueDate)">Next Due: {{ c.nextDueDate | date:'dd MMM yyyy' }}</b>
-                    </span>
+                    <span class="cust-phone-area">{{ c.area }} · {{ c.phone }}</span>
+                    <span class="cust-model">Purifier: {{ c.purifierModel }}</span>
                 </div>
 
                 <div class="row-rent-info">
                     <div class="rent-amount">₹{{ c.monthlyRent }}/month</div>
-                    <span [class]="getDueCountdownBadge(c).css">
-                        {{ getDueCountdownBadge(c).label }}
-                    </span>
+                    <div [class]="getDueDateClass(c.nextDueDate)" class="due-text">
+                        Due: {{ c.nextDueDate | date:'dd MMM yyyy' }}
+                    </div>
                 </div>
 
                 <span [class]="getStatusChip(c.status)">{{ c.status }}</span>
 
                 <div class="row-actions">
-                    <a class="pay-link-test-btn" [routerLink]="['/pay', getUniquePaymentId(c)]"
-                        matTooltip="Open customer's unique payment checkout link">
+                    <a class="simple-icon-btn" [routerLink]="['/pay', getUniquePaymentId(c)]" matTooltip="Open Payment Link">
                         <mat-icon>link</mat-icon>
-                        <span>Open Pay Link</span>
                     </a>
-                    <button class="simple-icon-btn" matTooltip="Preview Automated WhatsApp Message" (click)="showPreview(c)">
+                    <button class="simple-icon-btn" matTooltip="Preview WhatsApp Message" (click)="showPreview(c)">
                         <mat-icon>visibility</mat-icon>
                     </button>
-                    <button class="simple-icon-btn" matTooltip="Record Manual Payment" (click)="recordPayment(c)">
+                    <button class="simple-icon-btn" matTooltip="Mark Payment Received" (click)="recordPayment(c)">
                         <mat-icon>currency_rupee</mat-icon>
                     </button>
                     <button class="whatsapp-action-btn" (click)="sendSingle(c)" [class.already-sent]="sentIds.has(c.id!)">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="16" height="16" alt="WA" />
-                        <span>{{ sentIds.has(c.id!) ? 'Sent ✓' : 'WhatsApp' }}</span>
+                        <span>{{ sentIds.has(c.id!) ? 'Sent ✓' : 'Send WhatsApp' }}</span>
                     </button>
                 </div>
             </div>
             }
         </div>
         }
-    </div>
-
-    <!-- Real-Time Automated WhatsApp & Payment Link Activity Log -->
-    <div class="auto-logs-section">
-        <div class="auto-logs-header">
-            <div>
-                <h3>Live Automated WhatsApp & Payment Link Log</h3>
-                <p>Real-time record of 5-day pre-due reminders, instant payment receipts, and complaint auto-replies</p>
-            </div>
-            <span class="live-dot-pill">● Live Real-Time Sync</span>
-        </div>
-
-        <div class="table-card">
-            @if (automationLogs.length === 0) {
-            <div class="empty-state">
-                <mat-icon>history</mat-icon>
-                <h4>No Automated Messages Logged Yet</h4>
-                <p>Automated 5-day reminders and payment receipts will appear here in real time.</p>
-            </div>
-            }
-
-            @if (automationLogs.length > 0) {
-            <div class="auto-log-list">
-                @for (log of automationLogs; track log.id) {
-                <div class="auto-log-row">
-                    <span class="log-badge" [attr.data-cat]="log.category">{{ log.category }}</span>
-                    <div class="log-main">
-                        <strong>{{ log.customerName }} ({{ log.phone }})</strong>
-                        @if (log.paymentId) {
-                        <span class="log-meta-tag">Payment ID: {{ log.paymentId }}</span>
-                        }
-                        @if (log.ticketId) {
-                        <span class="log-meta-tag ticket">Ticket: {{ log.ticketId }}</span>
-                        }
-                        <p class="log-msg-snippet">{{ log.message }}</p>
-                    </div>
-                    <div class="log-time">
-                        <span>{{ log.createdAt | date:'dd MMM, hh:mm a' }}</span>
-                        <span class="delivery-tag">✓ Auto-Dispatched</span>
-                    </div>
-                </div>
-                }
-            </div>
-            }
-        </div>
     </div>
 </div>
