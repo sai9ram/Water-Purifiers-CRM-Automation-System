@@ -52,8 +52,7 @@ export class PaymentsComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  columns = ['customer', 'forMonth', 'paidDate', 'amount', 'receiver', 'notes', 'actions'];
-  // columns = ['customer', 'forMonth', 'paidDate', 'amount', 'notes', 'actions'];
+  columns = ['customer', 'forMonth', 'paidDate', 'amount', 'notes', 'actions'];
   dataSource = new MatTableDataSource<PaymentView>([]);
   allPayments: PaymentView[] = [];
   customers: Customer[] = [];
@@ -129,11 +128,10 @@ export class PaymentsComponent implements OnInit, AfterViewInit, OnDestroy {
         payment.notes ?? ''
       ].some(value => value.toLowerCase().includes(query));
 
-      const matchesReceiver = !this.receiverFilter || (payment.receiver || 'Charan').toLowerCase() === this.receiverFilter.toLowerCase();
       const matchesStart = !start || paidDate >= start;
       const matchesEnd = !end || paidDate <= end;
 
-      return matchesQuery && matchesReceiver && matchesStart && matchesEnd;
+      return matchesQuery && matchesStart && matchesEnd;
     });
 
     this.dataSource.data = filtered;
@@ -161,7 +159,7 @@ export class PaymentsComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const ref = this.dialog.open(EditReceiverDialogComponent, {
       width: '420px',
-      data: { receiver: payment.receiver || 'Charan' }
+      data: { receiver: payment.receiver || 'Admin' }
     });
 
     ref.afterClosed().subscribe(result => {

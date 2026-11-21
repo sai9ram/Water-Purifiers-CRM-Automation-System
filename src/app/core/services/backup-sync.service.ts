@@ -486,7 +486,7 @@ export class BackupSyncService {
 
   private buildMysqlDump(snapshot: BackupSnapshot, createdAt: Date): string {
     const lines: string[] = [
-      '-- Pure Home Waters backup',
+      '-- Aqua Purifier Rentals backup',
       `-- Generated at ${createdAt.toISOString()}`,
       'SET NAMES utf8mb4;',
       'SET FOREIGN_KEY_CHECKS = 0;',

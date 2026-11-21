@@ -68,17 +68,6 @@ interface PaymentRecordDialogData {
         </mat-form-field>
 
         <mat-form-field appearance="outline" style="width:100%">
-          <mat-label>Received By</mat-label>
-          <mat-select formControlName="receiver">
-            <mat-option value="Charan">Charan</mat-option>
-            <mat-option value="Nagarjuna">Nagarjuna</mat-option>
-          </mat-select>
-          <mat-error *ngIf="form.get('receiver')?.invalid && form.get('receiver')?.touched">
-            Select who received the payment.
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" style="width:100%">
           <mat-label>Notes</mat-label>
           <textarea matInput formControlName="notes" rows="3"></textarea>
         </mat-form-field>
@@ -107,7 +96,7 @@ export class PaymentRecordDialogComponent implements OnInit {
       amount: [0, [Validators.required, Validators.min(1)]],
       paidDate: [new Date(), Validators.required],
       forMonth: [''],
-      receiver: ['Charan', Validators.required],
+      receiver: ['Admin'],
       notes: ['']
     });
   }
@@ -133,7 +122,7 @@ export class PaymentRecordDialogComponent implements OnInit {
       amount: Number(values.amount),
       paidDate,
       forMonth: values.forMonth?.toString().trim() ?? '',
-      receiver: values.receiver?.toString().trim() || 'Charan',
+      receiver: 'Admin',
       notes: values.notes?.toString().trim()
     }).subscribe(() => {
       const nextDueDate = new Date(this.data.customer.nextDueDate || new Date());

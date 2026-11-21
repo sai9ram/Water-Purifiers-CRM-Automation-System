@@ -18,7 +18,7 @@ import { Customer, PaymentLinkRecord } from '../../core/models/models';
         <div class="pay-brand-header">
           <div class="pay-logo">💧</div>
           <div>
-            <h2>Pure Home Waters</h2>
+            <h2>Aqua Purifier Rentals</h2>
             <p>Monthly Rental Payment · Tirupati</p>
           </div>
           <span class="secure-badge">

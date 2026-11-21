@@ -26,8 +26,7 @@ import { MatIconModule } from '@angular/material/icon';
         <mat-form-field appearance="outline" style="width:100%">
           <mat-label>Received By</mat-label>
           <mat-select formControlName="receiver">
-            <mat-option value="Charan">Charan</mat-option>
-            <mat-option value="Nagarjuna">Nagarjuna</mat-option>
+            <mat-option value="Admin">Admin</mat-option>
           </mat-select>
         </mat-form-field>
       </form>
@@ -49,7 +48,7 @@ export class EditReceiverDialogComponent {
 
   constructor() {
     this.form = this.fb.group({
-      receiver: [this.data?.receiver || 'Charan', Validators.required]
+      receiver: [this.data?.receiver || 'Admin', Validators.required]
     });
   }
 

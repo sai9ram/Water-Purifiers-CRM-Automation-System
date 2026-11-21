@@ -22,7 +22,7 @@ export class WhatsappService {
     return [
       `Hello *${customer.name}*,`,
       '',
-      'Automated Reminder from *Pure Home Waters* 💧',
+      'Automated Reminder from *Aqua Purifier Rentals* 💧',
       '',
       `Your monthly water purifier (*${customer.purifierModel}*) rental payment of *${rupee}${rent}* is due for *${month}*.`,
       '',
@@ -36,8 +36,8 @@ export class WhatsappService {
       '',
       '_Once paid using this link, your payment immediately reflects in our CRM and marks your account as PAID._',
       '',
-      'Thank you for choosing Pure Home Waters!',
-      '- Pure Home Waters, Tirupati'
+      'Thank you for choosing Aqua Purifier Rentals!',
+      '- Aqua Purifier Rentals, Tirupati'
     ].join('\n');
   }
 
@@ -45,7 +45,7 @@ export class WhatsappService {
     return [
       `Hello ${customer.name},`,
       '',
-      'This is a service reminder from *Pure Home Waters*.',
+      'This is a service reminder from *Aqua Purifier Rentals*.',
       '',
       `Your water purifier (*${customer.purifierModel}*) is due for its regular maintenance service.`,
       '',
@@ -54,7 +54,7 @@ export class WhatsappService {
       'Call us to schedule your service appointment.',
       '',
       'Thank you!',
-      '- Pure Home Waters, Tirupati'
+      '- Aqua Purifier Rentals, Tirupati'
     ].join('\n');
   }
 

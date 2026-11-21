@@ -291,7 +291,7 @@ function ensureUniquePaymentLink(store, customer, origin) {
           amount: Math.round(amount * 100),
           currency: 'INR',
           reference_id: paymentId,
-          description: `Pure Home Waters Rent - ${forMonth} (${customer.purifierModel})`,
+          description: `Aqua Purifier Rentals Rent - ${forMonth} (${customer.purifierModel})`,
           customer: {
             name: customer.name,
             contact: `+91${cleanPhone}`
@@ -386,7 +386,7 @@ function buildAutomatedReminderText(customer, link, stage, daysUntilDue) {
     return [
       `Hello *${customer.name}*,`,
       '',
-      `This is a friendly reminder from *Pure Home Waters*.`,
+      `This is a friendly reminder from *Aqua Purifier Rentals*.`,
       `Your monthly water purifier (*${customer.purifierModel}*) rental payment of *Rs.${link.amount}* for *${link.forMonth}* is due in *${daysUntilDue} day(s)* on *${dueStr}*.`,
       '',
       `Payment ID: ${link.paymentId}`,
@@ -396,8 +396,8 @@ function buildAutomatedReminderText(customer, link, stage, daysUntilDue) {
       `Please make the payment using this secure payment link:`,
       `${link.shortUrl}`,
       '',
-      `Thank you for choosing Pure Home Waters!`,
-      `- Pure Home Waters, Tirupati`
+      `Thank you for choosing Aqua Purifier Rentals!`,
+      `- Aqua Purifier Rentals, Tirupati`
     ].join('\n');
   }
 
@@ -405,7 +405,7 @@ function buildAutomatedReminderText(customer, link, stage, daysUntilDue) {
     return [
       `Hello *${customer.name}*,`,
       '',
-      `Your *Pure Home Waters* monthly purifier rent of *Rs.${link.amount}* for *${link.forMonth}* is *Due Today (${dueStr})*.`,
+      `Your *Aqua Purifier Rentals* monthly purifier rent of *Rs.${link.amount}* for *${link.forMonth}* is *Due Today (${dueStr})*.`,
       '',
       `Payment ID: ${link.paymentId}`,
       `Amount Due: Rs.${link.amount}/-`,
@@ -413,14 +413,14 @@ function buildAutomatedReminderText(customer, link, stage, daysUntilDue) {
       `Pay securely using your link:`,
       `${link.shortUrl}`,
       '',
-      `- Pure Home Waters, Tirupati`
+      `- Aqua Purifier Rentals, Tirupati`
     ].join('\n');
   }
 
   return [
     `Hello *${customer.name}*,`,
     '',
-    `Your *Pure Home Waters* rental payment of *Rs.${link.amount}* for *${link.forMonth}* was due on *${dueStr}* and is currently *Overdue*.`,
+    `Your *Aqua Purifier Rentals* rental payment of *Rs.${link.amount}* for *${link.forMonth}* was due on *${dueStr}* and is currently *Overdue*.`,
     '',
     `Payment ID: ${link.paymentId}`,
     `Amount Due: Rs.${link.amount}/-`,
@@ -428,7 +428,7 @@ function buildAutomatedReminderText(customer, link, stage, daysUntilDue) {
     `Please complete payment using your link:`,
     `${link.shortUrl}`,
     '',
-    `- Pure Home Waters, Tirupati`
+    `- Aqua Purifier Rentals, Tirupati`
   ].join('\n');
 }
 
@@ -595,7 +595,7 @@ async function completePaymentByLink(store, paymentId, payload, origin) {
   const receiptMessage = [
     `Hello *${customer.name}*,`,
     '',
-    `Payment Received! Thank you for paying your *Pure Home Waters* purifier rent.`,
+    `Payment Received! Thank you for paying your *Aqua Purifier Rentals* purifier rent.`,
     '',
     `Payment ID: ${link.paymentId}`,
     `Transaction Ref: ${txRef}`,
@@ -603,7 +603,7 @@ async function completePaymentByLink(store, paymentId, payload, origin) {
     `Month: ${link.forMonth}`,
     `Next Due Date: ${nextDueFormatted}`,
     '',
-    `- Pure Home Waters, Tirupati`
+    `- Aqua Purifier Rentals, Tirupati`
   ].join('\n');
 
   const whatsappReceipt = logWhatsAppMessage(store, {
@@ -707,7 +707,7 @@ async function handleIncomingWhatsAppComplaint(store, payload) {
     '',
     `We have received your complaint on WhatsApp. Your Ticket ID is *${ticketId}*.`,
     `Our team will assign a technician shortly.`,
-    `- Pure Home Waters, Tirupati`
+    `- Aqua Purifier Rentals, Tirupati`
   ].join('\n');
 
   const newComplaint = {
@@ -800,7 +800,7 @@ async function admitComplaintAndScheduleFix(store, complaintId, body) {
     '',
     `Your service request *${ticketId}* has been approved.`,
     `Technician *${technicianName}* is scheduled to visit on *${visitStr}*.`,
-    `- Pure Home Waters, Tirupati`
+    `- Aqua Purifier Rentals, Tirupati`
   ].join('\n');
 
   const whatsappNotification = logWhatsAppMessage(store, {
