@@ -9,6 +9,7 @@ import { TechniciansComponent } from './features/technicians/technicians.compone
 import { PaymentsComponent } from './features/payments/payments.component';
 import { RemindersComponent } from './features/reminders/reminders.component';
 import { CustomerPayComponent } from './features/pay/customer-pay.component';
+import { SettingsComponent } from './features/settings/settings.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -21,6 +22,7 @@ export const routes: Routes = [
   { path: 'technicians', component: TechniciansComponent },
   { path: 'payments', component: PaymentsComponent },
   { path: 'reminders', component: RemindersComponent },
+  { path: 'settings', component: SettingsComponent },
   { path: 'pay/:paymentId', component: CustomerPayComponent },
   { path: '**', redirectTo: 'dashboard' }
 ];

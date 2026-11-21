@@ -45,6 +45,7 @@ export class AppComponent {
     { path: '/complaints', icon: 'report_problem',   label: 'Complaints' },
     { path: '/technicians', icon: 'engineering',      label: 'Technicians' },
     { path: '/plans',      icon: 'card_membership',  label: 'Rental Plans' },
+    { path: '/settings',   icon: 'settings',         label: 'Settings' },
   ];
 
   constructor(

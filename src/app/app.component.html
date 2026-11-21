@@ -52,29 +52,6 @@
             </div>
 
             <div class="topbar-right">
-                <!-- Simple Backup Button -->
-                <button class="simple-pill-btn" type="button" (click)="saveBackupAndSync()"
-                    [disabled]="backupStatus().state === 'running'"
-                    title="Click to save and download a backup file">
-                    <mat-icon class="backup-icon">{{ getBackupIcon() }}</mat-icon>
-                    <span>Save Backup</span>
-                </button>
-
-                <!-- Simple Import File -->
-                <button class="simple-pill-btn" type="button" (click)="triggerBackupImport()"
-                    title="Open a previously saved backup file">
-                    <mat-icon>upload_file</mat-icon>
-                    <span>Open Backup</span>
-                </button>
-                <input #backupFileInput type="file" accept=".sql,.txt" hidden (change)="handleBackupImport($event)">
-
-                <!-- Simple Export Report -->
-                <button class="simple-pill-btn btn-green" type="button" (click)="exportCustomerReport()"
-                    title="Download customer list and rent details into an Excel spreadsheet">
-                    <mat-icon>download</mat-icon>
-                    <span>Download Excel</span>
-                </button>
-
                 <!-- Date -->
                 <div class="date-badge">
                     <mat-icon>calendar_today</mat-icon>
