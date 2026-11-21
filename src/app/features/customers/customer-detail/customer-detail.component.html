@@ -8,12 +8,14 @@
             </a>
             <div>
                 <h2>{{ customer.name }}</h2>
-                <p class="subtitle">{{ customer.area }} · {{ customer.phone }} <mat-icon class="phone-copy-icon" (click)="copyPhone()">content_copy</mat-icon></p>
+                <p class="subtitle">{{ customer.area }} · {{ customer.phone }} <mat-icon class="phone-copy-icon"
+                        (click)="copyPhone()">content_copy</mat-icon></p>
             </div>
         </div>
         <div class="header-actions">
             <button mat-stroked-button (click)="sendReminder()">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="15" height="15" alt="WA" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="15" height="15"
+                    alt="WA" />
                 <span>Send Reminder</span>
             </button>
             <!-- <button mat-stroked-button (click)="copyPaymentLink()">
@@ -68,7 +70,8 @@
             </div>
             <div class="info-card-content-wrapper">
                 <div class="info-label">Payment Link</div>
-                <div class="info-value small"><a [href]="getPaymentLink()" target="_blank">{{ getPaymentLink() }}</a>  <mat-icon class="payment-link-copy-icon" (click)="copyPaymentLink()">content_copy</mat-icon></div>
+                <div class="info-value small"><a [href]="getPaymentLink()" target="_blank">{{ getPaymentLink() }}</a>
+                    <mat-icon class="payment-link-copy-icon" (click)="copyPaymentLink()">content_copy</mat-icon></div>
             </div>
         </div>
         <div class="info-card">
@@ -157,7 +160,8 @@
                 <div class="info-label">Next Service Date</div>
                 <div class="info-value">
                     @if (customer.nextServiceDate) {
-                    <span [class]="getServiceDueClass(customer.nextServiceDate)">{{ customer.nextServiceDate | date:'dd MMM yyyy' }}</span>
+                    <span [class]="getServiceDueClass(customer.nextServiceDate)">{{ customer.nextServiceDate | date:'dd
+                        MMM yyyy' }}</span>
                     } @else {
                     <span class="muted-text">Not scheduled</span>
                     }
@@ -390,7 +394,8 @@
                         <div class="complaint-body">
                             <div class="complaint-header">
                                 <strong>Complaint</strong>
-                                <span class="complaint-date">{{ complaint.createdAt | date:'dd MMM yyyy, hh:mm a' }}</span>
+                                <span class="complaint-date">{{ complaint.createdAt | date:'dd MMM yyyy, hh:mm a'
+                                    }}</span>
                             </div>
                             <p class="complaint-text">{{ complaint.complaint }}</p>
                             <div class="complaint-meta">
@@ -401,10 +406,12 @@
                             <button mat-icon-button color="accent" (click)="openComplaintComments(complaint)">
                                 <mat-icon>chat_bubble</mat-icon>
                             </button>
-                            <button mat-icon-button color="primary" *ngIf="!complaint.resolved" (click)="resolveComplaint(complaint)">
+                            <button mat-icon-button color="primary" *ngIf="!complaint.resolved"
+                                (click)="resolveComplaint(complaint)">
                                 <mat-icon>check_circle</mat-icon>
                             </button>
-                            <button mat-icon-button color="accent" *ngIf="complaint.resolved" (click)="reopenComplaint(complaint)">
+                            <button mat-icon-button color="accent" *ngIf="complaint.resolved"
+                                (click)="reopenComplaint(complaint)">
                                 <mat-icon>undo</mat-icon>
                             </button>
                             <button mat-icon-button color="warn" (click)="deleteComplaint(complaint)">
